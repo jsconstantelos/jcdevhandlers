@@ -10,7 +10,7 @@
 */
 metadata {
 	// Automatically generated. Make future change here.
-	definition (name: "My ZWave Thermostat", namespace: "jscgs350", author: "jscgs350")
+	definition (name: "My Thermostat v8", namespace: "jscgs350", author: "jscgs350")
     { 
 		capability "Refresh"
 		capability "Actuator"
@@ -94,7 +94,7 @@ metadata {
         valueTile("heatingSetpoint", "device.heatingSetpoint", width: 2, height: 2, inactiveLabel: false) {
 			state "heat", label:'${currentValue}°', backgroundColor:"#d04e00"
 		}
-		controlTile("heatSliderControl", "device.heatingSetpoint", "slider", height: 2, width: 3, inactiveLabel: false, range:"(60..80)") {
+		controlTile("heatSliderControl", "device.heatingSetpoint", "slider", height: 2, width: 3, inactiveLabel: false) {
 			state "setHeatingSetpoint", action:"quickSetHeat", backgroundColor:"#d04e00"
 		}
 
@@ -108,7 +108,7 @@ metadata {
 		valueTile("coolingSetpoint", "device.coolingSetpoint", width: 2, height: 2, inactiveLabel: false) {
 			state "cool", label:'${currentValue}°', backgroundColor: "#53a7c0"
 		}
-		controlTile("coolSliderControl", "device.coolingSetpoint", "slider", height: 2, width: 3, inactiveLabel: false, range:"(60..80)") {
+		controlTile("coolSliderControl", "device.coolingSetpoint", "slider", height: 2, width: 3, inactiveLabel: false) {
 			state "setCoolingSetpoint", action:"quickSetCool", backgroundColor: "#53a7c0"
 		}
 
@@ -401,20 +401,12 @@ def zwaveEvent(physicalgraph.zwave.Command cmd) {
 
 def heatLevelUp(){
     int nextLevel = device.currentValue("heatingSetpoint") + 1
-    
-    if( nextLevel > 90){
-    	nextLevel = 90
-    }
     log.debug "Setting heat set point up to: ${nextLevel}"
     setHeatingSetpoint(nextLevel)
 }
 
 def heatLevelDown(){
     int nextLevel = device.currentValue("heatingSetpoint") - 1
-    
-    if( nextLevel < 40){
-    	nextLevel = 40
-    }
     log.debug "Setting heat set point down to: ${nextLevel}"
     setHeatingSetpoint(nextLevel)
 }
@@ -450,20 +442,12 @@ def setHeatingSetpoint(Double degrees, Integer delay = 30000) {
 
 def coolLevelUp(){
     int nextLevel = device.currentValue("coolingSetpoint") + 1
-    
-    if( nextLevel > 99){
-    	nextLevel = 99
-    }
     log.debug "Setting cool set point up to: ${nextLevel}"
     setCoolingSetpoint(nextLevel)
 }
 
 def coolLevelDown(){
     int nextLevel = device.currentValue("coolingSetpoint") - 1
-    
-    if( nextLevel < 50){
-    	nextLevel = 50
-    }
     log.debug "Setting cool set point down to: ${nextLevel}"
     setCoolingSetpoint(nextLevel)
 }
