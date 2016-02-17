@@ -15,11 +15,12 @@
  *  Updates:
  *  -------
  *  02-16-2016 : Removed posting to the Activity Feed (Recently tab) in the phone app and event log.
+ *  02-17-2017 : Added the ability to change the icon
  *
  */
 metadata {
 	// Automatically generated. Make future change here.
-	definition (name: "My Aeon Metering Switch", namespace: "constjs", author: "SmartThings Community") {
+	definition (name: "My Aeon Metering Switch v2", namespace: "jscgs350", author: "SmartThings") {
 		capability "Energy Meter"
 		capability "Actuator"
 		capability "Switch"
@@ -56,7 +57,7 @@ metadata {
     }
 
 	tiles(scale: 2) {
-		multiAttributeTile(name:"switch", type: "lighting", width: 6, height: 4, canChangeIcon: true){
+		multiAttributeTile(name:"switch", type: "lighting", width: 6, height: 4, decoration: "flat", canChangeIcon: true, canChangeBackground: true){
 			tileAttribute ("device.switch", key: "PRIMARY_CONTROL") {
 				attributeState "on", label: '${name}', action: "switch.off", icon: "st.switches.switch.on", backgroundColor: "#79b821"
 				attributeState "off", label: '${name}', action: "switch.on", icon: "st.switches.switch.off", backgroundColor: "#ffffff"
