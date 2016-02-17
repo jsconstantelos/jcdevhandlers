@@ -10,7 +10,7 @@
 */
 metadata {
 	// Automatically generated. Make future change here.
-	definition (name: "My Thermostat v8", namespace: "jscgs350", author: "jscgs350")
+	definition (name: "My Thermostat", namespace: "jscgs350", author: "jscgs350")
     { 
 		capability "Refresh"
 		capability "Actuator"
