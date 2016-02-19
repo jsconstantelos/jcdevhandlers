@@ -59,13 +59,13 @@ metadata {
             }
 		}    
 
-        valueTile("energyDisp", "device.energyDisp", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
+        valueTile("energyDisp", "device.energyDisp", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
             state("default", label: '${currentValue}', backgroundColor:"#ffffff")
         }
         valueTile("energyOne", "device.energyOne", width: 6, height: 2, inactiveLabel: false, decoration: "flat") {
             state("default", label: '${currentValue}', backgroundColor:"#ffffff")
         }        
-        valueTile("energyTwo", "device.energyTwo", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
+        valueTile("energyTwo", "device.energyTwo", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
             state("default", label: '${currentValue}', backgroundColor:"#ffffff")
         }
 
@@ -76,7 +76,7 @@ metadata {
         	state "configure", label:'', action:"configure", icon:"st.secondary.configure"
     	}
     
-        valueTile("battery", "device.battery", inactiveLabel: false, decoration: "flat") {
+        valueTile("battery", "device.battery", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
             state "battery", label:'${currentValue}% battery', unit:""
         }
     
@@ -100,7 +100,7 @@ metadata {
 		}
           
         main (["powerDisp"])
-        details(["powerDisp", "energyDisp", "energyTwo", "energyOne", "resetmaxmin", "resetenergy", "reset", "refresh", "configure"])
+        details(["powerDisp", "battery", "energyDisp", "energyTwo", "energyOne", "resetmaxmin", "resetenergy", "reset", "refresh", "configure"])
         }
 
         preferences {
@@ -181,8 +181,9 @@ def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
         map.isStateChange = true
     } else {
         map.value = cmd.batteryLevel
+        sendEvent(name: "battery", value: map.value as String, displayed: false)
     }
-//    log.debug map
+    log.debug map
     return map
 }
 
