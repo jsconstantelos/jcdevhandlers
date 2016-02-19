@@ -19,7 +19,7 @@
  */
 metadata {
     // Automatically generated. Make future change here.
-    definition (name: "My MIMOlite Water Valve Controller", namespace: "jscgs350", author: "jsconst@gmail.com") {
+    definition (name: "My MIMOlite Water Valve Controller", namespace: "jscgs350", author: "jscgs350") {
 		capability "Alarm"
 		capability "Polling"
         capability "Refresh"
