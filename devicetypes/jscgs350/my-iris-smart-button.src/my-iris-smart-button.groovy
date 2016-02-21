@@ -55,7 +55,7 @@ metadata {
 			state "battery", label:'${currentValue}% battery', unit:""
 		}
         valueTile("temperature", "device.temperature", inactiveLabel: false, width: 2, height: 2) {
-			state "temperature", label:'${currentValue}°',
+			state "temperature", icon:"st.tesla.tesla-hvac", label:'${currentValue}°',
 				backgroundColors:[
 					[value: 31, color: "#153591"],
 					[value: 44, color: "#1e9cbb"],
