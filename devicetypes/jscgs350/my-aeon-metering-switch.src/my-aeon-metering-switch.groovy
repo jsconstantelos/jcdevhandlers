@@ -15,7 +15,8 @@
  *  Updates:
  *  -------
  *  02-16-2016 : Removed posting to the Activity Feed (Recently tab) in the phone app and event log.
- *  02-17-2017 : Added the ability to change the icon
+ *  02-17-2016 : Added the ability to change the icon.
+ *  02-20-2016 : Fixed to use the right parameters for changed/timed reporting, and documented the parameters better.
  *
  */
 metadata {
