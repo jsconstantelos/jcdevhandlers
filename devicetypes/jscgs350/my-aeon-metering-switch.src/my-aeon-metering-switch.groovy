@@ -17,6 +17,7 @@
  *  02-16-2016 : Removed posting to the Activity Feed (Recently tab) in the phone app and event log.
  *  02-17-2016 : Added the ability to change the icon.
  *  02-20-2016 : Fixed to use the right parameters for changed/timed reporting, and documented the parameters better.
+ *  02-21-2016 : Made certain configuration parameters changeable via device preferences instead of having to tweak code all the time.
  *
  */
 metadata {
@@ -55,6 +56,31 @@ metadata {
             title: "Enable debug logging?", 
             defaultValue: false, 
             displayDuringSetup: true
+        input "reportType", "number", 
+            title: "Send data on a time interval (0), or on a change in wattage (1)? Enter a 0 or 1:",  
+            defaultValue: 0, 
+            required: false, 
+            displayDuringSetup: true
+        input "wattsChanged", "number", 
+            title: "Don't send unless watts have changed by this many watts: (range 0 - 32,000W)",  
+            defaultValue: 50, 
+            required: false, 
+            displayDuringSetup: true
+        input "wattsPercent", "number", 
+            title: "Don't send unless watts have changed by this percent: (range 0 - 99%)",  
+            defaultValue: 10, 
+            required: false, 
+            displayDuringSetup: true
+        input "secondsWatts", "number", 
+            title: "Send Watts data every how many seconds? (range 0 - 65,000 seconds)",  
+            defaultValue: 10, 
+            required: false, 
+            displayDuringSetup: true
+        input "secondsKwh", "number", 
+            title: "Send kWh data every how many seconds? (range 0 - 65,000 seconds)",  
+            defaultValue: 60, 
+            required: false, 
+            displayDuringSetup: true 
     }
 
 	tiles(scale: 2) {
@@ -109,7 +135,7 @@ metadata {
 def updated() {
     state.onOffDisabled = ("true" == disableOnOff)
     state.debug = ("true" == debugOutput)
-    log.debug "updated(disableOnOff: ${disableOnOff}(${state.onOffDisabled}), debugOutput: ${debugOutput}(${state.debug}))"
+    log.debug "updated(disableOnOff: ${disableOnOff}(${state.onOffDisabled}), debugOutput: ${debugOutput}(${state.debug}), reportType: ${reportType}, wattsChanged: ${wattsChanged}, wattsPercent: ${wattsPercent}, secondsWatts: ${secondsWatts}, secondsKwh: ${secondsKwh})"
     response(configure())
 }
 
@@ -247,29 +273,84 @@ def reset() {
 }
 
 def configure() {
-    if (state.debug) log.debug "${device.name} configure"
+    log.debug "${device.name} configuring..."
+    
+    if (reportType == 0) {
+		log.debug "Setting reportType to ${reportType} per user request."
+	} else if (reportType == 1) {
+		log.debug "Setting reportType to ${reportType} per user request."
+	}
+    else {
+        def reportType = 0
+        log.debug "Setting reportType to ${reportType} (device default) because an invalid value was provided."
+    }
+    
+    if (wattsChanged < 0) {
+        def wattsChanged = 50
+        log.debug "Setting wattsChanged to ${wattsChanged} (device default) because an invalid value was provided."
+	} else if (wattsChanged < 32001) {
+		log.debug "Setting wattsChanged to ${wattsChanged} per user request."
+	}
+    else {
+        def wattsChanged = 50
+        log.debug "Setting wattsChanged to ${wattsChanged} (device default) because an invalid value was provided."
+    }    
+
+    if (wattsPercent < 0) {
+        def wattsPercent = 10
+        log.debug "Setting wattsPercent to ${wattsPercent} (device default) because an invalid value was provided."
+	} else if (wattsPercent < 100) {
+		log.debug "Setting wattsPercent to ${wattsPercent} per user request."
+	}
+    else {
+        def wattsPercent = 10
+        log.debug "Setting wattsPercent to ${wattsPercent} (device default) because an invalid value was provided."
+    } 
+
+    if (secondsWatts < 0) {
+        def secondsWatts = 600
+        log.debug "Setting secondsWatts to ${secondsWatts} (device default) because an invalid value was provided."
+	} else if (secondsWatts < 65000) {
+		log.debug "Setting secondsWatts to ${secondsWatts} per user request."
+	}
+    else {
+        def secondsWatts = 600
+        log.debug "Setting secondsWatts to ${secondsWatts} (device default) because an invalid value was provided."
+    } 
+
+    if (secondsKwh < 0) {
+        def secondsKwh = 600
+        log.debug "Setting secondsKwh to ${secondsKwh} (device default) because an invalid value was provided."
+	} else if (secondsKwh < 65000) {
+		log.debug "Setting secondsKwh to ${secondsKwh} per user request."
+	}
+    else {
+        def secondsKwh = 600
+        log.debug "Setting secondsKwh to ${secondsKwh} (device default) because an invalid value was provided."
+    }
+
 	delayBetween([
     
     // Send data based on a time interval (0), or based on a change in wattage (1).  0 is default. 1 enables parameters 91 and 92.
-    zwave.configurationV1.configurationSet(parameterNumber: 90, size: 1, scaledConfigurationValue: 1).format(),
+    zwave.configurationV1.configurationSet(parameterNumber: 90, size: 1, scaledConfigurationValue: reportType).format(),
     
     // If parameter 90 is 1, don't send unless watts have changed by 50 <default>
-    zwave.configurationV1.configurationSet(parameterNumber: 91, size: 2, scaledConfigurationValue: 2).format(),
+    zwave.configurationV1.configurationSet(parameterNumber: 91, size: 2, scaledConfigurationValue: wattsChanged).format(),
     
     // If parameter 90 is 1, don't send unless watts have changed by 10% <default>
-    zwave.configurationV1.configurationSet(parameterNumber: 92, size: 1, scaledConfigurationValue: 5).format(),
+    zwave.configurationV1.configurationSet(parameterNumber: 92, size: 1, scaledConfigurationValue: wattsPercent).format(),
     
 	// Defines the type of report sent for Reporting Group 1.  2->MultiSensor Report, 4->Meter Report for Watt, 8->Meter Report for kWh
 	zwave.configurationV1.configurationSet(parameterNumber: 101, size: 4, scaledConfigurationValue: 4).format(),
     
-    // If parameter 90 is 0, report every 15 Seconds (for Watts) for Reporting Group 1.
-    zwave.configurationV1.configurationSet(parameterNumber: 111, size: 4, scaledConfigurationValue: 15).format(),
+    // If parameter 90 is 0, report every XX Seconds (for Watts) for Reporting Group 1.
+    zwave.configurationV1.configurationSet(parameterNumber: 111, size: 4, scaledConfigurationValue: secondsWatts).format(),
     
     // Defines the type of report sent for Reporting Group 2.  2->MultiSensor Report, 4->Meter Report for Watt, 8->Meter Report for kWh
     zwave.configurationV1.configurationSet(parameterNumber: 102, size: 4, scaledConfigurationValue: 8).format(),
     
-    // If parameter 90 is 0, report every 60 seconds (for kWh) for Reporting Group 2.
-    zwave.configurationV1.configurationSet(parameterNumber: 112, size: 4, scaledConfigurationValue: 60).format(),
+    // If parameter 90 is 0, report every XX seconds (for kWh) for Reporting Group 2.
+    zwave.configurationV1.configurationSet(parameterNumber: 112, size: 4, scaledConfigurationValue: secondsKwh).format(),
     
     // Disable Reporting Group 3 parameters
     zwave.configurationV1.configurationSet(parameterNumber: 103, size: 4, scaledConfigurationValue: 0).format(),
