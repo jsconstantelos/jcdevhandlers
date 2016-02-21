@@ -18,7 +18,7 @@
  *  -------
  *  02-15-2016 : Removed posting to the Activity Feed in the phone app and event log.
  *  02-17-2016 : Fixed preferences for kWh cost from string to number.
- *  02-20-2016 : Enabled battery reporting (paramer 103, value 1), and documented the parameters better.
+ *  02-20-2016 : Enabled battery reporting (parameter 103, value 1), and documented the parameters better.
  *
  */
 metadata {
@@ -78,7 +78,7 @@ metadata {
     	}
     
         valueTile("battery", "device.battery", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
-            state "battery", label:'${currentValue}% battery', unit:""
+            state "battery", label:'${currentValue}%\nbattery', unit:""
         }
     
         valueTile("statusText", "statusText", width: 3, height: 2, inactiveLabel: false) {
