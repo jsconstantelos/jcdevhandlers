@@ -18,6 +18,7 @@
  *  -------
  *  02-15-2016 : Removed posting to the Activity Feed in the phone app and event log.
  *  02-17-2016 : Fixed preferences for kWh cost from string to number.
+ *  02-20-2016 : Enabled battery reporting (paramer 103, value 1), and documented the parameters better.
  *
  */
 metadata {
@@ -111,7 +112,7 @@ metadata {
 def parse(String description) {
 //    log.debug "Parse received ${description}"
     def result = null
-    def cmd = zwave.parse(description, [0x31: 1, 0x32: 1, 0x60: 3])
+    def cmd = zwave.parse(description, [0x31: 1, 0x32: 1, 0x60: 3, 0x80: 1])
     if (cmd) {
         result = createEvent(zwaveEvent(cmd))
     }
@@ -183,7 +184,6 @@ def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
         map.value = cmd.batteryLevel
         sendEvent(name: "battery", value: map.value as String, displayed: false)
     }
-    log.debug map
     return map
 }
 
@@ -245,20 +245,36 @@ def resetmaxmin() {
 def configure() {
     log.debug "${device.name} configuring device"
     def cmd = delayBetween([
-//    	zwave.configurationV1.configurationSet(parameterNumber: 255, size: 4, scaledConfigurationValue: 1).format() 	// Performs a complete factory reset.  Use this all by itself and comment out all others below.  Once reset, comment this line out and uncomment the others to go back to normal
+
+ 	// Performs a complete factory reset.  Use this all by itself and comment out all others below.  Once reset, comment this line out and uncomment the others to go back to normal
+//  zwave.configurationV1.configurationSet(parameterNumber: 255, size: 4, scaledConfigurationValue: 1).format()
+
+    // Send data based on a time interval (0), or based on a change in wattage (1).  0 is default and enables parameters 111, 112, and 113. 1 enables parameters 4 and 8.
+    zwave.configurationV1.configurationSet(parameterNumber: 3, size: 1, scaledConfigurationValue: 1).format(),
+        
+    // If parameter 3 is 1, don't send unless watts have changed by 50 <default> for the whole device.   
+    zwave.configurationV1.configurationSet(parameterNumber: 4, size: 2, scaledConfigurationValue: 5).format(),
+        
+    // If parameter 3 is 1, don't send unless watts have changed by 10% <default> for the whole device.        
+    zwave.configurationV1.configurationSet(parameterNumber: 8, size: 1, scaledConfigurationValue: 5).format(),
+
+	// Defines the type of report sent for Reporting Group 1 for the whole device.  1->Battery Report, 4->Meter Report for Watt, 8->Meter Report for kWh
+    zwave.configurationV1.configurationSet(parameterNumber: 101, size: 4, scaledConfigurationValue: 4).format(), //watts
+
+    // If parameter 3 is 0, report every 15 Seconds (for Watts) for Reporting Group 1 for the whole device.
+	zwave.configurationV1.configurationSet(parameterNumber: 111, size: 4, scaledConfigurationValue: 15).format(),
+
+    // Defines the type of report sent for Reporting Group 2 for the whole device.  1->Battery Report, 4->Meter Report for Watt, 8->Meter Report for kWh
+    zwave.configurationV1.configurationSet(parameterNumber: 102, size: 4, scaledConfigurationValue: 8).format(), //kWh
+
+    // If parameter 3 is 0, report every 60 seconds (for kWh) for Reporting Group 2 for the whole device.
+	zwave.configurationV1.configurationSet(parameterNumber: 112, size: 4, scaledConfigurationValue: 60).format(),
+
+	// Defines the type of report sent for Reporting Group 3 for the whole device.  1->Battery Report, 4->Meter Report for Watt, 8->Meter Report for kWh
+    zwave.configurationV1.configurationSet(parameterNumber: 103, size: 4, scaledConfigurationValue: 1).format(), //battery
     
-        zwave.configurationV1.configurationSet(parameterNumber: 3, size: 1, scaledConfigurationValue: 0).format(),      // Disable selective reporting, so always update based on schedule below <set to 1 to reduce network traffic>
-        zwave.configurationV1.configurationSet(parameterNumber: 4, size: 2, scaledConfigurationValue: 5).format(),     // (DISABLED by first option) Don't send unless watts have changed by xx <default is 50>
-        zwave.configurationV1.configurationSet(parameterNumber: 8, size: 1, scaledConfigurationValue: 1).format(),     // (DISABLED by first option) Or by x% <default is 10>
-
-        zwave.configurationV1.configurationSet(parameterNumber: 101, size: 4, scaledConfigurationValue: 4).format(),    // Combined energy in Watts
-        zwave.configurationV1.configurationSet(parameterNumber: 111, size: 4, scaledConfigurationValue: 15).format(),   // Every 15 Seconds (for Watts)
-
-        zwave.configurationV1.configurationSet(parameterNumber: 102, size: 4, scaledConfigurationValue: 8).format(),    // Combined energy in kWh
-        zwave.configurationV1.configurationSet(parameterNumber: 112, size: 4, scaledConfigurationValue: 60).format(),   // every 60 seconds (for kWh)
-
-        zwave.configurationV1.configurationSet(parameterNumber: 103, size: 4, scaledConfigurationValue: 0).format(),    // Disable report 3
-        zwave.configurationV1.configurationSet(parameterNumber: 113, size: 4, scaledConfigurationValue: 0).format()     // Disable report 3
+    // If parameter 3 is 0, report every 15 minutes (for battery) for Reporting Group 2 for the whole device.    
+    zwave.configurationV1.configurationSet(parameterNumber: 113, size: 4, scaledConfigurationValue: 900).format() //900 seconds
         
     ])
 
