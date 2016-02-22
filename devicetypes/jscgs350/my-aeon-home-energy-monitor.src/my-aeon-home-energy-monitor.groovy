@@ -20,6 +20,7 @@
  *  02-17-2016 : Fixed preferences for kWh cost from string to number.
  *  02-20-2016 : Enabled battery reporting (parameter 103, value 1), and documented the parameters better.
  *  02-21-2016 : Made certain configuration parameters changeable via device preferences instead of having to tweak code all the time.
+ *  02-22-2016 : Fixed kWh cost entry in Preferences not allowing decimals.
  *
  */
 metadata {
@@ -106,7 +107,7 @@ metadata {
         }
 
         preferences {
-            input "kWhCost", "number",
+            input "kWhCost", "string",
             	title: "Enter your cost per kWh (or just use the default, or use 0 to not calculate):",
             	defaultValue: 0.16,
                 required: false,                
