@@ -38,7 +38,7 @@ metadata {
 	}
  
 	tiles(scale: 2) {
-		multiAttributeTile(name:"contact", type: "generic", width: 6, height: 4){
+		multiAttributeTile(name:"contact", type: "lighting", width: 6, height: 4){
 			tileAttribute ("device.contact", key: "PRIMARY_CONTROL") {
 				attributeState "open", label:'Ding\nDong', icon:"st.Home.home30", backgroundColor: "#53a7c0"
 				attributeState "closed", label:'Ding\nDong', icon:"st.Home.home30", backgroundColor: "#53a7c0"
