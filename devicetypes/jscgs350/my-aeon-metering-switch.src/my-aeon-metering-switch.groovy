@@ -32,7 +32,6 @@ metadata {
 		capability "Refresh"
 		capability "Sensor"
         capability "Configuration"
-        capability "Sensor"
 
         attribute "power", "string"
         attribute "powerDisp", "string"
