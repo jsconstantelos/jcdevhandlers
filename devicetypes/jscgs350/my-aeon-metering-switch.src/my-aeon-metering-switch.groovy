@@ -18,6 +18,7 @@
  *  02-17-2016 : Added the ability to change the icon.
  *  02-20-2016 : Fixed to use the right parameters for changed/timed reporting, and documented the parameters better.
  *  02-21-2016 : Made certain configuration parameters changeable via device preferences instead of having to tweak code all the time.
+ *  02-27-2016 : Changed date formats to be MM-dd-yyyy h:mm a
  *
  */
 metadata {
@@ -158,7 +159,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
     if (state.debug) log.debug "zwaveEvent received ${cmd}"
     def dispValue
     def newValue
-    def timeString = new Date().format("yyyy-MM-dd h:mm a", location.timeZone)
+    def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
 	if (cmd.scale == 0) {
 		[name: "energy", value: cmd.scaledMeterValue, unit: "kWh", displayed: false]
 	} else if (cmd.scale == 1) {
@@ -258,7 +259,7 @@ def reset() {
     state.powerHigh = 0
     state.powerLow = 99999
     
-	def timeString = new Date().format("yyyy-MM-dd h:mm a", location.timeZone)
+	def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
     sendEvent(name: "energyOne", value: "Last Reset On:\n"+timeString, unit: "")
     sendEvent(name: "powerOne", value: "", unit: "")    
     sendEvent(name: "powerDisp", value: "", unit: "")    

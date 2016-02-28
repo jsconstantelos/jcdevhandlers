@@ -21,6 +21,7 @@
  *  02-20-2016 : Enabled battery reporting (parameter 103, value 1), and documented the parameters better.
  *  02-21-2016 : Made certain configuration parameters changeable via device preferences instead of having to tweak code all the time.
  *  02-22-2016 : Fixed kWh cost entry in Preferences not allowing decimals.
+ *  02-27-2016 : Changed date formats to be MM-dd-yyyy h:mm a
  *
  */
 metadata {
@@ -169,7 +170,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
     //log.debug "zwaveEvent received ${cmd}"
     def dispValue
     def newValue
-    def timeString = new Date().format("yyyy-MM-dd h:mm a", location.timeZone)
+    def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
     if (cmd.meterType == 33) {
         if (cmd.scale == 0) {
             newValue = cmd.scaledMeterValue
@@ -251,7 +252,7 @@ def reset() {
     state.powerHigh = 0
 	state.powerLow = 99999
 
-	def timeString = new Date().format("yyyy-MM-dd h:mm a", location.timeZone)
+	def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
     sendEvent(name: "energyOne", value: "Energy Data (kWh/Cost) Reset On:\n"+timeString, unit: "")       
     sendEvent(name: "energyDisp", value: "", unit: "")
     sendEvent(name: "energyTwo", value: "Cost\n--", unit: "")
@@ -270,7 +271,7 @@ def resetmaxmin() {
     state.powerHigh = 0
     state.powerLow = 99999
     
-	def timeString = new Date().format("yyyy-MM-dd h:mm a", location.timeZone)
+	def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
     sendEvent(name: "energyOne", value: "Watts Data (min/max) Reset On:\n"+timeString, unit: "")
     sendEvent(name: "powerOne", value: "", unit: "")    
     sendEvent(name: "powerTwo", value: "", unit: "")    
