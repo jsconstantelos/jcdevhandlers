@@ -19,6 +19,7 @@
  *  02-20-2016 : Fixed to use the right parameters for changed/timed reporting, and documented the parameters better.
  *  02-21-2016 : Made certain configuration parameters changeable via device preferences instead of having to tweak code all the time.
  *  02-27-2016 : Changed date formats to be MM-dd-yyyy h:mm a
+ *  02-29-2016 : Changed reportType variable from 0 to 1.
  *
  */
 metadata {
