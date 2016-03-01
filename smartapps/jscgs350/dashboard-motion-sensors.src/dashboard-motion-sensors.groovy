@@ -22,7 +22,8 @@
  *
  *  Revision History
  *  ----------------
- *  2016-02-14  v1.0.0  Initial release
+ *  02-14-2016 : v1.0.0  Initial release
+ *  02-29-2016 : Faormatting and variable name changes
  *
  */
 
@@ -67,7 +68,10 @@ def pageStatus() {
 			def lastMotion = it.currentValue('motion')
 			try {
 				if (lastMotion) {
-					goodlist += "$lastMotion : $it.displayName\n"
+                	if (lastMotion == 'active') {
+						goodlist += "$lastMotion    : $it.displayName\n"}
+                    if (lastMotion == 'inactive') {
+						goodlist += "$lastMotion : $it.displayName\n"}
 				} else {
 					badlist += "$it.displayName\n"	
 				}
