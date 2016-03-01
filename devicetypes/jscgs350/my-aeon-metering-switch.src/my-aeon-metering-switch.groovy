@@ -58,7 +58,7 @@ metadata {
             displayDuringSetup: true
         input "reportType", "number", 
             title: "Send data on a time interval (0), or on a change in wattage (1)? Enter a 0 or 1:",  
-            defaultValue: 0, 
+            defaultValue: 1, 
             required: false, 
             displayDuringSetup: true
         input "wattsChanged", "number", 
@@ -281,8 +281,8 @@ def configure() {
 		log.debug "Setting reportType to ${reportType} per user request."
 	}
     else {
-        def reportType = 0
-        log.debug "Setting reportType to ${reportType} (device default) because an invalid value was provided."
+        def reportType = 1
+        log.debug "Setting reportType to ${reportType} because an invalid value was provided."
     }
     
     if (wattsChanged < 0) {
