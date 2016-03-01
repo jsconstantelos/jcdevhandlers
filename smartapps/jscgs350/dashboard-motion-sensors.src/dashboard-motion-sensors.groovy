@@ -53,7 +53,7 @@ def pageStatus() {
 		uninstall:  true
 	]
 
-	if (settings.tempdevices == null) {
+	if (settings.motiondevices == null) {
 			return pageConfigure()
 	}
     
@@ -63,11 +63,11 @@ def pageStatus() {
 	    
 	return dynamicPage(pageProperties) {
     	def rightNow = new Date()
-		settings.tempdevices.each() {
-			def lastTemp = it.currentValue('motion')
+		settings.motiondevices.each() {
+			def lastMotion = it.currentValue('motion')
 			try {
-				if (lastTemp) {
-					goodlist += "$lastTemp : $it.displayName\n"
+				if (lastMotion) {
+					goodlist += "$lastMotion : $it.displayName\n"
 				} else {
 					badlist += "$it.displayName\n"	
 				}
@@ -110,7 +110,7 @@ def pageStatus() {
 def pageConfigure() {
 	def helpPage = "Select devices that you wish to check when you open this SmartApp."
 
-	def inputTempDevices = [name:"tempdevices",type:"capability.motionSensor",title:"Which motion sensor devices?",multiple:true,required:true]
+	def inputMotionDevices = [name:"motiondevices",type:"capability.motionSensor",title:"Which motion sensor devices?",multiple:true,required:true]
 
 	def pageProperties = [name:"pageConfigure",
 		title:          "Dashboard Configurator",
@@ -124,7 +124,7 @@ def pageConfigure() {
 		}
 
 		section("Devices To Check") {
-			input inputTempDevices
+			input inputMotionDevices
 		}
 
 		section([title:"Available Options", mobileOnly:true]) {
