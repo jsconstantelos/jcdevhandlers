@@ -22,6 +22,7 @@
  *  02-21-2016 : Made certain configuration parameters changeable via device preferences instead of having to tweak code all the time.
  *  02-22-2016 : Fixed kWh cost entry in Preferences not allowing decimals.
  *  02-27-2016 : Changed date formats to be MM-dd-yyyy h:mm a
+ *  02-29-2016 : Changed reportType variable from 0 to 1.
  *
  */
 metadata {
@@ -115,7 +116,7 @@ metadata {
             	displayDuringSetup: true
             input "reportType", "number", 
                 title: "Send data on a time interval (0), or on a change in wattage (1)? Enter a 0 or 1:",  
-                defaultValue: 0, 
+                defaultValue: 1, 
                 required: false, 
                 displayDuringSetup: true
             input "wattsChanged", "number", 
@@ -293,8 +294,8 @@ def configure() {
 		log.debug "Setting reportType to ${reportType} per user request."
 	}
     else {
-        def reportType = 0
-        log.debug "Setting reportType to ${reportType} (device default) because an invalid value was provided."
+        def reportType = 1
+        log.debug "Setting reportType to ${reportType} because an invalid value was provided."
     }
     
     if (wattsChanged < 0) {
