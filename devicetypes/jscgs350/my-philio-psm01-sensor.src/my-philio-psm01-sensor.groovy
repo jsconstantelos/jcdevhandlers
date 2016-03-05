@@ -16,6 +16,7 @@
  *  Updates:
  *  -------
  *  02-18-2016 : Initial commit
+ *  03-04-2016 : Changed multiAttributeTile type to generic to remove secondary_control data from showing up since other tiles already show those values.
  *
  */ 
  metadata {
@@ -35,7 +36,7 @@
 	}
 
 	tiles(scale: 2) {
-		multiAttributeTile(name:"contact", type: "lighting", width: 6, height: 4){
+		multiAttributeTile(name:"contact", type: "generic", width: 6, height: 4){
 			tileAttribute ("device.contact", key: "PRIMARY_CONTROL") {
 				attributeState "closed", label: 'Closed', icon: "st.contact.contact.closed", backgroundColor: "#79b821"
 				attributeState "open", label: 'Open', icon: "st.contact.contact.open", backgroundColor: "#ffa81e"
