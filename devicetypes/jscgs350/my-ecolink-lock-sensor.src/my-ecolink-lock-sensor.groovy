@@ -15,6 +15,7 @@
  *  Updates:
  *  -------
  *  02-18-2016 : Initial commit
+ *  03-05-2016 : Cleaned up code
  *
  */
 
@@ -40,10 +41,6 @@ metadata {
 		}        
         valueTile("battery", "device.battery", width: 6, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "battery", label:'${currentValue}% battery', unit:""
-		}
-        standardTile("contact", "device.contact", width: 2, height: 2) {
-			state "open", label: '${name}', icon: "st.contact.contact.open", backgroundColor: "#ffa81e"
-			state "closed", label: '${name}', icon: "st.contact.contact.closed", backgroundColor: "#79b821"
 		}
         standardTile("refresh", "device.lock", width: 6, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "default", label:'FORCE LOCK', action:"refresh.refresh", icon: "st.presence.house.secured"
@@ -108,10 +105,8 @@ def configure() {
 def sensorValueEvent(value) {
 	if (value) {
         createEvent(name: "lock", value: "unlocked", descriptionText: "$device.displayName is unlocked")
-//        createEvent(name: "contact", value: "open", descriptionText: "$device.displayName is open")
 	} else {
         createEvent(name: "lock", value: "locked", descriptionText: "$device.displayName is locked")
-//        createEvent(name: "contact", value: "closed", descriptionText: "$device.displayName is closed")
 	}
 }
 
