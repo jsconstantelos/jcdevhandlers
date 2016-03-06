@@ -15,6 +15,7 @@
  *  Updates:
  *  -------
  *  02-18-2016 : Initial commit
+ *  03-05-2016 : Changed date format to MM-dd-yyyy h:mm a
  *
  */
 metadata {
@@ -87,7 +88,7 @@ def parse(String description) {
     }
     
     def statusTextmsg = ""
-    def timeString = new Date().format("h:mm a MM-dd-yyyy", location.timeZone)
+    def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
     statusTextmsg = "Valve is ${device.currentState('valveState').value}.\nLast refreshed at "+timeString+"."
     sendEvent("name":"statusText", "value":statusTextmsg)
     log.debug statusTextmsg
