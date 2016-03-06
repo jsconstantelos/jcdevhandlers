@@ -16,6 +16,7 @@
  *  Updates:
  *  -------
  *  02-18-2016 : Initial commit
+ *  03-05-2016 : Changed date format to MM-dd-yyyy h:mm a
  *
  */
 metadata {
@@ -98,7 +99,7 @@ def parse(String description) {
 	log.debug "Parse returned ${result?.descriptionText}"
     
     def statusTextmsg = ""
-    def timeString = new Date().format("h:mma MM-dd-yyyy", location.timeZone)
+    def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
     statusTextmsg = "${device.currentState('contactState').value}.\nLast updated: "+timeString
     sendEvent("name":"statusText", "value":statusTextmsg)
     
