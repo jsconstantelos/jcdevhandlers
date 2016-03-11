@@ -15,6 +15,7 @@
  *  Updates:
  *  -------
  *  02-18-2016 : Initial commit
+ *  03-11-2016 : Due to ST's v2.1.0 app totally hosing up SECONDARY_CONTROL, implemented a workaround to display that info in a separate tile.
  *
  */
  
@@ -50,9 +51,9 @@ metadata {
 				attributeState "turningOff", action:"switch.off", label:'TURNINGOFF', icon:"st.Lighting.light24", backgroundColor:"#2179b8", nextState: "turningOff"
 				attributeState "changingState", action:"refresh.refresh", label:'ADJUSTING', icon:"st.Lighting.light24", backgroundColor:"#2179b8"
 			}
-            tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
-           		attributeState "statusText", label:'${currentValue}'       		
-            }
+//            tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
+//           		attributeState "statusText", label:'${currentValue}'       		
+//            }
 		}
 		standardTile("lowSpeed", "device.currentState", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
 			state "LOW", label:'LOW', action: "lowSpeed", icon:"st.Home.home30"
@@ -71,11 +72,11 @@ metadata {
 			state "when on", action:"indicator.indicatorNever", icon:"st.indicators.lit-when-on"
 			state "never", action:"indicator.indicatorWhenOff", icon:"st.indicators.never-lit"
 		}
-        valueTile("statusText", "statusText", inactiveLabel: false, width: 2, height: 2) {
+        valueTile("statusText", "statusText", inactiveLabel: false, width: 6, height: 2) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}
 		main(["switch"])
-		details(["switch", "lowSpeed", "medSpeed", "highSpeed", "indicator", "refresh"])
+		details(["switch", "statusText", "lowSpeed", "medSpeed", "highSpeed", "indicator", "refresh"])
 	}
 	preferences {
 		section("Fan Thresholds") {
