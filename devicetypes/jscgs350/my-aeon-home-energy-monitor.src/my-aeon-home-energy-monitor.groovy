@@ -12,7 +12,7 @@
  *
  *  Aeon Home Energy Meter v1 (US)
  *
- *  Version: v3
+ *  Version: v3.1
  *
  *  Updates:
  *  -------
@@ -23,6 +23,7 @@
  *  02-22-2016 : Fixed kWh cost entry in Preferences not allowing decimals.
  *  02-27-2016 : Changed date formats to be MM-dd-yyyy h:mm a
  *  02-29-2016 : Changed reportType variable from 0 to 1.
+ *  03-11-2016 : Due to ST's v2.1.0 app totally hosing up SECONDARY_CONTROL, implemented a workaround to display that info in a separate tile.
  *
  */
 metadata {
@@ -59,9 +60,9 @@ metadata {
 			tileAttribute ("device.powerDisp", key: "PRIMARY_CONTROL") {
 				attributeState "default", action: "refresh", label: '${currentValue}', icon: "st.switches.light.on", backgroundColor: "#79b821"
 			}
-            tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
-           		attributeState "statusText", label:'${currentValue}'       		
-            }
+//            tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
+//           		attributeState "statusText", label:'${currentValue}'       		
+//            }
 		}    
 
         valueTile("energyDisp", "device.energyDisp", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
@@ -85,7 +86,7 @@ metadata {
             state "battery", label:'${currentValue}%\nbattery', unit:""
         }
     
-        valueTile("statusText", "statusText", width: 3, height: 2, inactiveLabel: false) {
+        valueTile("statusText", "statusText", width: 6, height: 2, inactiveLabel: false) {
             state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
         }
 
@@ -105,7 +106,7 @@ metadata {
 		}
           
         main (["powerDisp"])
-        details(["powerDisp", "battery", "energyDisp", "energyTwo", "energyOne", "resetmaxmin", "resetenergy", "reset", "refresh", "configure"])
+        details(["powerDisp", "statusText", "battery", "energyDisp", "energyTwo", "energyOne", "resetmaxmin", "resetenergy", "reset", "refresh", "configure"])
         }
 
         preferences {
