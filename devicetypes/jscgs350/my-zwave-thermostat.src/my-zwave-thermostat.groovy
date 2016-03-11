@@ -12,13 +12,14 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
- *  Version: v8
+ *  Version: v8.1
  *
  *  Updates:
  *  -------
  *  02-16-2016 : Removed limiting units to just "F", and adjusted slider range to account for "C" or "F".
  *  02-17-2016 : Removed any reference to ranges for sliders or the up/down arrow limits.
- *  02-18-2016 : Initial commit for github integration
+ *  02-18-2016 : Initial commit for github integration.
+ *  03-11-2016 : Due to ST's v2.1.0 app totally hosing up SECONDARY_CONTROL, implemented a workaround to disply that info in a separate tile.
  *
 */
 metadata {
@@ -71,9 +72,9 @@ metadata {
                 ]
             )
 			}
-            tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
-           		attributeState "statusText", label:'${currentValue}'       		
-            }
+//            tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
+//           		attributeState "statusText", label:'${currentValue}'       		
+//            }
 		}
         standardTile("thermostatOperatingState", "device.currentState", canChangeIcon: false, inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
             state ("default", label:'${currentValue}', icon:"st.tesla.tesla-hvac")
@@ -147,12 +148,12 @@ metadata {
 			state "configure", label:'', action:"configuration.configure", icon:"st.secondary.configure"
 		}
 
-        valueTile("statusText", "statusText", inactiveLabel: false, width: 2, height: 2) {
+        valueTile("statusText", "statusText", inactiveLabel: false, width: 6, height: 2) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}
 
 		main (["temperature"])
-        details(["temperature", "heatingSetpoint", "heatLevelUp", "heatSliderControl", "heatLevelDown", "coolingSetpoint", "coolLevelUp", "coolSliderControl", "coolLevelDown", "fanon", "fanauto", "fancir", "modeoff", "modeheat", "modecool", "modeauto", "refresh", "configure"])
+        details(["temperature", "statusText", "heatingSetpoint", "heatLevelUp", "heatLevelDown", "coolingSetpoint", "coolLevelUp", "coolLevelDown", "fanon", "fanauto", "fancir", "modeoff", "modeheat", "modecool", "modeauto", "refresh", "configure"])
 	}
 }
 
