@@ -11,12 +11,13 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
- *  Version: v2
+ *  Version: v2.1
  *
  *  Updates:
  *  -------
  *  02-18-2016 : Initial commit
  *  03-04-2016 : Changed multiAttributeTile type to generic to remove secondary_control data from showing up since other tiles already show those values.
+ *  03-11-2016 : Due to ST's v2.1.0 app totally hosing up SECONDARY_CONTROL, implemented a workaround to display that info in a separate tile.
  *
  */ 
  metadata {
@@ -41,9 +42,9 @@
 				attributeState "closed", label: 'Closed', icon: "st.contact.contact.closed", backgroundColor: "#79b821"
 				attributeState "open", label: 'Open', icon: "st.contact.contact.open", backgroundColor: "#ffa81e"
 			}
-            tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
-           		attributeState "statusText", label:'${currentValue}'       		
-            }
+//            tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
+//           		attributeState "statusText", label:'${currentValue}'       		
+//            }
 		}
 		valueTile("temperature", "device.temperature", width: 3, height: 2, inactiveLabel: false) {
 			state "temperature", icon:"st.tesla.tesla-hvac", label:'${currentValue}°',
@@ -111,11 +112,6 @@ def parse(Map evt){
     if (evt)
     	result << evt;
 //    log.debug "Parse(Map) returned ${result}"
-
-	def statusTextmsg = ""
-    statusTextmsg = "Door is ${device.currentState('contact').value}, temp is ${device.currentState('temperature').value}°, and illuminance is ${device.currentState('illuminance').value} LUX."
-    sendEvent("name":"statusText", "value":statusTextmsg)
-    log.debug statusTextmsg
 
     return result
 }

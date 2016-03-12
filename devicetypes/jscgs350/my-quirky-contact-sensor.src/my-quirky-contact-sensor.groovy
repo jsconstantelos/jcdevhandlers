@@ -15,6 +15,7 @@
  *  Updates:
  *  -------
  *  02-18-2016 : Initial commit
+ *  03-11-2016 : Due to ST's v2.1.0 app totally hosing up SECONDARY_CONTROL, implemented a workaround to display that info in a separate tile.
  *
  */
 
@@ -83,11 +84,6 @@ def parse(String description) {
 		log.debug "enroll response: ${cmds}"
 		results = cmds?.collect { new physicalgraph.device.HubAction(it) }
 	}
-    
-    def statusTextmsg = ""
-    def timeString = new Date().format("h:mma MM-dd-yyyy", location.timeZone)
-    statusTextmsg = "Last active: "+timeString
-//    sendEvent("name":"statusText", "value":statusTextmsg)
    
 	return results
 }

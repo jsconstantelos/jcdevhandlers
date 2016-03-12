@@ -11,12 +11,13 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
- *  Version: v4
+ *  Version: v4.1
  *
  *  Updates:
  *  -------
  *  02-18-2016 : Initial commit
  *  03-05-2016 : Changed date format to MM-dd-yyyy h:mm a
+ *  03-11-2016 : Due to ST's v2.1.0 app totally hosing up SECONDARY_CONTROL, implemented a workaround to display that info in a separate tile.
  *
  */
 metadata {
@@ -52,9 +53,9 @@ metadata {
                 attributeState "closingdoor", label:'Closing', icon:"st.doors.garage.garage-closing", backgroundColor:"#ffd700"
                 attributeState "openingdoor", label:'Opening', icon:"st.doors.garage.garage-opening", backgroundColor:"#ffd700"
 			}
-            tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
-           		attributeState "statusText", label:'${currentValue}'       		
-            }
+//            tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
+//           		attributeState "statusText", label:'${currentValue}'       		
+//            }
 		}
         standardTile("contact", "device.contact", inactiveLabel: false) {
 			state "open", label: '${name}', icon: "st.contact.contact.open", backgroundColor: "#ffa81e"
@@ -70,11 +71,11 @@ metadata {
 		standardTile("configure", "device.configure", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "configure", label:'', action:"configuration.configure", icon:"st.secondary.configure"
 		}
-        valueTile("statusText", "statusText", inactiveLabel: false, width: 2, height: 2) {
-			state "statusText", label:'${currentValue}'
+        valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 6, height: 2) {
+			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}        
 		main (["switch", "contact"])
-		details(["switch", "powered", "refresh", "configure"])
+		details(["switch", "statusText", "powered", "refresh", "configure"])
     }
 }
 
@@ -100,7 +101,7 @@ def parse(String description) {
     
     def statusTextmsg = ""
     def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
-    statusTextmsg = "${device.currentState('contactState').value}.\nLast updated: "+timeString
+    statusTextmsg = "${device.currentState('contactState').value}\nLast updated: "+timeString
     sendEvent("name":"statusText", "value":statusTextmsg)
     
 	return result

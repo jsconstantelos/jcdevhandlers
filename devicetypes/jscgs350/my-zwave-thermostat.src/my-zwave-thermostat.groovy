@@ -148,7 +148,7 @@ metadata {
 			state "configure", label:'', action:"configuration.configure", icon:"st.secondary.configure"
 		}
 
-        valueTile("statusText", "statusText", inactiveLabel: false, width: 6, height: 2) {
+        valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 6, height: 2) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}
 

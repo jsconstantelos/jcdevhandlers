@@ -108,7 +108,7 @@ metadata {
             state "serial", label:'${currentValue}', backgroundColor:"#ffffff"
         }
         
-        main "switch"
+        main (["switch"])
         details(["switch", "ventLevelDown", "ventTwentyFive", "ventFifty", "ventSeventyFive", "ventHundred", "ventLevelUp", "temperature", "pressure", "battery", "refresh", "configure"])
     }
 }

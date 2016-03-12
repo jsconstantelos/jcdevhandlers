@@ -86,9 +86,9 @@ metadata {
             state "battery", label:'${currentValue}%\nbattery', unit:""
         }
     
-        valueTile("statusText", "statusText", width: 6, height: 2, inactiveLabel: false) {
-            state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
-        }
+        valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 6, height: 2) {
+			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
+		}
 
         valueTile("min", "powerOne", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
             state "default", label:'Min:\n${currentValue}', backgroundColor:"#ffffff"

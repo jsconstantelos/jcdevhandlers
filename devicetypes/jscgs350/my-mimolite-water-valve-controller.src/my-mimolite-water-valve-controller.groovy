@@ -10,12 +10,13 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
- *  Version: v2
+ *  Version: v2.1
  *
  *  Updates:
  *  -------
  *  02-18-2016 : Initial commit
  *  03-05-2016 : Changed date format to MM-dd-yyyy h:mm a
+ *  03-11-2016 : Due to ST's v2.1.0 app totally hosing up SECONDARY_CONTROL, implemented a workaround to display that info in a separate tile.
  *
  */
 metadata {
@@ -45,9 +46,9 @@ metadata {
 				attributeState "closingvalve", label:'Closing', icon:"st.valves.water.closed", backgroundColor:"#ffd700"
 				attributeState "openingvalve", label:'Opening', icon:"st.valves.water.open", backgroundColor:"#ffd700"
 			}
-            tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
-           		attributeState "statusText", label:'${currentValue}'       		
-            }
+//            tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
+//           		attributeState "statusText", label:'${currentValue}'       		
+//            }
         }
         standardTile("contact", "device.contact", width: 3, height: 2, inactiveLabel: false) {
             state "open", label: 'Open', icon: "st.valves.water.open", backgroundColor: "#53a7c0"
@@ -63,11 +64,11 @@ metadata {
 		standardTile("configure", "device.configure", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "configure", label:'', action:"configuration.configure", icon:"st.secondary.configure"
 		}
-        valueTile("statusText", "statusText", inactiveLabel: false, width: 2, height: 2) {
+        valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 6, height: 2) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}
         main (["switch", "contact"])
-        details(["switch", "powered", "refresh", "configure"])
+        details(["switch", "statusText", "powered", "refresh", "configure"])
     }
 }
 

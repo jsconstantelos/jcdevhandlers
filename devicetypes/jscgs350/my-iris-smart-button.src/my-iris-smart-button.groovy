@@ -17,6 +17,7 @@
  *  02-18-2016 : Initial commit
  *  02-20-2016 : Changed tile format/appearance to use multiAttributeTile
  *  02-21-2016 : Updated with @mitchp's changes (https://github.com/mitchpond/SmartThingsPublic/blob/master/devicetypes/mitchpond/iris-smart-button.src/iris-smart-button.groovy)
+ *  03-11-2016 : Due to ST's v2.1.0 app totally hosing up SECONDARY_CONTROL, implemented a workaround to display that info in a separate tile.
  *
  */
 metadata {
@@ -47,9 +48,9 @@ metadata {
 			tileAttribute ("device.button", key: "PRIMARY_CONTROL") {
 				attributeState "default", label: "Button", icon: "st.Electronics.electronics13", backgroundColor: "#53a7c0"
 			}
-            tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
-           		attributeState "statusText", label:'${currentValue}'       		
-            }
+//            tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
+//           		attributeState "statusText", label:'${currentValue}'       		
+//            }
         }
 		valueTile("battery", "device.battery", decoration: "flat", width: 2, height: 2) {
 			state "battery", label:'${currentValue}% battery', unit:""
@@ -69,11 +70,11 @@ metadata {
         standardTile("refresh", "device.refresh", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
 			state "default", action:"refresh.refresh", icon:"st.secondary.refresh"
 		}
-        valueTile("statusText", "statusText", inactiveLabel: false, width: 2, height: 2) {
+        valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 6, height: 2) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}
 		main (["temperature"])
-		details(["button","temperature","battery","refresh"])
+		details(["button", "statusText","temperature","battery","refresh"])
 	}
 }
 
@@ -143,7 +144,7 @@ private createButtonEvent(button) {
     def startOfPress = device.latestState('lastPress').date.getTime()
     def timeDif = currentTime - startOfPress
     def holdTimeMillisec = (settings.holdTime?:3).toInteger() * 1000
-    
+
     if (timeDif < 0) {
     	log.debug "Press arrived out of sequence! Dropping event."
     	return []	//likely a message sequence issue. Drop this press and wait for another. Probably won't happen...
@@ -152,7 +153,7 @@ private createButtonEvent(button) {
     	log.debug "Hold time longer than 20 seconds. Likely an error. Dropping event."
     	return []	//stale lastPress state. Likely an error
     }
-    else if (timeDif < holdTimeMillisec) 
+    else if (timeDif < holdTimeMillisec)
     	return createButtonPushedEvent(button)
     else 
     	return createButtonHeldEvent(button)
@@ -164,6 +165,10 @@ private createPressEvent(button) {
 
 private createButtonPushedEvent(button) {
 	log.debug "Button ${button} pushed"
+    def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
+    def statusTextmsg = ""
+    statusTextmsg = "Last activity (push) at "+timeString
+	sendEvent("name":"statusText", "value":statusTextmsg)
 	return createEvent([
     	name: "button",
         value: "pushed", 
@@ -175,6 +180,10 @@ private createButtonPushedEvent(button) {
 
 private createButtonHeldEvent(button) {
 	log.debug "Button ${button} held"
+    def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
+    def statusTextmsg = ""
+    statusTextmsg = "Last activity (held) at "+timeString
+	sendEvent("name":"statusText", "value":statusTextmsg)
 	return createEvent([
     	name: "button",
         value: "held", 

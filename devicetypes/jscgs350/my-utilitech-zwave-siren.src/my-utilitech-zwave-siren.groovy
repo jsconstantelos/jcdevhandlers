@@ -10,11 +10,12 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
- *  Version: v2
+ *  Version: v2.1
  *
  *  Updates:
  *  -------
  *  02-19-2016 : Initial commit
+ *  03-11-2016 : Due to ST's v2.1.0 app totally hosing up SECONDARY_CONTROL, implemented a workaround to display that info in a separate tile.
  *
  */
 metadata {
@@ -37,9 +38,9 @@ metadata {
 				attributeState "both", label:'alarm!', action:'alarm.off', icon:"st.alarm.alarm.alarm", backgroundColor:"#e86d13"
 				attributeState "off", label:'off', action:'alarm.strobe', icon:"st.alarm.alarm.alarm", backgroundColor:"#79b821"
 			}
-            tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
-           		attributeState "statusText", label:'${currentValue}'       		
-            }
+//            tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
+//           		attributeState "statusText", label:'${currentValue}'       		
+//            }
 		}
 		standardTile("off", "device.alarm", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "default", label:'', action:"alarm.off", icon:"st.secondary.off"
@@ -50,11 +51,11 @@ metadata {
         standardTile("refresh", "device.refresh", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "default", label:'', action:"refresh.refresh", icon:"st.secondary.refresh"
 		}
-        valueTile("statusText", "statusText", inactiveLabel: false, width: 2, height: 2) {
+        valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 6, height: 2) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
-		}        
+		}      
 		main "alarm"
-		details(["alarm","battery","refresh"])
+		details(["alarm","statusText","battery","refresh"])
 	}
 }
 

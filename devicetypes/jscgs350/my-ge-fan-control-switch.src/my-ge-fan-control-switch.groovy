@@ -72,7 +72,7 @@ metadata {
 			state "when on", action:"indicator.indicatorNever", icon:"st.indicators.lit-when-on"
 			state "never", action:"indicator.indicatorWhenOff", icon:"st.indicators.never-lit"
 		}
-        valueTile("statusText", "statusText", inactiveLabel: false, width: 6, height: 2) {
+        valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 6, height: 2) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}
 		main(["switch"])
