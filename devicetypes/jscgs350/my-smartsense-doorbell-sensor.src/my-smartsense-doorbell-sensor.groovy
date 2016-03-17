@@ -17,6 +17,7 @@
  *  Updates:
  *  -------
  *  02-27-2016 : Initial commit.  Device handler for an Iris or SmartSense open/close sensor to be used as a doorbell.
+ *  03-17-2016 : Due to ST's v2.1.0 app totally hosing up SECONDARY_CONTROL, implemented a workaround to display that info in a separate tile.
  *
  */
  
@@ -40,12 +41,12 @@ metadata {
 	tiles(scale: 2) {
 		multiAttributeTile(name:"contact", type: "lighting", width: 6, height: 4){
 			tileAttribute ("device.contact", key: "PRIMARY_CONTROL") {
-				attributeState "open", label:'Ding\nDong', icon:"st.Home.home30", backgroundColor: "#53a7c0"
-				attributeState "closed", label:'Ding\nDong', icon:"st.Home.home30", backgroundColor: "#53a7c0"
+				attributeState "open", label:'Ding Dong', icon:"st.Home.home30", backgroundColor: "#53a7c0"
+				attributeState "closed", label:'Ding Dong', icon:"st.Home.home30", backgroundColor: "#53a7c0"
 			}
-            tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
-           		attributeState "statusText", label:'${currentValue}'       		
-            }
+//            tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
+//           		attributeState "statusText", label:'${currentValue}'       		
+//            }
 		}
 
 		valueTile("temperature", "device.temperature", inactiveLabel: false, width: 2, height: 2) {
@@ -67,12 +68,12 @@ metadata {
 		standardTile("refresh", "device.refresh", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
 			state "default", action:"refresh.refresh", icon:"st.secondary.refresh"
 		}
-        valueTile("statusText", "statusText", inactiveLabel: false, width: 2, height: 2) {
+        valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 6, height: 2) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}
         
 		main (["contact", "temperature"])
-		details(["contact","temperature","battery","refresh"])
+		details(["contact","temperature","battery","refresh","statusText"])
 	}
 }
  
