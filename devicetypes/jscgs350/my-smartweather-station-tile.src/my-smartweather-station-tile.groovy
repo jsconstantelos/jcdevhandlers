@@ -10,12 +10,14 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
- *  SmartWeather Station
+ *  Version: v1
  *
- *  Author: SmartThings
+ *  Updates:
+ *  -------
+ *  02-16-2016 : Initial commit for github integration.
+ *  03-17-2016 : Modified tile layout to use multiAttributeTile format.
  *
- *  Date: 2013-04-30
- */
+*/
 metadata {
 	definition (name: "My SmartWeather Station Tile", namespace: "jscgs350", author: "SmartThings") {
 		capability "Illuminance Measurement"
@@ -46,25 +48,28 @@ metadata {
 		input "zipCode", "text", title: "Zip Code (optional)", required: false
 	}
 
-	tiles {
-		valueTile("temperature", "device.temperature") {
-			state "default", icon:"st.tesla.tesla-hvac", label:'${currentValue}°',
-				backgroundColors:[
-					[value: 31, color: "#153591"],
-					[value: 44, color: "#1e9cbb"],
-					[value: 59, color: "#90d2a7"],
-					[value: 74, color: "#44b621"],
-					[value: 84, color: "#f1d801"],
-					[value: 95, color: "#d04e00"],
-					[value: 96, color: "#bc2323"]
-				]
+	tiles(scale: 2) {
+		multiAttributeTile(name:"temperature", type: "generic", width: 6, height: 4, canChangeIcon: true, decoration: "flat"){
+			tileAttribute ("device.temperature", key: "PRIMARY_CONTROL") {
+				attributeState("default", label:'${currentValue}°', // icon:"st.tesla.tesla-hvac",
+                backgroundColors:[
+                    [value: 31, color: "#153591"],
+                    [value: 44, color: "#1e9cbb"],
+                    [value: 59, color: "#90d2a7"],
+                    [value: 74, color: "#44b621"],
+                    [value: 84, color: "#f1d801"],
+                    [value: 95, color: "#d04e00"],
+                    [value: 96, color: "#bc2323"]
+                ]
+            )
+			}
 		}
 
-		valueTile("humidity", "device.humidity", decoration: "flat") {
-			state "default", label:'${currentValue}% humidity'
+		valueTile("humidity", "device.humidity", width: 2, height: 2, decoration: "flat") {
+			state "default", label:'Humidity\n${currentValue}%'
 		}
 
-		standardTile("weatherIcon", "device.weatherIcon", decoration: "flat") {
+		standardTile("weatherIcon", "device.weatherIcon", width: 3, height: 2, decoration: "flat") {
 			state "chanceflurries", icon:"st.custom.wu1.chanceflurries", label: ""
 			state "chancerain", icon:"st.custom.wu1.chancerain", label: ""
 			state "chancesleet", icon:"st.custom.wu1.chancesleet", label: ""
@@ -109,48 +114,48 @@ metadata {
 			state "nt_cloudy", icon:"st.custom.wu1.nt_cloudy", label: ""
 			state "nt_partlycloudy", icon:"st.custom.wu1.nt_partlycloudy", label: ""
 		}
-		valueTile("feelsLike", "device.feelsLike", decoration: "flat") {
-			state "default", label:'feels like ${currentValue}°'
+		valueTile("feelsLike", "device.feelsLike", width: 2, height: 2, decoration: "flat") {
+			state "default", label:'Feels Like\n${currentValue}°'
 		}
 
-		valueTile("wind", "device.wind", decoration: "flat") {
-			state "default", label:'wind ${currentValue} mph'
+		valueTile("wind", "device.wind", width: 2, height: 2, decoration: "flat") {
+			state "default", label:'Wind Speed\n${currentValue} mph'
 		}
 
-		valueTile("weather", "device.weather", decoration: "flat") {
+		valueTile("weather", "device.weather", width: 3, height: 2, decoration: "flat") {
 			state "default", label:'${currentValue}'
 		}
 
-		valueTile("city", "device.city", decoration: "flat") {
-			state "default", label:'${currentValue}'
+		valueTile("city", "device.city", width: 2, height: 2, decoration: "flat") {
+			state "default", label:'Current City\n${currentValue}'
 		}
 
-		valueTile("percentPrecip", "device.percentPrecip", decoration: "flat") {
-			state "default", label:'${currentValue}% precip'
+		valueTile("percentPrecip", "device.percentPrecip", width: 2, height: 2, decoration: "flat") {
+			state "default", label:'Precipitation\n${currentValue}% Chance'
 		}
 
-		standardTile("refresh", "device.weather", decoration: "flat") {
+		standardTile("refresh", "device.weather", width: 2, height: 2, decoration: "flat") {
 			state "default", label: "", action: "refresh", icon:"st.secondary.refresh"
 		}
 
-		valueTile("alert", "device.alert", width: 3, height: 1, decoration: "flat") {
+		valueTile("alert", "device.alert", width: 6, height: 2, decoration: "flat") {
 			state "default", label:'${currentValue}'
 		}
 
-		valueTile("rise", "device.localSunrise", decoration: "flat") {
+		valueTile("rise", "device.localSunrise", width: 2, height: 2, decoration: "flat") {
 			state "default", label:'Sunrise\n${currentValue}'
 		}
 
-		valueTile("set", "device.localSunset", decoration: "flat") {
+		valueTile("set", "device.localSunset", width: 2, height: 2, decoration: "flat") {
 			state "default", label:'Sunset\n${currentValue}'
 		}
 
-		valueTile("light", "device.illuminance", decoration: "flat") {
-			state "default", label:'${currentValue} lux'
+		valueTile("light", "device.illuminance", width: 2, height: 2, decoration: "flat") {
+			state "default", label:'Light Level\n${currentValue} lux'
 		}
 
 		main(["temperature", "weatherIcon","feelsLike"])
-		details(["temperature", "humidity", "weatherIcon","feelsLike","wind","weather","rise","set","light", "city","percentPrecip", "refresh","alert"])}
+		details(["temperature", "weatherIcon","weather","humidity","feelsLike","wind","rise","set","light", "city","percentPrecip", "refresh","alert"])}
 }
 
 // parse events into attributes
