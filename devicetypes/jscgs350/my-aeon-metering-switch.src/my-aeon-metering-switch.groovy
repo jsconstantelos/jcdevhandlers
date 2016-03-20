@@ -21,6 +21,7 @@
  *  02-27-2016 : Changed date formats to be MM-dd-yyyy h:mm a
  *  02-29-2016 : Changed reportType variable from 0 to 1.
  *  03-11-2016 : Due to ST's v2.1.0 app totally hosing up SECONDARY_CONTROL, implemented a workaround to display that info in a separate tile.
+ *  03-19-2016 : Changed tile layout, added clarity for preferences, and removed rounding (line 171)
  *
  */
 metadata {
@@ -59,27 +60,27 @@ metadata {
             defaultValue: false, 
             displayDuringSetup: true
         input "reportType", "number", 
-            title: "Send data on a time interval (0), or on a change in wattage (1)? Enter a 0 or 1:",  
+            title: "ReportType: Send data on a time interval (0), or on a change in wattage (1)? Enter a 0 or 1:",  
             defaultValue: 1, 
             required: false, 
             displayDuringSetup: true
         input "wattsChanged", "number", 
-            title: "Don't send unless watts have changed by this many watts: (range 0 - 32,000W)",  
+            title: "For ReportType = 1, Don't send unless watts have changed by this many watts: (range 0 - 32,000W)",  
             defaultValue: 50, 
             required: false, 
             displayDuringSetup: true
         input "wattsPercent", "number", 
-            title: "Don't send unless watts have changed by this percent: (range 0 - 99%)",  
+            title: "For ReportType = 1, Don't send unless watts have changed by this percent: (range 0 - 99%)",  
             defaultValue: 10, 
             required: false, 
             displayDuringSetup: true
         input "secondsWatts", "number", 
-            title: "Send Watts data every how many seconds? (range 0 - 65,000 seconds)",  
+            title: "For ReportType = 0, Send Watts data every how many seconds? (range 0 - 65,000 seconds)",  
             defaultValue: 10, 
             required: false, 
             displayDuringSetup: true
         input "secondsKwh", "number", 
-            title: "Send kWh data every how many seconds? (range 0 - 65,000 seconds)",  
+            title: "For ReportType = 0, Send kWh data every how many seconds? (range 0 - 65,000 seconds)",  
             defaultValue: 60, 
             required: false, 
             displayDuringSetup: true 
@@ -114,23 +115,23 @@ metadata {
 		valueTile("energy", "device.energy", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "default", label:'${currentValue} kWh'
 		}
-        valueTile("energyOne", "device.energyOne", width: 6, height: 2, inactiveLabel: false, decoration: "flat") {
+        valueTile("energyOne", "device.energyOne", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
             state("default", label: '${currentValue}', backgroundColor:"#ffffff")
         } 
-        standardTile("reset", "device.energy", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
+        standardTile("reset", "device.energy", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "default", label:'Reset ALL', action:"reset", icon:"st.secondary.refresh-icon"
 		}
-		standardTile("configure", "device.power", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
+		standardTile("configure", "device.power", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "configure", label:'', action:"configuration.configure", icon:"st.secondary.configure"
 		}
-		standardTile("refresh", "device.power", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
+		standardTile("refresh", "device.power", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "default", label:'', action:"refresh.refresh", icon:"st.secondary.refresh"
 		}
         valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 6, height: 2) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}
 		main "powerDisp"
-		details(["switch", "statusText", "energyOne", "refresh","reset","configure"])
+		details(["switch", "statusText", "energyOne", "reset", "refresh","configure"])
 	}
 }
 
@@ -149,7 +150,7 @@ def parse(String description) {
 	}
         
     def statusTextmsg = ""
-    statusTextmsg = "Currently using ${device.currentState('powerDisp')?.value} (total consumed ${device.currentState('energy')?.value}kWh).\nMaximum of ${device.currentState('powerTwo')?.value}"
+    statusTextmsg = "Currently using ${device.currentState('powerDisp')?.value} (Consumed: ${device.currentState('energy')?.value}kWh)\nMaximum of ${device.currentState('powerTwo')?.value}"
     sendEvent("name":"statusText", "value":statusTextmsg)
     if (state.debug) log.debug statusTextmsg
 
@@ -167,8 +168,8 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
 		[name: "energy", value: cmd.scaledMeterValue, unit: "kVAh", displayed: false]
 	}
 	else {
-            newValue = Math.round( cmd.scaledMeterValue )       // really not worth the hassle to show decimals for Watts
-//			newValue = cmd.scaledMeterValue
+//            newValue = Math.round( cmd.scaledMeterValue )       // really not worth the hassle to show decimals for Watts
+			newValue = cmd.scaledMeterValue
             if (newValue != state.powerValue) {
                 dispValue = newValue+"w"
                 sendEvent(name: "powerDisp", value: dispValue, unit: "", displayed: false)
