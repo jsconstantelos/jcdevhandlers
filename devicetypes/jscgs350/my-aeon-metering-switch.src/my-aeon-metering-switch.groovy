@@ -60,7 +60,7 @@ metadata {
             defaultValue: false, 
             displayDuringSetup: true
         input "reportType", "number", 
-            title: "ReportType: Send data on a time interval (0), or on a change in wattage (1)? Enter a 0 or 1:",  
+            title: "ReportType: Send watts/kWh data on a time interval (0), or on a change in wattage (1)? Enter a 0 or 1:",  
             defaultValue: 1, 
             required: false, 
             displayDuringSetup: true
