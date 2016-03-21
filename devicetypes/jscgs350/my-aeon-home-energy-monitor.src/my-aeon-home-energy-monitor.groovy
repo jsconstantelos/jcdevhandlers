@@ -21,10 +21,11 @@
  *  02-20-2016 : Enabled battery reporting (parameter 103, value 1), and documented the parameters better.
  *  02-21-2016 : Made certain configuration parameters changeable via device preferences instead of having to tweak code all the time.
  *  02-22-2016 : Fixed kWh cost entry in Preferences not allowing decimals.
- *  02-27-2016 : Changed date formats to be MM-dd-yyyy h:mm a
+ *  02-27-2016 : Changed date formats to be MM-dd-yyyy h:mm a.
  *  02-29-2016 : Changed reportType variable from 0 to 1.
  *  03-11-2016 : Due to ST's v2.1.0 app totally hosing up SECONDARY_CONTROL, implemented a workaround to display that info in a separate tile.
- *  03-19-2016 : Added clarity for preferences
+ *  03-19-2016 : Added clarity for preferences.
+ *  03-21-2016 : Fixed issue when resetting energy would also reset watts.
  *
  */
 metadata {
@@ -252,8 +253,6 @@ def poll() {
 
 def reset() {
     log.debug "${device.name} reset kWh/Cost values"
-    state.powerHigh = 0
-	state.powerLow = 99999
 
 	def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
     sendEvent(name: "energyOne", value: "Energy Data (kWh/Cost) Reset On:\n"+timeString, unit: "")       
