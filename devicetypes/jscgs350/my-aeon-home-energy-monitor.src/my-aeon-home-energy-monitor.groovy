@@ -26,6 +26,7 @@
  *  03-11-2016 : Due to ST's v2.1.0 app totally hosing up SECONDARY_CONTROL, implemented a workaround to display that info in a separate tile.
  *  03-19-2016 : Added clarity for preferences.
  *  03-21-2016 : Fixed issue when resetting energy would also reset watts.
+ *  03-25-2016 : Removed the \n from the two tiles for resetting watta and energy due to rendering issues on iOS
  *
  */
 metadata {
@@ -62,9 +63,9 @@ metadata {
 			tileAttribute ("device.powerDisp", key: "PRIMARY_CONTROL") {
 				attributeState "default", action: "refresh", label: '${currentValue}', icon: "st.switches.light.on", backgroundColor: "#79b821"
 			}
-//            tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
-//           		attributeState "statusText", label:'${currentValue}'       		
-//            }
+            tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
+           		attributeState "statusText", label:'${currentValue}'       		
+            }
 		}    
 
         valueTile("energyDisp", "device.energyDisp", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
@@ -101,10 +102,10 @@ metadata {
         }
 
         standardTile("resetmaxmin", "device.energy", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
-            state "default", label:'Reset\nWatts', action:"resetmaxmin", icon:"st.secondary.refresh-icon"
+            state "default", label:'Reset Watts', action:"resetmaxmin", icon:"st.secondary.refresh-icon"
         }
         standardTile("reset", "device.energy", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
-			state "default", label:'Reset\nEnergy', action:"reset", icon:"st.secondary.refresh-icon"
+			state "default", label:'Reset Energy', action:"reset", icon:"st.secondary.refresh-icon"
 		}
           
         main (["powerDisp"])
