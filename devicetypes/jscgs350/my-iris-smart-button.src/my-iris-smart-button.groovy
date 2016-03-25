@@ -18,6 +18,7 @@
  *  02-20-2016 : Changed tile format/appearance to use multiAttributeTile
  *  02-21-2016 : Updated with @mitchp's changes (https://github.com/mitchpond/SmartThingsPublic/blob/master/devicetypes/mitchpond/iris-smart-button.src/iris-smart-button.groovy)
  *  03-11-2016 : Due to ST's v2.1.0 app totally hosing up SECONDARY_CONTROL, implemented a workaround to display that info in a separate tile.
+ *  03-25-2016 : Modified to always be Pushed (for the way I use these buttons).  Lines 160/161 can be changed to revert back to normal operation.
  *
  */
 metadata {
@@ -48,9 +49,9 @@ metadata {
 			tileAttribute ("device.button", key: "PRIMARY_CONTROL") {
 				attributeState "default", label: "Button", icon: "st.Electronics.electronics13", backgroundColor: "#53a7c0"
 			}
-//            tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
-//           		attributeState "statusText", label:'${currentValue}'       		
-//            }
+            tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
+           		attributeState "statusText", label:'${currentValue}'       		
+            }
         }
 		valueTile("battery", "device.battery", decoration: "flat", width: 2, height: 2) {
 			state "battery", label:'${currentValue}% battery', unit:""
@@ -156,7 +157,8 @@ private createButtonEvent(button) {
     else if (timeDif < holdTimeMillisec)
     	return createButtonPushedEvent(button)
     else 
-    	return createButtonHeldEvent(button)
+    	return createButtonPushedEvent(button)    
+//    	return createButtonHeldEvent(button)
 }
 
 private createPressEvent(button) {
