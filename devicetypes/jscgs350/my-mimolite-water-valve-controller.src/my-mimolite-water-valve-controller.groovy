@@ -33,8 +33,6 @@ metadata {
         attribute "powered", "string"
         attribute "valveState", "string"
         
-        fingerprint deviceId: "0x1000", inClusters: "0x72,0x86,0x71,0x30,0x31,0x35,0x70,0x85,0x25,0x03"
-        
 }
 
     // UI tile definitions

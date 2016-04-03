@@ -29,7 +29,6 @@ metadata {
 		capability "Switch"
 		attribute "alarmState", "string"
 
-		fingerprint inClusters: "0x20,0x25,0x86,0x80,0x85,0x72,0x71"
 	}
 
 	tiles(scale: 2) {

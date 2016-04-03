@@ -37,7 +37,6 @@ metadata {
         capability "Temperature Measurement"
         capability "Sensor"
 
-        fingerprint deviceId:"0x2001", inClusters:"0x71, 0x85, 0x80, 0x72, 0x30, 0x86, 0x31, 0x70, 0x84"
     }
 
 	tiles(scale: 2) {
