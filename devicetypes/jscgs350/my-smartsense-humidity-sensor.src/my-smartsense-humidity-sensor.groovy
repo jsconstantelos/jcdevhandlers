@@ -20,7 +20,9 @@ metadata {
 		capability "Refresh"
 		capability "Temperature Measurement"
 		capability "Relative Humidity Measurement"
-
+        
+		fingerprint endpointId: "01", inClusters: "0001,0003,0020,0402,0B05,FC45", outClusters: "0019,0003"
+        
 	}
 
 	simulator {
@@ -39,16 +41,7 @@ metadata {
 	tiles(scale: 2) {
 		multiAttributeTile(name:"humidity", type: "generic", width: 6, height: 4){
 			tileAttribute ("device.humidity", key: "PRIMARY_CONTROL") {
-				attributeState "humidity", label:'${currentValue}%', icon:"st.Weather.weather12"
-					backgroundColors:[
-						[value: 31, color: "#153591"],
-						[value: 44, color: "#1e9cbb"],
-						[value: 59, color: "#90d2a7"],
-						[value: 74, color: "#44b621"],
-						[value: 84, color: "#f1d801"],
-						[value: 95, color: "#d04e00"],
-						[value: 96, color: "#bc2323"]
-					]
+				attributeState "humidity", label:'${currentValue}%', icon:"st.Weather.weather12", backgroundColor: "#53a7c0"
 			}
 		}
 		valueTile("temperature", "device.temperature", inactiveLabel: false, width: 2, height: 2) {
@@ -204,7 +197,8 @@ private Map getBatteryResult(rawValue) {
 
 	def volts = rawValue / 10
 	def descriptionText
-	if (volts > 3.5) {
+    if (rawValue == 0 || rawValue == 255) {}
+    else if (volts > 3.5) {
 		result.descriptionText = "${linkText} battery has too much power (${volts} volts)."
 	}
 	else {
