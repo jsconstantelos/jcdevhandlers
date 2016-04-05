@@ -18,6 +18,7 @@
  *  02-18-2016 : Initial commit
  *  03-04-2016 : Changed multiAttributeTile type to generic to remove secondary_control data from showing up since other tiles already show those values.
  *  03-11-2016 : Due to ST's v2.1.0 app totally hosing up SECONDARY_CONTROL, implemented a workaround to display that info in a separate tile.
+ *  04-05-2016 : Added fingerprint for the PSM01
  *
  */ 
  metadata {
@@ -32,6 +33,8 @@
 		capability "Battery"
         capability "Refresh"
 		capability "Polling"
+
+		fingerprint deviceId: "0x2001", inClusters: "0x30,0x31,0x80,0x84,0x70,0x85,0x72,0x86", manufacturer: "Philio Tech", model: "PSM01", deviceJoinName: "My Philio PSM01 Sensor"
 
 	}
 
