@@ -15,6 +15,7 @@
  *  Updates:
  *  -------
  *  02-18-2016 : Initial commit
+ *  04-08-2016 : Added fingerprint info
  *
  */
 
@@ -36,6 +37,9 @@ metadata {
         capability "Motion Sensor"
         capability "Temperature Measurement"
         capability "Sensor"
+        
+        fingerprint deviceId:"0x2001", inClusters:"0x71, 0x85, 0x80, 0x72, 0x30, 0x86, 0x31, 0x70, 0x84", manufacturer: "Monoprice", model: "10796"
+        fingerprint deviceId:"0x2001", inClusters:"0x30, 0x31, 0x80, 0x84, 0x70, 0x85, 0x72, 0x86", manufacturer: "Linear", model: "WAPIRZ-1"
 
     }
 
