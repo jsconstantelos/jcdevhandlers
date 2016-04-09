@@ -34,8 +34,6 @@
         capability "Refresh"
 		capability "Polling"
 
-		fingerprint deviceId: "0x2001", inClusters: "0x30,0x31,0x80,0x84,0x70,0x85,0x72,0x86"
-
 	}
 
 	tiles(scale: 2) {
