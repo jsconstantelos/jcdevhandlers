@@ -19,7 +19,7 @@
  *  03-04-2016 : Changed multiAttributeTile type to generic to remove secondary_control data from showing up since other tiles already show those values.
  *  03-11-2016 : Due to ST's v2.1.0 app totally hosing up SECONDARY_CONTROL, implemented a workaround to display that info in a separate tile.
  *  04-05-2016 : Added fingerprint for the PSM01
- *  04-09-2016 : Rewrote several sections of code
+ *  04-09-2016 : Rewrote several sections of code, added additional config parameter (5) to ensure open/close not disabled
  *
  */ 
 metadata {
