@@ -20,6 +20,7 @@
  *  03-11-2016 : Due to ST's v2.1.0 app totally hosing up SECONDARY_CONTROL, implemented a workaround to display that info in a separate tile.
  *  04-05-2016 : Added fingerprint for the PSM01
  *  04-09-2016 : Rewrote several sections of code, added additional config parameter (5) to ensure open/close not disabled
+ *  04-13-2016 : Added icon for illuminance
  *
  */ 
 metadata {
@@ -57,8 +58,8 @@ metadata {
 				[value: 96, color: "#bc2323"]
 			]
 		}
-		valueTile("illuminance", "device.illuminance", inactiveLabel: false, width: 3, height: 2) {
-			state "luminosity", label:'${currentValue} ${unit}', unit:"lux"
+		standardTile("illuminance", "device.illuminance", inactiveLabel: false, decoration: "flat", width: 3, height: 2) {
+			state "luminosity", label:'${currentValue} ${unit}', unit:"lux", icon:"st.illuminance.illuminance.bright"
 		}
 		valueTile("battery", "device.battery", inactiveLabel: false, decoration: "flat", width: 3, height: 2) {
 			state "battery", label:'${currentValue}% battery', unit:""

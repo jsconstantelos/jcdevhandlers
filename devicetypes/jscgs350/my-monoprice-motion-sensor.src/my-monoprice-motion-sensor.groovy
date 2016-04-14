@@ -16,6 +16,7 @@
  *  -------
  *  02-18-2016 : Initial commit
  *  04-08-2016 : Added fingerprint info
+ *  04-10-2016 : Added Refesh tile
  *
  */
 
@@ -37,6 +38,10 @@ metadata {
         capability "Motion Sensor"
         capability "Temperature Measurement"
         capability "Sensor"
+        capability "Polling"
+        capability "Refresh"
+        
+        command "refresh"
         
         fingerprint deviceId: "0x2001", inClusters: "0x71,0x85,0x80,0x72,0x30,0x86,0x31,0x70,0x84"
 
@@ -49,7 +54,7 @@ metadata {
 				attributeState "inactive", label:'no motion', icon:"st.motion.motion.inactive", backgroundColor:"#ffffff"
 			}
 		}
-		valueTile("temperature", "device.temperature", width: 3, height: 2) {
+		valueTile("temperature", "device.temperature", width: 2, height: 2) {
 			state("temperature", label:'${currentValue}°', unit:"F",
 				backgroundColors:[
 					[value: 31, color: "#153591"],
@@ -62,11 +67,14 @@ metadata {
 				]
 			)
 		}
-		valueTile("battery", "device.battery", decoration: "flat", inactiveLabel: false, width: 3, height: 2) {
+		valueTile("battery", "device.battery", decoration: "flat", inactiveLabel: false, width: 2, height: 2) {
 			state "battery", label:'${currentValue}% battery', unit:""
 		}
+        standardTile("refresh", "device.motion", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
+			state "default", label:'', action:"refresh.refresh", icon:"st.secondary.refresh"
+		}
 		main(["motion", "temperature"])
-		details(["motion", "temperature", "battery"])
+		details(["motion", "temperature", "battery", "refresh"])
 	}
 }
 
@@ -203,4 +211,13 @@ def zwaveEvent(physicalgraph.zwave.Command cmd) {
     // Catch-all handler. The sensor does return some alarm values, which
     // could be useful if handled correctly (tamper alarm, etc.)
     [descriptionText: "Unhandled: ${device.displayName}: ${cmd}", displayed: false]
+}
+
+def poll() {
+	refresh()
+}
+
+def refresh() {
+    log.info "Executing Refresh/Poll per user request"
+//    sendEvent(name: "motion", value: $device.currentState('motionState'))  testing
 }
