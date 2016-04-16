@@ -31,7 +31,6 @@ preferences {
 	page(name: "configureButton2")
 	page(name: "configureButton3")
 	page(name: "configureButton4")
-
 	page(name: "timeIntervalInput", title: "Only during a certain time") {
 		section {
 			input "starting", "time", title: "Starting", required: false
@@ -68,7 +67,6 @@ def configureButton2() {
 	dynamicPage(name: "configureButton2", title: "If you have a second button, set it up here",
 		nextPage: "configureButton3", uninstall: configured(), getButtonSections(2))
 }
-
 def configureButton3() {
 	dynamicPage(name: "configureButton3", title: "If you have a third button, you can do even more here",
 		nextPage: "configureButton4", uninstall: configured(), getButtonSections(3))
@@ -121,6 +119,9 @@ def getButtonSections(buttonNumber) {
         section("Sms Notifications") {
             input "phone_${buttonNumber}_pushed","phone" ,title: "Pushed", required: false
             input "phone_${buttonNumber}_held", "phone", title: "Held", required: false
+        }
+        section("More Options") {
+            label title:"Assign a name", required:false, defaultValue: "My Button Controller"
         }
 	}
 }
