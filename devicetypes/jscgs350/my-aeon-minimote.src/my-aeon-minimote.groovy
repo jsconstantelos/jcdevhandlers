@@ -51,18 +51,6 @@ metadata {
 		fingerprint deviceId: "0x0101", inClusters: "0x86,0x72,0x70,0x9B", outClusters: "0x26,0x2B"
 		fingerprint deviceId: "0x0101", inClusters: "0x86,0x72,0x70,0x9B,0x85,0x84", outClusters: "0x26" // old style with numbered buttons
 	}
-
-	simulator {
-		status "pushed 1":  "command: 2001, payload: 01"
-		status "held 1":  "command: 2001, payload: 15"
-		status "pushed 2":  "command: 2001, payload: 29"
-		status "held 2":  "command: 2001, payload: 3D"
-		status "pushed 3":  "command: 2001, payload: 51"
-		status "held 3":  "command: 2001, payload: 65"
-		status "pushed 4":  "command: 2001, payload: 79"
-		status "held 4":  "command: 2001, payload: 8D"
-		status "wakeup":  "command: 8407, payload: "
-	}
     
     preferences {
     	section ("Labels") {
@@ -95,7 +83,7 @@ metadata {
             }
 		}
         tileList << "configure"
-    	standardTile("configure", "device.configure", inactiveLabel: false, decoration: "flat") {
+    	standardTile("configure", "device.configure", width: 6, height: 2, inactiveLabel: false, decoration: "flat") {
       		state "configure", label: '', action:"configuration.configure", icon:"st.secondary.configure"
     	}
         main(tileList.take(1))
