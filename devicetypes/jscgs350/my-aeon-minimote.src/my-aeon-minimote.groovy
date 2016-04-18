@@ -73,7 +73,7 @@ metadata {
         	tileList << "vButton${btn}Push".toString()
             tileList << "vButton${btn}Hold".toString()
             standardTile(tileList[index], "device.button", width: 2, height: 2) {
-            	state("default", label: "Button ${btn}", defaultState: true, backgroundColor: "#ffffff", icon: "st.unknown.zwave.remote-controller", decoration: "flat", canChangeIcon: true, canChangeBackground: true)
+            	state("default", label: "Ready", defaultState: true, backgroundColor: "#ffffff", icon: "st.unknown.zwave.remote-controller", decoration: "flat", canChangeIcon: true, canChangeBackground: true)
             }
         	valueTile(tileList[index + 1], "device.lblPush${btn}", width: 2, height: 2) {
 				state("default", label: '${currentValue}', action: "push${btn}", defaultState: true, backgroundColor: "#33cc33", canChangeIcon: true, canChangeBackground: true)
