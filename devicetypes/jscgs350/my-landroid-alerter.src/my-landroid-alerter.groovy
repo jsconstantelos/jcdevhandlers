@@ -38,12 +38,8 @@ metadata {
         input("ReplyOnEmpty", "bool", title:"Say Nothing", description:"When no speech is found, announce LANdroid?  (Needed for the speech and notify tiles to work)", defaultValue: true, displayDuringSetup: true)
     }
 
-    simulator {
-        
-    }
-
     tiles {
-        standardTile("alarm", "device.alarm", width: 2, height: 2) {
+        standardTile("alarm", "device.alarm", width: 1, height: 1) {
             state "off", label:'off', action:'alarm.both', icon:"st.alarm.alarm.alarm", backgroundColor:"#ffffff"
             state "strobe", label:'strobe!', action:'alarm.off', icon:"st.Lighting.light11", backgroundColor:"#e86d13"
             state "siren", label:'siren!', action:'alarm.off', icon:"st.alarm.alarm.alarm", backgroundColor:"#e86d13"
@@ -78,8 +74,8 @@ metadata {
         }
         carouselTile("cameraDetails", "device.image", width: 3, height: 2) { }
 
-        main (["alarm", "take"]);
-        details(["alarm","strobe","siren","speak", "take","toast","beep", "cameraDetails"]);
+        main (["beep"]);
+        details(["alarm","strobe","siren","speak", "take","toast","beep"]);
     }
 }
 
