@@ -112,7 +112,7 @@ metadata {
             state "cool", label:'', action:"modecool", icon:"st.thermostat.cool"
         }
         standardTile("modeauto", "device.thermostatMode", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
-            state "cool", label:'', action:"modeauto", icon:"st.thermostat.auto"
+            state "auto", label:'', action:"modeauto", icon:"st.thermostat.auto"
         }
 
 //Heating Set Point Controls
