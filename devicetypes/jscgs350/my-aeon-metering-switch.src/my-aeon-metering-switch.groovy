@@ -93,7 +93,8 @@ metadata {
 				attributeState "off", label: '${name}', action: "switch.on", icon: "st.switches.switch.off", backgroundColor: "#ffffff"
 			}
             tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
-           		attributeState "statusText", label:'${currentValue}'       		
+//           		attributeState "statusText", label:'${currentValue}'
+                attributeState "statusText", label:''
             }
 		}
 

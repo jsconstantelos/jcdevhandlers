@@ -38,7 +38,8 @@ metadata {
 				attributeState "off", label:'off', action:'alarm.strobe', icon:"st.alarm.alarm.alarm", backgroundColor:"#79b821"
 			}
             tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
-           		attributeState "statusText", label:'${currentValue}'       		
+//           		attributeState "statusText", label:'${currentValue}'
+                attributeState "statusText", label:''
             }
 		}
 		standardTile("off", "device.alarm", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {

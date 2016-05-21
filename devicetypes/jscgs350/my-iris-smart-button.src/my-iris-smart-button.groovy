@@ -50,7 +50,8 @@ metadata {
 				attributeState "default", label: "Button", icon: "st.Electronics.electronics13", backgroundColor: "#53a7c0"
 			}
             tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
-           		attributeState "statusText", label:'${currentValue}'       		
+//           		attributeState "statusText", label:'${currentValue}'
+                attributeState "statusText", label:''
             }
         }
 		valueTile("battery", "device.battery", decoration: "flat", width: 2, height: 2) {

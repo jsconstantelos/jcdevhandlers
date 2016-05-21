@@ -97,7 +97,8 @@ metadata {
 				attributeState("cooling", backgroundColor:"#269bd2")
 			}
             tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
-           		attributeState "statusText", label:'${currentValue}'       		
+//           		attributeState "statusText", label:'${currentValue}'
+                attributeState "statusText", label:''
             }
 		}       
 

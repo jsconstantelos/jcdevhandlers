@@ -37,9 +37,10 @@ metadata {
 				attributeState "closed", label: "Ding Dong", icon: "st.Home.home30", backgroundColor: "#53a7c0"
 				attributeState "open", label: "Ding Dong", icon: "st.Home.home30", backgroundColor: "#53a7c0"
 			}
-//            tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
-//           		attributeState "statusText", label:'${currentValue}'       		
-//            }
+            tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
+//           		attributeState "statusText", label:'${currentValue}'
+                attributeState "statusText", label:''       		
+            }
 		}
 		valueTile("battery", "device.battery", width: 6, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "battery", label:'${currentValue}% battery', unit:""

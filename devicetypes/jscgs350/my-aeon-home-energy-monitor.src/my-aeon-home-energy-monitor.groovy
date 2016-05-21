@@ -64,7 +64,8 @@ metadata {
 				attributeState "default", action: "refresh", label: '${currentValue}', icon: "st.switches.light.on", backgroundColor: "#79b821"
 			}
             tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
-           		attributeState "statusText", label:'${currentValue}'       		
+//           		attributeState "statusText", label:'${currentValue}'
+           		attributeState "statusText", label:''                
             }
 		}    
 
@@ -165,7 +166,7 @@ def parse(String description) {
     }
 //    if (result) log.debug "Parse returned ${result}"
     def statusTextmsg = ""
-    statusTextmsg = "Min was ${device.currentState('powerOne')?.value}\nMax was ${device.currentState('powerTwo')?.value}"
+	statusTextmsg = "Min was ${device.currentState('powerOne')?.value}\nMax was ${device.currentState('powerTwo')?.value}"
     sendEvent("name":"statusText", "value":statusTextmsg)
 //    log.debug statusTextmsg
     return result

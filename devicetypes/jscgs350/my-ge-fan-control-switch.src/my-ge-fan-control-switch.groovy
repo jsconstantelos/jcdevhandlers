@@ -51,9 +51,10 @@ metadata {
 				attributeState "turningOff", action:"switch.off", label:'TURNINGOFF', icon:"st.Lighting.light24", backgroundColor:"#2179b8", nextState: "turningOff"
 				attributeState "changingState", action:"refresh.refresh", label:'ADJUSTING', icon:"st.Lighting.light24", backgroundColor:"#2179b8"
 			}
-//            tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
-//           		attributeState "statusText", label:'${currentValue}'       		
-//            }
+            tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
+//           		attributeState "statusText", label:'${currentValue}'
+                attributeState "statusText", label:''
+            }
 		}
 		standardTile("lowSpeed", "device.currentState", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
 			state "LOW", label:'LOW', action: "lowSpeed", icon:"st.Home.home30"

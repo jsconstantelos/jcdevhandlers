@@ -45,7 +45,8 @@ metadata {
 				attributeState "openingvalve", label:'Opening', icon:"st.valves.water.open", backgroundColor:"#ffd700"
 			}
             tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
-           		attributeState "statusText", label:'${currentValue}'       		
+//           		attributeState "statusText", label:'${currentValue}'
+                attributeState "statusText", label:''
             }
         }
         standardTile("contact", "device.contact", width: 3, height: 2, inactiveLabel: false) {
