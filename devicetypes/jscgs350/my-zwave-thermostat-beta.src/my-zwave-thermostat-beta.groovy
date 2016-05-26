@@ -589,17 +589,11 @@ def fancir() {
 }
 
 def on() {
-	delayBetween([
-		zwave.thermostatFanModeV3.thermostatFanModeSet(fanMode: 1).format(),
-		zwave.thermostatFanModeV3.thermostatFanModeGet().format()
-	], 3000)
+	fancir()
 }
 
 def off() {
-	delayBetween([
-		zwave.thermostatFanModeV3.thermostatFanModeSet(fanMode: 0).format(),
-		zwave.thermostatFanModeV3.thermostatFanModeGet().format()
-	], 3000)
+	fanauto()
 }
 
 def poll() {
