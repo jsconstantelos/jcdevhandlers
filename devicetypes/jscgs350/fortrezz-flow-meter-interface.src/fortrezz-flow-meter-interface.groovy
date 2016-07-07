@@ -64,9 +64,9 @@ metadata {
             )
         }
         valueTile("gpm", "device.gpm", inactiveLabel: false, width: 2, height: 2) {
-			state "gpm", label:'${currentValue}gpm', unit:""
+			state "gpm", label:'${currentValue}\ngpm', unit:""
 		}
-		standardTile("powerState", "device.powerState", width: 2, height: 2) { 
+		standardTile("powerState", "device.powerState", width: 3, height: 2) { 
 			state "reconnected", icon:"http://swiftlet.technology/wp-content/uploads/2016/02/Connected-64.png", backgroundColor:"#cccccc"
 			state "disconnected", icon:"http://swiftlet.technology/wp-content/uploads/2016/02/Disconnected-64.png", backgroundColor:"#cc0000"
 			state "batteryReplaced", icon:"http://swiftlet.technology/wp-content/uploads/2016/04/Full-Battery-96.png", backgroundColor:"#cccccc"
@@ -82,19 +82,22 @@ metadata {
 			state "freezing", label:'Freezing', icon:"st.alarm.temperature.freeze", backgroundColor:"#2eb82e"
 			state "overheated", label:'Overheated', icon:"st.alarm.temperature.overheat", backgroundColor:"#F80000"
 		}
-        valueTile("take1", "device.image", width: 2, height: 2, canChangeIcon: false, inactiveLabel: true, canChangeBackground: false, decoration: "flat") {
-            state "take", label: "", action: "Image Capture.take", nextState:"taking", icon: "st.secondary.refresh"
+        standardTile("take1", "device.image", width: 2, height: 2, canChangeIcon: false, inactiveLabel: true, canChangeBackground: false, decoration: "flat") {
+            state "take", label: "", action: "Image Capture.take", nextState:"taking", icon:"st.secondary.refresh"
         }
 		valueTile("chartMode", "device.chartMode", width: 2, height: 2, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
-			state "day", label:'24 Hours\n(press to change)', nextState: "week", action: 'chartMode'
-			state "week", label:'7 Days\n(press to change)', nextState: "month", action: 'chartMode'
-			state "month", label:'4 Weeks\n(press to change)', nextState: "day", action: 'chartMode'
+			state "day", label:'Chart Mode\n24 Hours', nextState: "week", action: 'chartMode'
+			state "week", label:'Chart Mode\n7 Days', nextState: "month", action: 'chartMode'
+			state "month", label:'Chart Mode\n4 Weeks', nextState: "day", action: 'chartMode'
 		}
-		valueTile("zeroTile", "device.zero", width: 2, height: 2, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
-			state "zero", label:'Zero', action: 'zero'
+        valueTile("zeroTile", "device.zero", width: 2, height: 2, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
+			state "zero", label:'Reset Meter', action: 'zero'
+		}
+		standardTile("configure", "device.configure", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
+			state "configure", label:'', action:'configure', icon:'st.secondary.configure'
 		}
 		main (["waterState"])
-		details(["flowHistory", "chartMode", "take1", "temperature", "gpm", "waterState", "battery"])
+		details(["flowHistory", "gpm", "waterState", "temperature", "chartMode", "take1", "battery"])
 	}
     
 }
@@ -125,6 +128,7 @@ def setHighFlowLevel(level)
 }
 
 def take() {
+	configure()
 	def mode = device.currentValue("chartMode")
     if(mode == "day")
     {
@@ -257,12 +261,12 @@ def zwaveEvent(physicalgraph.zwave.commands.alarmv2.AlarmReport cmd)
     if (cmd.zwaveAlarmType == 8) // Power Alarm
     {
     	map.name = "powerState" // For Tile (shows in "Recently")
-        if (cmd.zwaveAlarmEvent == 2) // AC Mains Disconnected
+        if (cmd.zwaveAlarmEvent == 3) // AC Mains Disconnected
         {
             map.value = "disconnected"
             sendAlarm("acMainsDisconnected")
         }
-        else if (cmd.zwaveAlarmEvent == 3) // AC Mains Reconnected
+        else if (cmd.zwaveAlarmEvent == 2) // AC Mains Reconnected
         {
             map.value = "reconnected"
             sendAlarm("acMainsReconnected")
@@ -418,11 +422,17 @@ def sendAlarm(text)
 
 def setThreshhold(rate)
 {
-	log.debug "Setting Threshhold to ${rate}"
-    
+	log.debug "Setting Threshhold to ${rate}"    
     def event = createEvent(name: "lastThreshhold", value: rate, displayed: false)
     def cmds = []
     cmds << zwave.configurationV2.configurationSet(configurationValue: [(int)Math.round(rate*10)], parameterNumber: 5, size: 1).format()
     sendEvent(event)
+    response(cmds) // return a list containing the event and the result of response()
+}
+
+def configure() {
+	log.debug "Configuring reporting interval...."
+    def cmds = []
+    cmds << zwave.configurationV2.configurationSet(configurationValue: [(int)Math.round(1*1)], parameterNumber: 4, size: 1).format()
     response(cmds) // return a list containing the event and the result of response()
 }
