@@ -21,6 +21,7 @@ metadata {
 		capability "Temperature Measurement"
         capability "Sensor"
         capability "Water Sensor"
+        capability "Configuration"
         
         attribute "gpm", "number"
         attribute "cumulative", "number"
@@ -41,6 +42,7 @@ metadata {
 	}
     
     preferences {
+       input "reportThreshhold", "decimal", title: "Reporting Rate Threshhold", description: "The time interval between meter reports while water is flowing. 6 = 60 seconds, 1 = 10 seconds.  Options are 1, 2, 3, 4, 5, or 6 (default).", defaultValue: 6, required: false, displayDuringSetup: true
        input "gallonThreshhold", "decimal", title: "High Flow Rate Threshhold", description: "Flow rate (in gpm) that will trigger a notification.", defaultValue: 5, required: false, displayDuringSetup: true
        input("registerEmail", type: "email", required: false, title: "Email Address", description: "Register your device with FortrezZ", displayDuringSetup: true)
     }
@@ -93,11 +95,11 @@ metadata {
         valueTile("zeroTile", "device.zero", width: 2, height: 2, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
 			state "zero", label:'Reset Meter', action: 'zero'
 		}
-		standardTile("configure", "device.configure", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
-			state "configure", label:'', action:'configure', icon:'st.secondary.configure'
+		standardTile("configure", "device.configure", width: 6, height: 2, inactiveLabel: false, decoration: "flat") {
+			state "configure", label: "", action: "configuration.configure", icon: "st.secondary.configure"
 		}
 		main (["waterState"])
-		details(["flowHistory", "gpm", "waterState", "temperature", "chartMode", "take1", "battery"])
+		details(["flowHistory", "gpm", "waterState", "temperature", "chartMode", "take1", "battery", "configure"])
 	}
     
 }
@@ -128,7 +130,6 @@ def setHighFlowLevel(level)
 }
 
 def take() {
-	configure()
 	def mode = device.currentValue("chartMode")
     if(mode == "day")
     {
@@ -240,7 +241,7 @@ def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv5.SensorMultilevelR
             sendAlarm("waterOverflow")
         }
 	} */
-	map
+	return map
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd)
@@ -248,11 +249,14 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd)
 	def map = [:]
     map.name = "gpm"
     def delta = cmd.scaledMeterValue - cmd.scaledPreviousMeterValue
+    if (delta < 0) {
+    	delta = 0
+    }
     map.value = delta
     map.unit = "gpm"
     sendDataToCloud(delta)
     sendEvent(name: "cumulative", value: cmd.scaledMeterValue, displayed: false, unit: "gal")
-	map
+	return map
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.alarmv2.AlarmReport cmd)
@@ -261,12 +265,12 @@ def zwaveEvent(physicalgraph.zwave.commands.alarmv2.AlarmReport cmd)
     if (cmd.zwaveAlarmType == 8) // Power Alarm
     {
     	map.name = "powerState" // For Tile (shows in "Recently")
-        if (cmd.zwaveAlarmEvent == 3) // AC Mains Disconnected
+        if (cmd.zwaveAlarmEvent == 2) // AC Mains Disconnected
         {
             map.value = "disconnected"
             sendAlarm("acMainsDisconnected")
         }
-        else if (cmd.zwaveAlarmEvent == 2) // AC Mains Reconnected
+        else if (cmd.zwaveAlarmEvent == 3) // AC Mains Reconnected
         {
             map.value = "reconnected"
             sendAlarm("acMainsReconnected")
@@ -325,7 +329,7 @@ def zwaveEvent(physicalgraph.zwave.commands.alarmv2.AlarmReport cmd)
     }
     //log.debug "alarmV2: $cmd"
     
-	map
+	return map
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
@@ -341,7 +345,7 @@ def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
 		map.unit = "%"
 		map.displayed = false
 	}
-	map
+	return map
 }
 
 def zwaveEvent(physicalgraph.zwave.Command cmd)
@@ -382,12 +386,13 @@ def getTemperature(value) {
     }
 }
 
+
 private getPictureName(category) {
   //def pictureUuid = device.id.toString().replaceAll('-', '')
   def pictureUuid = java.util.UUID.randomUUID().toString().replaceAll('-', '')
 
   def name = "image" + "_$pictureUuid" + "_" + category + ".png"
-  name
+  return name
 }
 
 def api(method, args = [], success = {}) {
@@ -400,7 +405,7 @@ def api(method, args = [], success = {}) {
 
   def request = methods.getAt(method)
 
-  doRequest(request.uri, request.type, success)
+  return doRequest(request.uri, request.type, success)
 }
 
 private doRequest(uri, type, success) {
@@ -422,17 +427,18 @@ def sendAlarm(text)
 
 def setThreshhold(rate)
 {
-	log.debug "Setting Threshhold to ${rate}"    
+	log.debug "Setting Threshhold to ${rate}"
+    
     def event = createEvent(name: "lastThreshhold", value: rate, displayed: false)
     def cmds = []
     cmds << zwave.configurationV2.configurationSet(configurationValue: [(int)Math.round(rate*10)], parameterNumber: 5, size: 1).format()
     sendEvent(event)
-    response(cmds) // return a list containing the event and the result of response()
+    return response(cmds) // return a list containing the event and the result of response()
 }
 
 def configure() {
-	log.debug "Configuring reporting interval...."
+	log.debug "Setting reporting interval to ${reportThreshhold}"
     def cmds = []
-    cmds << zwave.configurationV2.configurationSet(configurationValue: [(int)Math.round(1*1)], parameterNumber: 4, size: 1).format()
+    cmds << zwave.configurationV2.configurationSet(configurationValue: [(int)Math.round(reportThreshhold)], parameterNumber: 4, size: 1).format()
     response(cmds) // return a list containing the event and the result of response()
 }
