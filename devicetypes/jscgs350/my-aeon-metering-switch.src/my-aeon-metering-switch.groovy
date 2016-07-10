@@ -22,6 +22,7 @@
  *  02-29-2016 : Changed reportType variable from 0 to 1.
  *  03-11-2016 : Due to ST's v2.1.0 app totally hosing up SECONDARY_CONTROL, implemented a workaround to display that info in a separate tile.
  *  03-19-2016 : Changed tile layout, added clarity for preferences, and removed rounding (line 171)
+ *  07-07-2016 : Check for wildly large watts value coming from the switch and do not process them.
  *
  */
 metadata {
@@ -171,23 +172,24 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
 	else {
 //            newValue = Math.round( cmd.scaledMeterValue )       // really not worth the hassle to show decimals for Watts
 			newValue = cmd.scaledMeterValue
-            if (newValue != state.powerValue) {
-                dispValue = newValue+"w"
-                sendEvent(name: "powerDisp", value: dispValue, unit: "", displayed: false)
-                
-                if (newValue < state.powerLow) {
-                    dispValue = newValue+"w"+"on "+timeString
-                    sendEvent(name: "powerOne", value: dispValue as String, unit: "", displayed: false)
-                    state.powerLow = newValue
-                }
-                if (newValue > state.powerHigh) {
-                    dispValue = newValue+"w "+"on "+timeString
-                    sendEvent(name: "powerTwo", value: dispValue as String, unit: "", displayed: false)
-                    state.powerHigh = newValue
-                }
-                state.powerValue = newValue
-                [name: "power", value: newValue, unit: "W", displayed: false]
-            }
+            if (newValue < 2000) {								  // don't handle any wildly large readings due to firmware issues
+	            if (newValue != state.powerValue) {
+	                dispValue = newValue+"w"
+	                sendEvent(name: "powerDisp", value: dispValue, unit: "", displayed: false)
+	                if (newValue < state.powerLow) {
+	                    dispValue = newValue+"w"+"on "+timeString
+	                    sendEvent(name: "powerOne", value: dispValue as String, unit: "", displayed: false)
+	                    state.powerLow = newValue
+	                }
+	                if (newValue > state.powerHigh) {
+	                    dispValue = newValue+"w "+"on "+timeString
+	                    sendEvent(name: "powerTwo", value: dispValue as String, unit: "", displayed: false)
+	                    state.powerHigh = newValue
+	                }
+	                state.powerValue = newValue
+	                [name: "power", value: newValue, unit: "W", displayed: false]
+	            }
+			}
 	}
 }
 
