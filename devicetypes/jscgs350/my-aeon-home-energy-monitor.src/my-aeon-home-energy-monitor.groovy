@@ -27,6 +27,7 @@
  *  03-19-2016 : Added clarity for preferences.
  *  03-21-2016 : Fixed issue when resetting energy would also reset watts.
  *  03-25-2016 : Removed the \n from the two tiles for resetting watta and energy due to rendering issues on iOS
+ *  07-07-2016 : Check for wildly large watts value coming from the HEM and do not process them.  Firmware updates should have resolved this.
  *
  */
 metadata {
@@ -200,22 +201,24 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
         }
         else if (cmd.scale==2) {                
             newValue = Math.round( cmd.scaledMeterValue )       // really not worth the hassle to show decimals for Watts
-            if (newValue != state.powerValue) {
-                dispValue = newValue+"w"
-                sendEvent(name: "powerDisp", value: dispValue as String, unit: "", displayed: false)
-                if (newValue < state.powerLow) {
-                    dispValue = newValue+"w"+" on "+timeString
-                    sendEvent(name: "powerOne", value: dispValue as String, unit: "", displayed: false)
-                    state.powerLow = newValue
-                }
-                if (newValue > state.powerHigh) {
-                    dispValue = newValue+"w"+" on "+timeString
-                    sendEvent(name: "powerTwo", value: dispValue as String, unit: "", displayed: false)
-                    state.powerHigh = newValue
-                }
-                state.powerValue = newValue
-                [name: "power", value: newValue, unit: "W", displayed: false]
-            }
+			if (newValue < 10000) {								// don't handle any wildly large readings due to firmware issues	
+	            if (newValue != state.powerValue) {
+	                dispValue = newValue+"w"
+	                sendEvent(name: "powerDisp", value: dispValue as String, unit: "", displayed: false)
+	                if (newValue < state.powerLow) {
+	                    dispValue = newValue+"w"+" on "+timeString
+	                    sendEvent(name: "powerOne", value: dispValue as String, unit: "", displayed: false)
+	                    state.powerLow = newValue
+	                }
+	                if (newValue > state.powerHigh) {
+	                    dispValue = newValue+"w"+" on "+timeString
+	                    sendEvent(name: "powerTwo", value: dispValue as String, unit: "", displayed: false)
+	                    state.powerHigh = newValue
+	                }
+	                state.powerValue = newValue
+	                [name: "power", value: newValue, unit: "W", displayed: false]
+	            }
+			}            
         }
     }
 }
