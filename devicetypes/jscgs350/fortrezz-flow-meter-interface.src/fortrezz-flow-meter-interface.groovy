@@ -22,6 +22,8 @@ metadata {
         capability "Sensor"
         capability "Water Sensor"
         capability "Configuration"
+        capability "Polling"
+        capability "Refresh"
         
         attribute "gpm", "number"
         attribute "cumulative", "number"
@@ -50,9 +52,9 @@ metadata {
 	tiles(scale: 2) {
     	carouselTile("flowHistory", "device.image", width: 6, height: 3) { }
 		valueTile("battery", "device.battery", inactiveLabel: false, width: 2, height: 2) {
-			state "battery", label:'${currentValue}%\nBattery', unit:""
+			state "battery", label:'${currentValue}%\n Battery', unit:""
 		}
-		valueTile("temperature", "device.temperature", width: 2, height: 2) {
+		valueTile("temperature", "device.temperature", width: 3, height: 2) {
             state("temperature", label:'${currentValue}°',
                 backgroundColors:[
                     [value: 31, color: "#153591"],
@@ -68,16 +70,16 @@ metadata {
         valueTile("gpm", "device.gpm", inactiveLabel: false, width: 2, height: 2) {
 			state "gpm", label:'${currentValue}\ngpm', unit:""
 		}
-		standardTile("powerState", "device.powerState", width: 3, height: 2) { 
-			state "reconnected", icon:"http://swiftlet.technology/wp-content/uploads/2016/02/Connected-64.png", backgroundColor:"#cccccc"
-			state "disconnected", icon:"http://swiftlet.technology/wp-content/uploads/2016/02/Disconnected-64.png", backgroundColor:"#cc0000"
+		standardTile("powerState", "device.powerState", width: 2, height: 2) { 
+			state "reconnected", label: "Power On", icon: "st.switches.switch.on", backgroundColor: "#79b821"
+			state "disconnected", label: "Power Off", icon: "st.switches.switch.off", backgroundColor: "#ffa81e"
 			state "batteryReplaced", icon:"http://swiftlet.technology/wp-content/uploads/2016/04/Full-Battery-96.png", backgroundColor:"#cccccc"
 			state "noBattery", icon:"http://swiftlet.technology/wp-content/uploads/2016/04/No-Battery-96.png", backgroundColor:"#cc0000"
 		}
-		standardTile("waterState", "device.waterState", width: 2, height: 2, canChangeIcon: true) {
-			state "none", icon:"http://cdn.device-icons.smartthings.com/Weather/weather12-icn@2x.png", backgroundColor:"#cccccc", label: "No Flow"
-			state "flow", icon:"http://cdn.device-icons.smartthings.com/Weather/weather12-icn@2x.png", backgroundColor:"#53a7c0", label: "Flow"
-			state "overflow", icon:"http://cdn.device-icons.smartthings.com/Weather/weather12-icn@2x.png", backgroundColor:"#cc0000", label: "High Flow"
+		standardTile("waterState", "device.waterState", width: 3, height: 2, canChangeIcon: true, decoration: "flat") {
+			state "none", icon:"http://cdn.device-icons.smartthings.com/Outdoor/outdoor16-icn@2x.png", backgroundColor:"#cccccc", label: "No Flow"
+			state "flow", icon:"http://cdn.device-icons.smartthings.com/Outdoor/outdoor16-icn@2x.png", backgroundColor:"#0000ff", label: "Flow"
+			state "overflow", icon:"http://cdn.device-icons.smartthings.com/Outdoor/outdoor16-icn@2x.png", backgroundColor:"#ff0000", label: "High Flow"
 		}
 		standardTile("heatState", "device.heatState", width: 2, height: 2) {
 			state "normal", label:'Normal', icon:"st.alarm.temperature.normal", backgroundColor:"#ffffff"
@@ -85,21 +87,21 @@ metadata {
 			state "overheated", label:'Overheated', icon:"st.alarm.temperature.overheat", backgroundColor:"#F80000"
 		}
         standardTile("take1", "device.image", width: 2, height: 2, canChangeIcon: false, inactiveLabel: true, canChangeBackground: false, decoration: "flat") {
-            state "take", label: "", action: "Image Capture.take", nextState:"taking", icon:"st.secondary.refresh"
+            state "take", label: "", action: "Image Capture.take", icon:"st.secondary.refresh"
         }
 		valueTile("chartMode", "device.chartMode", width: 2, height: 2, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
-			state "day", label:'Chart Mode\n24 Hours', nextState: "week", action: 'chartMode'
-			state "week", label:'Chart Mode\n7 Days', nextState: "month", action: 'chartMode'
-			state "month", label:'Chart Mode\n4 Weeks', nextState: "day", action: 'chartMode'
+			state "day", label:'Chart Format:\n24 Hours', nextState: "week", action: 'chartMode'
+			state "week", label:'Chart Format:\n7 Days', nextState: "month", action: 'chartMode'
+			state "month", label:'Chart Format:\n4 Weeks', nextState: "day", action: 'chartMode'
 		}
         valueTile("zeroTile", "device.zero", width: 2, height: 2, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
 			state "zero", label:'Reset Meter', action: 'zero'
 		}
-		standardTile("configure", "device.configure", width: 6, height: 2, inactiveLabel: false, decoration: "flat") {
+		standardTile("configure", "device.configure", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "configure", label: "", action: "configuration.configure", icon: "st.secondary.configure"
 		}
 		main (["waterState"])
-		details(["flowHistory", "gpm", "waterState", "temperature", "chartMode", "take1", "battery", "configure"])
+		details(["flowHistory", "waterState", "temperature", "gpm", "chartMode", "battery", "powerState", "take1", "configure"])
 	}
     
 }
@@ -227,20 +229,7 @@ def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv5.SensorMultilevelR
 	        map.value = cmd.scaledSensorValue
         }
         map.unit = location.temperatureScale
-	} /* else if(cmd.sensorType == 2) {
-    	map = [name: "waterState"]
-        if(cmd.sensorValue[0] == 0x80) {
-        	map.value = "flow"
-            sendEvent(name: "water", value: "dry")
-        } else if(cmd.sensorValue[0] == 0x00) {
-	        map.value = "none"
-            sendEvent(name: "water", value: "dry")
-        } else if(cmd.sensorValue[0] == 0xFF) {
-	        map.value = "overflow"
-            sendEvent(name: "water", value: "wet")
-            sendAlarm("waterOverflow")
-        }
-	} */
+	}
 	return map
 }
 
