@@ -17,6 +17,7 @@
  *  02-18-2016 : Initial commit
  *  03-05-2016 : Changed date format to MM-dd-yyyy h:mm a
  *  03-11-2016 : Due to ST's v2.1.0 app totally hosing up SECONDARY_CONTROL, implemented a workaround to display that info in a separate tile.
+ *  07-11-2016 : Added Actuator capability so that the water meter smartapp can see the valve.
  *
  */
 metadata {
@@ -29,6 +30,7 @@ metadata {
 		capability "Valve"
         capability "Contact Sensor"
         capability "Configuration"
+        capability "Actuator"
         
         attribute "powered", "string"
         attribute "valveState", "string"
