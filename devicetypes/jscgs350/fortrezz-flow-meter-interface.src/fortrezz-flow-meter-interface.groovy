@@ -78,7 +78,7 @@ metadata {
 			state "gpm", label:'Now: ${currentValue}\ngpm', unit:""
 		}
         valueTile("gpmHigh", "device.gpmHigh", inactiveLabel: false, width: 3, height: 2, decoration: "flat") {
-			state "default", label:'Highest recorded flow was at ${currentValue}', action: 'resetHigh'
+			state "default", label:'Highest recorded flow was ${currentValue}', action: 'resetHigh'
 		}        
 		standardTile("powerState", "device.powerState", width: 3, height: 2) { 
 			state "reconnected", label: "Power On", icon: "st.switches.switch.on", backgroundColor: "#79b821"
@@ -258,20 +258,18 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd)
 	def map = [:]
     map.name = "gpm"
     def delta = cmd.scaledMeterValue - cmd.scaledPreviousMeterValue
-    if (delta < 0) {
+	if (delta < 0) {
     	delta = 0
     }
     map.value = delta
     map.unit = "gpm"
     sendDataToCloud(delta)
     sendEvent(name: "cumulative", value: cmd.scaledMeterValue, displayed: false, unit: "gal")
-
 	if (delta > state.deltaHigh) {
 		dispValue = delta+" gpm "+"on "+timeString
 		sendEvent(name: "gpmHigh", value: dispValue as String, displayed: false)
 		state.deltaHigh = delta
 	}
-
 	return map
 }
 
