@@ -12,6 +12,11 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
+ *  Updates:
+ *  -------
+ *  07-06-2016 : Original commit.
+ *  07-13-2016 : Modified the device handler for my liking, primarly for looks and feel.
+ *
  */
 metadata {
 	definition (name: "FortrezZ Flow Meter Interface", namespace: "jscgs350", author: "Daniel Kurin") {
@@ -26,13 +31,14 @@ metadata {
         capability "Refresh"
         
         attribute "gpm", "number"
+		attribute "gpmHigh", "number"
         attribute "cumulative", "number"
         attribute "alarmState", "string"
         attribute "chartMode", "string"
         attribute "lastThreshhold", "number"
 
-        
         command "chartMode"
+        command "resetHigh"
         command "zero"
         command "setHighFlowLevel", ["number"]
 
@@ -51,6 +57,7 @@ metadata {
 
 	tiles(scale: 2) {
     	carouselTile("flowHistory", "device.image", width: 6, height: 3) { }
+
 		valueTile("battery", "device.battery", inactiveLabel: false, width: 2, height: 2) {
 			state "battery", label:'${currentValue}%\n Battery', unit:""
 		}
@@ -67,10 +74,13 @@ metadata {
                 ]
             )
         }
-        valueTile("gpm", "device.gpm", inactiveLabel: false, width: 2, height: 2) {
-			state "gpm", label:'${currentValue}\ngpm', unit:""
+        valueTile("gpm", "device.gpm", inactiveLabel: false, width: 3, height: 2) {
+			state "gpm", label:'Now: ${currentValue}\ngpm', unit:""
 		}
-		standardTile("powerState", "device.powerState", width: 2, height: 2) { 
+        valueTile("gpmHigh", "device.gpmHigh", inactiveLabel: false, width: 3, height: 2, decoration: "flat") {
+			state "default", label:'Highest recorded flow was at ${currentValue}', action: 'resetHigh'
+		}        
+		standardTile("powerState", "device.powerState", width: 3, height: 2) { 
 			state "reconnected", label: "Power On", icon: "st.switches.switch.on", backgroundColor: "#79b821"
 			state "disconnected", label: "Power Off", icon: "st.switches.switch.off", backgroundColor: "#ffa81e"
 			state "batteryReplaced", icon:"http://swiftlet.technology/wp-content/uploads/2016/04/Full-Battery-96.png", backgroundColor:"#cccccc"
@@ -94,14 +104,14 @@ metadata {
 			state "week", label:'Chart Format:\n7 Days', nextState: "month", action: 'chartMode'
 			state "month", label:'Chart Format:\n4 Weeks', nextState: "day", action: 'chartMode'
 		}
-        valueTile("zeroTile", "device.zero", width: 2, height: 2, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
+        valueTile("zeroTile", "device.zero", width: 6, height: 2, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
 			state "zero", label:'Reset Meter', action: 'zero'
 		}
-		standardTile("configure", "device.configure", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
+		standardTile("configure", "device.configure", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "configure", label: "", action: "configuration.configure", icon: "st.secondary.configure"
 		}
 		main (["waterState"])
-		details(["flowHistory", "waterState", "temperature", "gpm", "chartMode", "battery", "powerState", "take1", "configure"])
+		details(["flowHistory", "waterState", "temperature", "gpm", "gpmHigh", "chartMode", "take1", "battery", "powerState", "configure"])
 	}
     
 }
@@ -210,11 +220,19 @@ def take28() {
 
 def zero()
 {
-	delayBetween([
+	log.debug "Resetting water meter..."
+    delayBetween([
 		zwave.meterV3.meterReset().format(),
         zwave.meterV3.meterGet().format(),
         zwave.firmwareUpdateMdV2.firmwareMdGet().format(),
     ], 100)
+}
+
+def resetHigh()
+{
+	log.debug "Resetting high value for GPM..."
+    state.deltaHigh = 0
+    sendEvent(name: "gpmHigh", value: "(resently reset)")
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv5.SensorMultilevelReport cmd)
@@ -235,6 +253,8 @@ def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv5.SensorMultilevelR
 
 def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd)
 {
+    def dispValue
+    def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
 	def map = [:]
     map.name = "gpm"
     def delta = cmd.scaledMeterValue - cmd.scaledPreviousMeterValue
@@ -245,6 +265,13 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd)
     map.unit = "gpm"
     sendDataToCloud(delta)
     sendEvent(name: "cumulative", value: cmd.scaledMeterValue, displayed: false, unit: "gal")
+
+	if (delta > state.deltaHigh) {
+		dispValue = delta+" gpm "+"on "+timeString
+		sendEvent(name: "gpmHigh", value: dispValue as String, displayed: false)
+		state.deltaHigh = delta
+	}
+
 	return map
 }
 
