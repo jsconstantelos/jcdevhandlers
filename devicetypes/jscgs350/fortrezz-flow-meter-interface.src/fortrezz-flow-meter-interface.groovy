@@ -74,9 +74,12 @@ metadata {
                 ]
             )
         }
+//        valueTile("gpm", "device.gpm", inactiveLabel: false, width: 3, height: 2) {
+//			state "gpm", label:'Now: ${currentValue}\ngpm', unit:""
+//		}
         valueTile("gpm", "device.gpm", inactiveLabel: false, width: 3, height: 2) {
-			state "gpm", label:'Now: ${currentValue}\ngpm', unit:""
-		}
+			state "gpm", label:'${currentValue}', unit:""
+		}        
         valueTile("gpmHigh", "device.gpmHigh", inactiveLabel: false, width: 3, height: 2, decoration: "flat") {
 			state "default", label:'Highest recorded flow was ${currentValue}', action: 'resetHigh'
 		}        
@@ -88,7 +91,7 @@ metadata {
 		}
 		standardTile("waterState", "device.waterState", width: 3, height: 2, canChangeIcon: true, decoration: "flat") {
 			state "none", icon:"http://cdn.device-icons.smartthings.com/Outdoor/outdoor16-icn@2x.png", backgroundColor:"#cccccc", label: "No Flow"
-			state "flow", icon:"http://cdn.device-icons.smartthings.com/Outdoor/outdoor16-icn@2x.png", backgroundColor:"#0000ff", label: "Flow"
+			state "flow", icon:"http://cdn.device-icons.smartthings.com/Outdoor/outdoor16-icn@2x.png", backgroundColor:"#01AAE8", label: "Flow"
 			state "overflow", icon:"http://cdn.device-icons.smartthings.com/Outdoor/outdoor16-icn@2x.png", backgroundColor:"#ff0000", label: "High Flow"
 		}
 		standardTile("heatState", "device.heatState", width: 2, height: 2) {
@@ -261,8 +264,12 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd)
 	if (delta < 0) {
     	delta = 0
     }
-    map.value = delta
-    map.unit = "gpm"
+    if (delta == 0) {
+    	map.value = "No flow detected\nLast activity at "+timeString
+    } else {
+    	map.value = "Flow detected at "+delta+" gpm "+"at "+timeString
+    }
+//    map.unit = "gpm"
     sendDataToCloud(delta)
     sendEvent(name: "cumulative", value: cmd.scaledMeterValue, displayed: false, unit: "gal")
 	if (delta > state.deltaHigh) {
