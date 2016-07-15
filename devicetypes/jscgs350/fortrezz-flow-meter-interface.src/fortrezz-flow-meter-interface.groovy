@@ -267,7 +267,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd)
     if (delta == 0) {
     	map.value = "No flow detected\nLast activity at "+timeString
     } else {
-    	map.value = "Flow detected at "+delta+" gpm "+"at "+timeString
+    	map.value = "Flow detected\n"+delta+" gpm"+"\nat "+timeString
     }
 //    map.unit = "gpm"
     sendDataToCloud(delta)
