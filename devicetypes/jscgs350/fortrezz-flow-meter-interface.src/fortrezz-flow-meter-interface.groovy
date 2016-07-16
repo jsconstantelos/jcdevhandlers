@@ -16,6 +16,7 @@
  *  -------
  *  07-06-2016 : Original commit.
  *  07-13-2016 : Modified the device handler for my liking, primarly for looks and feel.
+ *  07-16-2016 : Changed GPM tile to be more descriptive during water flow, and then to show cumulative and last used gallons.
  *
  */
 metadata {
@@ -81,7 +82,7 @@ metadata {
 			state "gpm", label:'${currentValue}', unit:""
 		}        
         valueTile("gpmHigh", "device.gpmHigh", inactiveLabel: false, width: 3, height: 2, decoration: "flat") {
-			state "default", label:'Highest recorded flow was ${currentValue}', action: 'resetHigh'
+			state "default", label:'Highest recorded flow\n${currentValue}', action: 'resetHigh'
 		}        
 		standardTile("powerState", "device.powerState", width: 3, height: 2) { 
 			state "reconnected", label: "Power On", icon: "st.switches.switch.on", backgroundColor: "#79b821"
@@ -117,6 +118,11 @@ metadata {
 		details(["flowHistory", "waterState", "temperature", "gpm", "gpmHigh", "chartMode", "take1", "battery", "powerState", "configure"])
 	}
     
+}
+
+def installed() {
+	state.deltaHigh = 0
+    state.lastCumulative = 0
 }
 
 // parse events into attributes
@@ -229,6 +235,8 @@ def zero()
         zwave.meterV3.meterGet().format(),
         zwave.firmwareUpdateMdV2.firmwareMdGet().format(),
     ], 100)
+    state.lastCumulative = 0
+    resetHigh()
 }
 
 def resetHigh()
@@ -257,23 +265,23 @@ def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv5.SensorMultilevelR
 def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd)
 {
     def dispValue
+    def prevCumulative
     def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
 	def map = [:]
     map.name = "gpm"
     def delta = cmd.scaledMeterValue - cmd.scaledPreviousMeterValue
-	if (delta < 0) {
-    	delta = 0
-    }
+	if (delta < 0) {delta = 0}
     if (delta == 0) {
-    	map.value = "No flow detected\nLast activity at "+timeString
+    	prevCumulative = cmd.scaledMeterValue - state.lastCumulative
+    	map.value = "Cumulative Usage\n"+cmd.scaledMeterValue+" gallons"+"\n(last used "+prevCumulative+" gallons)"
+        state.lastCumulative = cmd.scaledMeterValue
     } else {
     	map.value = "Flow detected\n"+delta+" gpm"+"\nat "+timeString
     }
-//    map.unit = "gpm"
     sendDataToCloud(delta)
     sendEvent(name: "cumulative", value: cmd.scaledMeterValue, displayed: false, unit: "gal")
 	if (delta > state.deltaHigh) {
-		dispValue = delta+" gpm "+"on "+timeString
+		dispValue = delta+" gpm on"+"\n"+timeString
 		sendEvent(name: "gpmHigh", value: dispValue as String, displayed: false)
 		state.deltaHigh = delta
 	}
