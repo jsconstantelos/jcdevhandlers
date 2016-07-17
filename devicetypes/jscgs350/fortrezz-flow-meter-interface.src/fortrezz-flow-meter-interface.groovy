@@ -45,10 +45,6 @@ metadata {
 
 	    fingerprint deviceId: "0x2101", inClusters: "0x5E, 0x86, 0x72, 0x5A, 0x73, 0x71, 0x85, 0x59, 0x32, 0x31, 0x70, 0x80, 0x7A"
 	}
-
-	simulator {
-		// TODO: define status and reply messages here
-	}
     
     preferences {
        input "reportThreshhold", "decimal", title: "Reporting Rate Threshhold", description: "The time interval between meter reports while water is flowing. 6 = 60 seconds, 1 = 10 seconds.  Options are 1, 2, 3, 4, 5, or 6 (default).", defaultValue: 6, required: false, displayDuringSetup: true
@@ -75,9 +71,6 @@ metadata {
                 ]
             )
         }
-//        valueTile("gpm", "device.gpm", inactiveLabel: false, width: 3, height: 2) {
-//			state "gpm", label:'Now: ${currentValue}\ngpm', unit:""
-//		}
         valueTile("gpm", "device.gpm", inactiveLabel: false, width: 3, height: 2) {
 			state "gpm", label:'${currentValue}', unit:""
 		}        
@@ -117,7 +110,6 @@ metadata {
 		main (["waterState"])
 		details(["flowHistory", "waterState", "temperature", "gpm", "gpmHigh", "chartMode", "take1", "battery", "powerState", "configure"])
 	}
-    
 }
 
 def installed() {
@@ -136,7 +128,6 @@ def parse(String description) {
 			results << createEvent( zwaveEvent(cmd) )
 		}
 	}
-	//log.debug "\"$description\" parsed to ${results.inspect()}"
     if(gallonThreshhold != device.currentValue("lastThreshhold"))
     {
     	results << setThreshhold(gallonThreshhold)
@@ -174,15 +165,12 @@ def chartMode(string) {
     	case "day":
         	tempValue = "week"
             break
-        
         case "week":
         	tempValue = "month"
             break
-            
         case "month":
         	tempValue = "day"
             break
-            
         default:
         	tempValue = "day"
             break
@@ -227,8 +215,7 @@ def take28() {
     }
 }
 
-def zero()
-{
+def zero() {
 	log.debug "Resetting water meter..."
     delayBetween([
 		zwave.meterV3.meterReset().format(),
@@ -239,15 +226,13 @@ def zero()
     resetHigh()
 }
 
-def resetHigh()
-{
+def resetHigh() {
 	log.debug "Resetting high value for GPM..."
     state.deltaHigh = 0
     sendEvent(name: "gpmHigh", value: "(resently reset)")
 }
 
-def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv5.SensorMultilevelReport cmd)
-{
+def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv5.SensorMultilevelReport cmd) {
 	log.debug cmd
 	def map = [:]
 	if(cmd.sensorType == 1) {
@@ -262,8 +247,7 @@ def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv5.SensorMultilevelR
 	return map
 }
 
-def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd)
-{
+def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
     def dispValue
     def prevCumulative
     def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
@@ -288,8 +272,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd)
 	return map
 }
 
-def zwaveEvent(physicalgraph.zwave.commands.alarmv2.AlarmReport cmd)
-{
+def zwaveEvent(physicalgraph.zwave.commands.alarmv2.AlarmReport cmd) {
 	def map = [:]
     if (cmd.zwaveAlarmType == 8) // Power Alarm
     {
@@ -377,13 +360,11 @@ def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
 	return map
 }
 
-def zwaveEvent(physicalgraph.zwave.Command cmd)
-{
+def zwaveEvent(physicalgraph.zwave.Command cmd) {
 	log.debug "COMMAND CLASS: $cmd"
 }
 
-def sendDataToCloud(double data)
-{
+def sendDataToCloud(double data) {
     def params = [
         uri: "https://iot.swiftlet.technology",
         path: "/fortrezz/post.php",
@@ -419,7 +400,6 @@ def getTemperature(value) {
 private getPictureName(category) {
   //def pictureUuid = device.id.toString().replaceAll('-', '')
   def pictureUuid = java.util.UUID.randomUUID().toString().replaceAll('-', '')
-
   def name = "image" + "_$pictureUuid" + "_" + category + ".png"
   return name
 }
@@ -431,19 +411,15 @@ def api(method, args = [], success = {}) {
     "7days":      [uri: "https://iot.swiftlet.technology/fortrezz/chart.php?uuid=${device.id}&tz=${location.timeZone.ID}&type=2", type: "get"],
     "4weeks":     [uri: "https://iot.swiftlet.technology/fortrezz/chart.php?uuid=${device.id}&tz=${location.timeZone.ID}&type=3", type: "get"],
   ]
-
   def request = methods.getAt(method)
-
   return doRequest(request.uri, request.type, success)
 }
 
 private doRequest(uri, type, success) {
   log.debug(uri)
-
   if(type == "post") {
     httpPost(uri , "", success)
   }
-
   else if(type == "get") {
     httpGet(uri, success)
   }
@@ -457,7 +433,6 @@ def sendAlarm(text)
 def setThreshhold(rate)
 {
 	log.debug "Setting Threshhold to ${rate}"
-    
     def event = createEvent(name: "lastThreshhold", value: rate, displayed: false)
     def cmds = []
     cmds << zwave.configurationV2.configurationSet(configurationValue: [(int)Math.round(rate*10)], parameterNumber: 5, size: 1).format()
