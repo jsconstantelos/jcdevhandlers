@@ -4,10 +4,13 @@
  *  Requires the LANnouncer android app; https://play.google.com/store/apps/details?id=com.keybounce.lannouncer
  *  See http://www.keybounce.com/LANdroidHowTo/LANdroid.html for full downloads and instructions.
  *  SmartThings thread: https://community.smartthings.com/t/android-as-a-speech-alarm-device-released/30282/12
+ *  
+ * Note: Only Siren and Strobe from the U.I. or Alarm capabilities default to continuous.
  *
- *  Version 1.14, 30 Dec 2015
+ *  Version 1.24 16 July 2016
+ * 
  *
- *  Copyright 2015 Tony McNamara
+ *  Copyright 2015-2016 Tony McNamara
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  *  in compliance with the License. You may obtain a copy of the License at:
@@ -17,6 +20,8 @@
  *  Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
+ *
+ * To Do: Add string return to Image Capture attribute
  *
  */
 
@@ -31,15 +36,33 @@ metadata {
         /* Per http://docs.smartthings.com/en/latest/device-type-developers-guide/overview.html#actuator-and-sensor */
         capability "Sensor"
         capability "Actuator"
+
+        // Custom Commands
+        /** Retrieve image, formatted for SmartThings, from camera by name. */
+        command "chime"
+        command "doorbell"
+        command "ipCamSequence", ["number"]
+        command "retrieveAndWait", ["string"]
+        command "retrieveFirstAndWait"
+        command "retrieveSecondAndWait"
     }
     preferences {
         input("DeviceLocalLan", "string", title:"Android IP Address", description:"Please enter your tablet's I.P. address", defaultValue:"" , required: false, displayDuringSetup: true)
         input("DevicePort", "string", title:"Android Port", description:"Port the Android device listens on", defaultValue:"1035", required: false, displayDuringSetup: true)
         input("ReplyOnEmpty", "bool", title:"Say Nothing", description:"When no speech is found, announce LANdroid?  (Needed for the speech and notify tiles to work)", defaultValue: true, displayDuringSetup: true)
+        input("AlarmContinuous", "bool", title:"Continuous Alarm (vs 10 sec.)", description: "When on, the alarm will sound until Stop is issued.", defaultValue: false, displayDuringSetup: true)
+    }
+
+    simulator {
+        // reply messages
+        ["strobe","siren","both","off"].each 
+            {
+                reply "$it": "alarm:$it"
+            }
     }
 
     tiles {
-        standardTile("alarm", "device.alarm", width: 1, height: 1) {
+        standardTile("alarm", "device.alarm", width: 2, height: 2) {
             state "off", label:'off', action:'alarm.both', icon:"st.alarm.alarm.alarm", backgroundColor:"#ffffff"
             state "strobe", label:'strobe!', action:'alarm.off', icon:"st.Lighting.light11", backgroundColor:"#e86d13"
             state "siren", label:'siren!', action:'alarm.off', icon:"st.alarm.alarm.alarm", backgroundColor:"#e86d13"
@@ -51,6 +74,9 @@ metadata {
         
         standardTile("siren", "device.alarm", inactiveLabel: false, decoration: "flat") {
             state "default", label:'', action:"alarm.siren", icon:"st.secondary.siren"
+        }
+        standardTile("off", "device.alarm", inactiveLabel: false, decoration: "flat") {
+            state "default", label:'Off', action:"alarm.off", icon:"st.quirky.spotter.quirky-spotter-sound-off"
         }       
         
         /* Apparently can't show image attributes on tiles. */
@@ -74,45 +100,53 @@ metadata {
         }
         carouselTile("cameraDetails", "device.image", width: 3, height: 2) { }
 
-        main (["beep"]);
-        details(["alarm","strobe","siren","speak", "take","toast","beep"]);
+        main (["alarm", "take"]);
+        details(["alarm","strobe","siren","off","speak", "take","toast","beep", "cameraDetails"]);
     }
 }
 
 /** Generally matches TTSServer/app/build.gradle */
-String getVersion() {return "11";}
+String getVersion() {return "24 built July 2016";}
+
 
 // handle commands
 def off() {
     log.debug "Executing 'off'"
-    // TODO: handle 'off' command
+    sendEvent(name:"alarm", value:"off")
+    def command="&ALARM=STOP&FLASH=STOP&"+getDoneString();
+    sendCommands(command)
 }
 
 def strobe() {
     log.debug "Executing 'strobe'"
-    // TODO: handle 'strobe' command
-    def command="&FLASH=STROBE&"+getDoneString()
+    // For illustration, switch to siren and sendEvent after.
+    sendEvent(name:"alarm", value:"strobe")
+    def command= (AlarmContinuous?"&FLASH=CONTINUOUS&":"&FLASH=STROBE&")+getDoneString();
+    //def command=(AlarmContinuous?"&ALARM=SIREN:CONTINUOUS&":"&ALARM=SIREN&")+getDoneString();
     sendCommands(command)
 }
 
 def siren() {
     log.debug "Executing 'siren'"
-    // TODO: handle 'siren' command
-    def command="&ALARM=SIREN&"+getDoneString()
+    sendEvent(name:"alarm", value:"siren")
+    def command=(AlarmContinuous?"&ALARM=SIREN:CONTINUOUS&":"&ALARM=SIREN&")+getDoneString();
     sendCommands(command)
 }
 
 def beep() {
     log.debug "Executing 'beep'"
-    // TODO: handle 'siren' command
     def command="&ALARM=CHIME&"+getDoneString()
     sendCommands(command)
 }
 
 def both() {
     log.debug "Executing 'both'"
-    // TODO: handle 'both' command
+    sendEvent(name:"alarm", value:"both")
     def command="&ALARM=ON&FLASH=ON&"+getDoneString()
+    if (AlarmContinuous)
+    {
+        command="&ALARM=SIREN:CONTINUOUS&FLASH=CONTINUOUS&"+getDoneString()
+    }
     sendCommands(command)
 }
 
@@ -144,6 +178,45 @@ def deviceNotification(toToast) {
     }
 }    
 
+def chime() {
+    log.debug "Executing 'chime'"
+    // TODO: handle 'siren' command
+    def command="&ALARM=CHIME&"+getDoneString()
+    sendCommands(command)
+}
+
+def doorbell() {
+    log.debug "Executing 'doorbell'"
+    // TODO: handle 'siren' command
+    def command="&ALARM=DOORBELL&"+getDoneString()
+    sendCommands(command)
+}
+
+def ipCamSequence(cameraNumber) {
+    if (cameraNumber == 1) {
+        def command="&RETRIEVESEQ=FIRST&"+getDoneString()
+        sendIPCommand(command, true)
+
+    } else {
+    def command="&RETRIEVESEQ=SECOND&"+getDoneString()
+    sendIPCommand(command, true)
+    }
+}
+
+
+def retrieveFirstAndWait() {
+    retrieveAndWait("FIRST");
+}
+def retrieveSecondAndWait() {
+    retrieveAndWait("SECOND");
+}
+def retrieveAndWait(cameraName) {
+    log.info("Requesting image from camera ${cameraName}");
+    def command="&RETRIEVE="+cameraName+"&STSHRINK=TRUE&"+getDoneString()
+    sendIPCommand(command, true)
+}
+
+
 def take() {
     // This won't result in received file. Can't handle large or binaries in hub.
     log.debug "Executing 'take'"
@@ -157,6 +230,7 @@ private sendCommands(command) {
     sendSMSCommand(command)
     sendIPCommand(command)
 }
+
 
 private sendIPCommand(commandString, sendToS3 = false) {
     log.info "Sending command "+ commandString+" to "+DeviceLocalLan+":"+DevicePort
