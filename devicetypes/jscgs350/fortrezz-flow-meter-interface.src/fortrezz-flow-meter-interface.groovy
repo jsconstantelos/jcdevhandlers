@@ -17,6 +17,7 @@
  *  07-06-2016 : Original commit.
  *  07-13-2016 : Modified the device handler for my liking, primarly for looks and feel.
  *  07-16-2016 : Changed GPM tile to be more descriptive during water flow, and then to show cumulative and last used gallons.
+ *  07-23-2016 : Added tracking for highest recorded usage in gallons, and added actions for tiles to reset high values.  Added Reset Meter tile.
  *
  */
 metadata {
@@ -34,12 +35,14 @@ metadata {
         attribute "gpm", "number"
 		attribute "gpmHigh", "number"
         attribute "cumulative", "number"
+        attribute "gallonHigh", "number"
         attribute "alarmState", "string"
         attribute "chartMode", "string"
         attribute "lastThreshhold", "number"
 
         command "chartMode"
-        command "resetHigh"
+        command "resetgpmHigh"
+        command "resetgallonHigh"
         command "zero"
         command "setHighFlowLevel", ["number"]
 
@@ -71,22 +74,25 @@ metadata {
                 ]
             )
         }
-        valueTile("gpm", "device.gpm", inactiveLabel: false, width: 3, height: 2) {
-			state "gpm", label:'${currentValue}', unit:""
+        valueTile("gpm", "device.gpm", inactiveLabel: false, width: 2, height: 2) {
+			state "gpm", label:'${currentValue}', unit:""//, action: 'zero'
 		}        
-        valueTile("gpmHigh", "device.gpmHigh", inactiveLabel: false, width: 3, height: 2, decoration: "flat") {
-			state "default", label:'Highest recorded flow\n${currentValue}', action: 'resetHigh'
-		}        
-		standardTile("powerState", "device.powerState", width: 3, height: 2) { 
+        valueTile("gpmHigh", "device.gpmHigh", inactiveLabel: false, width: 2, height: 2, decoration: "flat") {
+			state "default", label:'Highest recorded flow\n${currentValue}', action: 'resetgpmHigh'
+		}
+        valueTile("gallonHigh", "device.gallonHigh", inactiveLabel: false, width: 2, height: 2, decoration: "flat") {
+			state "default", label:'Highest recorded usage\n${currentValue}', action: 'resetgallonHigh'
+		}
+		standardTile("powerState", "device.powerState", width: 2, height: 2) { 
 			state "reconnected", label: "Power On", icon: "st.switches.switch.on", backgroundColor: "#79b821"
 			state "disconnected", label: "Power Off", icon: "st.switches.switch.off", backgroundColor: "#ffa81e"
 			state "batteryReplaced", icon:"http://swiftlet.technology/wp-content/uploads/2016/04/Full-Battery-96.png", backgroundColor:"#cccccc"
 			state "noBattery", icon:"http://swiftlet.technology/wp-content/uploads/2016/04/No-Battery-96.png", backgroundColor:"#cc0000"
 		}
 		standardTile("waterState", "device.waterState", width: 3, height: 2, canChangeIcon: true, decoration: "flat") {
-			state "none", icon:"http://cdn.device-icons.smartthings.com/Outdoor/outdoor16-icn@2x.png", backgroundColor:"#cccccc", label: "No Flow"
-			state "flow", icon:"http://cdn.device-icons.smartthings.com/Outdoor/outdoor16-icn@2x.png", backgroundColor:"#01AAE8", label: "Flow"
-			state "overflow", icon:"http://cdn.device-icons.smartthings.com/Outdoor/outdoor16-icn@2x.png", backgroundColor:"#ff0000", label: "High Flow"
+			state "none", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#cccccc", label: "No Flow"
+			state "flow", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#01AAE8", label: "Flow"
+			state "overflow", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#ff0000", label: "High Flow"
 		}
 		standardTile("heatState", "device.heatState", width: 2, height: 2) {
 			state "normal", label:'Normal', icon:"st.alarm.temperature.normal", backgroundColor:"#ffffff"
@@ -94,27 +100,28 @@ metadata {
 			state "overheated", label:'Overheated', icon:"st.alarm.temperature.overheat", backgroundColor:"#F80000"
 		}
         standardTile("take1", "device.image", width: 2, height: 2, canChangeIcon: false, inactiveLabel: true, canChangeBackground: false, decoration: "flat") {
-            state "take", label: "", action: "Image Capture.take", icon:"st.secondary.refresh"
+            state "take", label: "Refresh Chart", action: "Image Capture.take", icon:"st.secondary.refresh-icon"
         }
-		valueTile("chartMode", "device.chartMode", width: 2, height: 2, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
-			state "day", label:'Chart Format:\n24 Hours', nextState: "week", action: 'chartMode'
-			state "week", label:'Chart Format:\n7 Days', nextState: "month", action: 'chartMode'
-			state "month", label:'Chart Format:\n4 Weeks', nextState: "day", action: 'chartMode'
+		standardTile("chartMode", "device.chartMode", width: 2, height: 2, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
+			state "day", label:'24 Hour\nChart Format', nextState: "week", action: 'chartMode', icon: "st.secondary.tools"
+			state "week", label:'7 Day\nChart Format', nextState: "month", action: 'chartMode', icon: "st.secondary.tools"
+			state "month", label:'4 Week\nChart Format', nextState: "day", action: 'chartMode', icon: "st.secondary.tools"
 		}
-        valueTile("zeroTile", "device.zero", width: 6, height: 2, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
-			state "zero", label:'Reset Meter', action: 'zero'
+        standardTile("zeroTile", "device.zero", width: 2, height: 2, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
+			state "zero", label:'Reset Meter', action: 'zero', icon: "st.secondary.refresh-icon"
 		}
-		standardTile("configure", "device.configure", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
+		standardTile("configure", "device.configure", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "configure", label: "", action: "configuration.configure", icon: "st.secondary.configure"
 		}
 		main (["waterState"])
-		details(["flowHistory", "waterState", "temperature", "gpm", "gpmHigh", "chartMode", "take1", "battery", "powerState", "configure"])
+		details(["flowHistory", "waterState", "temperature", "gpm", "gallonHigh", "gpmHigh", "chartMode", "take1", "battery", "powerState", "zeroTile", "configure"])
 	}
 }
 
 def installed() {
 	state.deltaHigh = 0
     state.lastCumulative = 0
+    state.lastGallon = 0
 }
 
 // parse events into attributes
@@ -222,14 +229,22 @@ def zero() {
         zwave.meterV3.meterGet().format(),
         zwave.firmwareUpdateMdV2.firmwareMdGet().format(),
     ], 100)
+    sendEvent(name: "gpm", value: "Water Meter Was Just Reset" as String, displayed: false)
     state.lastCumulative = 0
-    resetHigh()
+    resetgpmHigh()
+    resetgallonHigh()
 }
 
-def resetHigh() {
+def resetgpmHigh() {
 	log.debug "Resetting high value for GPM..."
     state.deltaHigh = 0
     sendEvent(name: "gpmHigh", value: "(resently reset)")
+}
+
+def resetgallonHigh() {
+	log.debug "Resetting high value for gallons used..."
+    state.lastGallon = 0
+    sendEvent(name: "gallonHigh", value: "(resently reset)")
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv5.SensorMultilevelReport cmd) {
@@ -249,6 +264,7 @@ def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv5.SensorMultilevelR
 
 def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
     def dispValue
+    def dispGallon
     def prevCumulative
     def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
 	def map = [:]
@@ -259,6 +275,11 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
     	prevCumulative = cmd.scaledMeterValue - state.lastCumulative
     	map.value = "Cumulative Usage\n"+cmd.scaledMeterValue+" gallons"+"\n(last used "+prevCumulative+" gallons)"
         state.lastCumulative = cmd.scaledMeterValue
+        if (prevCumulative > state.lastGallon) {
+            dispGallon = prevCumulative+" gallons on"+"\n"+timeString
+            sendEvent(name: "gallonHigh", value: dispGallon as String, displayed: false)
+            state.lastGallon = prevCumulative
+        }        
     } else {
     	map.value = "Flow detected\n"+delta+" gpm"+"\nat "+timeString
     }
@@ -396,7 +417,6 @@ def getTemperature(value) {
     }
 }
 
-
 private getPictureName(category) {
   //def pictureUuid = device.id.toString().replaceAll('-', '')
   def pictureUuid = java.util.UUID.randomUUID().toString().replaceAll('-', '')
@@ -425,13 +445,11 @@ private doRequest(uri, type, success) {
   }
 }
 
-def sendAlarm(text)
-{
+def sendAlarm(text) {
 	sendEvent(name: "alarmState", value: text, descriptionText: text, displayed: false)
 }
 
-def setThreshhold(rate)
-{
+def setThreshhold(rate) {
 	log.debug "Setting Threshhold to ${rate}"
     def event = createEvent(name: "lastThreshhold", value: rate, displayed: false)
     def cmds = []
