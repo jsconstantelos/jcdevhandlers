@@ -111,7 +111,7 @@ metadata {
 			state "zero", label:'Reset Meter', action: 'zero', icon: "st.secondary.refresh-icon"
 		}
 		standardTile("configure", "device.configure", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
-			state "configure", label: "", action: "configuration.configure", icon: "st.secondary.configure"
+			state "configure", label: "Configuration", action: "configuration.configure", icon: "st.secondary.tools"
 		}
 		main (["waterState"])
 		details(["flowHistory", "waterState", "temperature", "gpm", "gallonHigh", "gpmHigh", "chartMode", "take1", "battery", "powerState", "zeroTile", "configure"])
