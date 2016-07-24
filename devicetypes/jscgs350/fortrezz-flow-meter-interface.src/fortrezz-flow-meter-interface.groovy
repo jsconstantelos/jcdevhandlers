@@ -58,8 +58,8 @@ metadata {
 	tiles(scale: 2) {
     	carouselTile("flowHistory", "device.image", width: 6, height: 3) { }
 
-		valueTile("battery", "device.battery", inactiveLabel: false, width: 2, height: 2) {
-			state "battery", label:'${currentValue}%\n Battery', unit:""
+		standardTile("battery", "device.battery", inactiveLabel: false, width: 2, height: 2) {
+			state "battery", label:'${currentValue}%\n Battery', unit:"", icon: "st.secondary.tools"
 		}
 		valueTile("temperature", "device.temperature", width: 3, height: 2) {
             state("temperature", label:'${currentValue}°',
@@ -83,7 +83,7 @@ metadata {
         valueTile("gallonHigh", "device.gallonHigh", inactiveLabel: false, width: 2, height: 2, decoration: "flat") {
 			state "default", label:'Highest recorded usage\n${currentValue}', action: 'resetgallonHigh'
 		}
-		standardTile("powerState", "device.powerState", width: 3, height: 2) { 
+		standardTile("powerState", "device.powerState", width: 2, height: 2) { 
 			state "reconnected", label: "Power On", icon: "st.switches.switch.on", backgroundColor: "#79b821"
 			state "disconnected", label: "Power Off", icon: "st.switches.switch.off", backgroundColor: "#ffa81e"
 			state "batteryReplaced", icon:"http://swiftlet.technology/wp-content/uploads/2016/04/Full-Battery-96.png", backgroundColor:"#cccccc"
@@ -110,11 +110,11 @@ metadata {
         standardTile("zeroTile", "device.zero", width: 2, height: 2, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
 			state "zero", label:'Reset Meter', action: 'zero', icon: "st.secondary.refresh-icon"
 		}
-		standardTile("configure", "device.configure", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
+		standardTile("configure", "device.configure", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "configure", label: "", action: "configuration.configure", icon: "st.secondary.configure"
 		}
 		main (["waterState"])
-		details(["flowHistory", "waterState", "temperature", "gpm", "gallonHigh", "gpmHigh", "chartMode", "take1", "battery", "powerState", "configure"])
+		details(["flowHistory", "waterState", "temperature", "gpm", "gallonHigh", "gpmHigh", "chartMode", "take1", "battery", "powerState", "zeroTile", "configure"])
 	}
 }
 
@@ -224,13 +224,14 @@ def take28() {
 
 def zero() {
 	log.debug "Resetting water meter..."
-    def cmds = []
+    // Still more testing needed
+/*    def cmds = []
     cmds << zwave.configurationV2.configurationSet(configurationValue: [0], parameterNumber: 4, size: 1).format()
     response(cmds)
     sendEvent(name: "gpm", value: "Water Meter Was Just Reset" as String, displayed: false)
     state.lastCumulative = 0
     resetgpmHigh()
-    resetgallonHigh()
+    resetgallonHigh() */
 }
 
 def resetgpmHigh() {
