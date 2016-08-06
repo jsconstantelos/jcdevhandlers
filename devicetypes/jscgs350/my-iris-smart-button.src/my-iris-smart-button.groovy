@@ -117,7 +117,10 @@ def parseCatchAllMessage(descMap) {
     	return createPressEvent(1)
     else if (descMap?.clusterId == "0006" && descMap?.command == "00") 	//button released
     	return [createButtonEvent(1), createEvent([name: 'lastPress', value: null, displayed: false])]
-    else if (descMap?.clusterId == "0402" && descMap?.command == "01") 	//temperature response
+    else if (descMap?.clusterId == "0006" && descMap?.command == "80") 	//unknown message
+//    	log.debug "Received a message from the button..."
+        return [sendEvent([name: 'lastPress', value: "Received command 80", displayed: false])]
+	else if (descMap?.clusterId == "0402" && descMap?.command == "01") 	//temperature response
     	return parseTempAttributeMsg(descMap)
 }
 
