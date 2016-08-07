@@ -29,6 +29,7 @@ metadata {
         capability "Sensor"
         capability "Water Sensor"
         capability "Configuration"
+        capability "Actuator"        
         capability "Polling"
         capability "Refresh"
         
