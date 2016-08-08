@@ -18,6 +18,7 @@
  *  07-13-2016 : Modified the device handler for my liking, primarly for looks and feel.
  *  07-16-2016 : Changed GPM tile to be more descriptive during water flow, and then to show cumulative and last used gallons.
  *  07-23-2016 : Added tracking for highest recorded usage in gallons, and added actions for tiles to reset high values.  Added Reset Meter tile.
+ *  08-07-2016 : Fixed GPM calculation error whenever the reporting threshold was less than 60 seconds.  Line 273 specifically.
  *
  */
 metadata {
@@ -51,7 +52,7 @@ metadata {
 	}
     
     preferences {
-       input "reportThreshhold", "decimal", title: "Reporting Rate Threshhold", description: "The time interval between meter reports while water is flowing. 6 = 60 seconds, 1 = 10 seconds.  Options are 1, 2, 3, 4, 5, or 6 (default).", defaultValue: 6, required: false, displayDuringSetup: true
+       input "reportThreshhold", "decimal", title: "Reporting Rate Threshhold", description: "The time interval between meter reports\nwhile water is flowing. 6 = 60 seconds, 1 = 10 seconds.\nOptions are 1, 2, 3, 4, 5, or 6 (default).", defaultValue: 6, required: false, displayDuringSetup: true
        input "gallonThreshhold", "decimal", title: "High Flow Rate Threshhold", description: "Flow rate (in gpm) that will trigger a notification.", defaultValue: 5, required: false, displayDuringSetup: true
        input("registerEmail", type: "email", required: false, title: "Email Address", description: "Register your device with FortrezZ", displayDuringSetup: true)
     }
@@ -269,7 +270,8 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
     def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
 	def map = [:]
     map.name = "gpm"
-    def delta = cmd.scaledMeterValue - cmd.scaledPreviousMeterValue
+    def delta = ((cmd.scaledMeterValue - cmd.scaledPreviousMeterValue) / (reportThreshhold*10)) * 60
+    log.debug delta
 	if (delta < 0) {delta = 0}
     if (delta == 0) {
     	prevCumulative = cmd.scaledMeterValue - state.lastCumulative
