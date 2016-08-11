@@ -28,6 +28,7 @@
  *  03-21-2016 : Fixed issue when resetting energy would also reset watts.
  *  03-25-2016 : Removed the \n from the two tiles for resetting watta and energy due to rendering issues on iOS
  *  07-07-2016 : Check for wildly large watts value coming from the HEM and do not process them.  Firmware updates should have resolved this.
+ *  08-10-2016 : Check for 0 or negative watts value coming from the HEM and do not process them.  Firmware updates should have resolved this.
  *
  */
 metadata {
@@ -201,7 +202,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
         }
         else if (cmd.scale==2) {                
             newValue = Math.round( cmd.scaledMeterValue )       // really not worth the hassle to show decimals for Watts
-            if (newValue == 0) {newValue = 1000}				// Don't want to see 0w as a valid minimum value (something isn't right with the meter)
+            if (newValue <= 0) {newValue = 1000}				// Don't want to see 0w or negative numbers as a valid minimum value (something isn't right with the meter)
 			if (newValue < 10000) {								// don't handle any wildly large readings due to firmware issues	
 	            if (newValue != state.powerValue) {
 	                dispValue = newValue+"w"
