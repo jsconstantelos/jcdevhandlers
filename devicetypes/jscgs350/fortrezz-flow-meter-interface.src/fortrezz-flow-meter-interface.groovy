@@ -20,6 +20,7 @@
  *  07-23-2016 : Added tracking for highest recorded usage in gallons, and added actions for tiles to reset high values.  Added Reset Meter tile.
  *  08-07-2016 : Fixed GPM calculation error whenever the reporting threshold was less than 60 seconds.  Line 273 specifically.
  *  08-08-2016 : Moved where "waterState" gets defined (none, flow, highflow) - from AlarmReport to MeterReport sections.
+ *  08-11-2016 : Fixed decimal positions so that only 2 positions are displayed vs as many as 9, 10, or more.  Minor cosmetic changes as well.
  *
  */
 metadata {
@@ -93,9 +94,9 @@ metadata {
 			state "noBattery", icon:"http://swiftlet.technology/wp-content/uploads/2016/04/No-Battery-96.png", backgroundColor:"#cc0000"
 		}
 		standardTile("waterState", "device.waterState", width: 3, height: 2, canChangeIcon: true, canChangeBackground: true, decoration: "flat") {
-			state "none", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#cccccc", label: "No Flow"
+			state "none", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#cccccc", label: "None"
 			state "flow", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#01AAE8", label: "Flow"
-			state "overflow", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#ff0000", label: "High Flow"
+			state "overflow", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#ff0000", label: "High"
 		}
 		standardTile("heatState", "device.heatState", width: 2, height: 2) {
 			state "normal", label:'Normal', icon:"st.alarm.temperature.normal", backgroundColor:"#ffffff"
@@ -271,14 +272,14 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
     def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
 	def map = [:]
     map.name = "gpm"
-    def delta = ((cmd.scaledMeterValue - cmd.scaledPreviousMeterValue) / (reportThreshhold*10)) * 60
+    def delta = Math.round((((cmd.scaledMeterValue - cmd.scaledPreviousMeterValue) / (reportThreshhold*10)) * 60)*100)/100 //rounds to 2 decimal positions
 	if (delta < 0) {delta = 0}
     if (delta == 0) {
     	sendEvent(name: "waterState", value: "none")
         sendEvent(name: "water", value: "dry")
         sendAlarm("")
     	prevCumulative = cmd.scaledMeterValue - state.lastCumulative
-    	map.value = "Cumulative Usage\n"+cmd.scaledMeterValue+" gallons"+"\n(last used "+prevCumulative+" gallons)"
+    	map.value = "Cumulative\nWater Usage\n"+cmd.scaledMeterValue+" gallons"+"\n(last used "+prevCumulative+" gallons)"
         state.lastCumulative = cmd.scaledMeterValue
         if (prevCumulative > state.lastGallon) {
             dispGallon = prevCumulative+" gallons on"+"\n"+timeString
