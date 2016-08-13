@@ -228,6 +228,7 @@ def on() {
 def off() {
 	log.info "off"
 	delayBetween ([zwave.basicV1.basicSet(value: 0x00).format(), zwave.switchMultilevelV1.switchMultilevelGet().format()], 1000)
+    sendEvent(name: "currentState", value: "OFF" as String, isStateChange: true)
 }
 
 def setLevel(value) {
