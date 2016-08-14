@@ -171,6 +171,7 @@ def doCreateEvent(physicalgraph.zwave.Command cmd, Map item1) {
 	item1.value = cmd.value ? "on" : "off"
 	if (item1.value == "off") {
 		sendEvent(name: "currentState", value: "OFF" as String, isStateChange: true)
+        sendEvent(name: "switch", value: "off" as String, isStateChange: true)
 	}
 	item1.handlerName = item1.value
 	item1.descriptionText = "${item1.linkText} was turned ${item1.value}"
@@ -229,6 +230,7 @@ def off() {
 	log.info "off"
 	delayBetween ([zwave.basicV1.basicSet(value: 0x00).format(), zwave.switchMultilevelV1.switchMultilevelGet().format()], 1000)
     sendEvent(name: "currentState", value: "OFF" as String, isStateChange: true)
+    sendEvent(name: "switch", value: "off" as String, isStateChange: true)
 }
 
 def setLevel(value) {
