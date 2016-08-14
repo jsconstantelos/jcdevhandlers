@@ -18,6 +18,7 @@
  *  02-18-2016 : Initial commit
  *  03-05-2016 : Changed date format to MM-dd-yyyy h:mm a
  *  03-11-2016 : Due to ST's v2.1.0 app totally hosing up SECONDARY_CONTROL, implemented a workaround to display that info in a separate tile.
+ *  08-13-2016 : Added "isStateChange: true" to sendEvent lines.
  *
  */
 metadata {
@@ -109,12 +110,12 @@ def parse(String description) {
 
 def sensorValueEvent(Short value) {
 	if (value) {
-        sendEvent(name: "contact", value: "open")
-        sendEvent(name: "switch", value: "doorOpen")
+        sendEvent(name: "contact", value: "open", isStateChange: true)
+        sendEvent(name: "switch", value: "doorOpen", isStateChange: true)
         sendEvent(name: "contactState", value: "Tap to close")
 	} else {
-        sendEvent(name: "contact", value: "closed")
-        sendEvent(name: "switch", value: "doorClosed")
+        sendEvent(name: "contact", value: "closed", isStateChange: true)
+        sendEvent(name: "switch", value: "doorClosed", isStateChange: true)
         sendEvent(name: "contactState", value: "Tap to open")
 	}
 }
