@@ -16,7 +16,7 @@
  *  -------
  *  02-18-2016 : Initial commit
  *  03-11-2016 : Due to ST's v2.1.0 app totally hosing up SECONDARY_CONTROL, implemented a workaround to display that info in a separate tile.
- *  08-13-2016 : Added isStateChange: true to sentEvent for OFF, LOW, MED, HIGH.
+ *  08-14-2016 : Using SECONDARY_CONTROL again.
  *
  */
  
@@ -53,8 +53,7 @@ metadata {
 				attributeState "changingState", action:"refresh.refresh", label:'ADJUSTING', icon:"st.Lighting.light24", backgroundColor:"#2179b8"
 			}
             tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
-//           		attributeState "statusText", label:'${currentValue}'
-                attributeState "statusText", label:''
+           		attributeState "statusText", label:'${currentValue}'
             }
 		}
 		standardTile("lowSpeed", "device.currentState", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
@@ -78,7 +77,7 @@ metadata {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}
 		main(["switch"])
-		details(["switch", "statusText", "lowSpeed", "medSpeed", "highSpeed", "indicator", "refresh"])
+		details(["switch", "lowSpeed", "medSpeed", "highSpeed", "indicator", "refresh"])
 	}
 	preferences {
 		section("Fan Thresholds") {
