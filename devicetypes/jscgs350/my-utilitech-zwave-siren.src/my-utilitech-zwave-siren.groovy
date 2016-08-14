@@ -16,6 +16,7 @@
  *  -------
  *  02-19-2016 : Initial commit
  *  03-11-2016 : Due to ST's v2.1.0 app totally hosing up SECONDARY_CONTROL, implemented a workaround to display that info in a separate tile.
+ *  08-14-2016 : Reimplemented SECONDARY_CONTROL (looks like formatting issues were fixed.
  *
  */
 metadata {
@@ -38,8 +39,8 @@ metadata {
 				attributeState "off", label:'off', action:'alarm.strobe', icon:"st.alarm.alarm.alarm", backgroundColor:"#79b821"
 			}
             tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
-//           		attributeState "statusText", label:'${currentValue}'
-                attributeState "statusText", label:''
+           		attributeState "statusText", label:'${currentValue}'
+//                attributeState "statusText", label:''
             }
 		}
 		standardTile("off", "device.alarm", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
@@ -55,7 +56,8 @@ metadata {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}      
 		main "alarm"
-		details(["alarm","statusText","battery","refresh"])
+//		details(["alarm","statusText","battery","refresh"])
+		details(["alarm","battery","refresh"])        
 	}
 }
 
@@ -68,7 +70,7 @@ def parse(String description) {
 	}
     
     def statusTextmsg = ""
-    statusTextmsg = "Siren is ${device.currentState('alarmState').value} (toggle on/off)."
+    statusTextmsg = "Siren is ${device.currentState('alarmState').value} (tap to toggle on/off)."
     sendEvent("name":"statusText", "value":statusTextmsg)
 //    log.debug statusTextmsg
 
