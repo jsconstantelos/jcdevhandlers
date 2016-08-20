@@ -19,8 +19,8 @@
  *  07-16-2016 : Changed GPM tile to be more descriptive during water flow, and then to show cumulative and last used gallons.
  *  07-23-2016 : Added tracking for highest recorded usage in gallons, and added actions for tiles to reset high values.  Added Reset Meter tile.
  *  08-07-2016 : Fixed GPM calculation error whenever the reporting threshold was less than 60 seconds.  Line 273 specifically.
- *  08-08-2016 : Moved where "waterState" gets defined (none, flow, highflow) - from AlarmReport to MeterReport sections.
- *  08-11-2016 : Fixed decimal positions so that only 2 positions are displayed vs as many as 9, 10, or more.  Minor cosmetic changes as well.
+ *  08-10-2016 : BG: Some optimization, some documentation supporting future changes
+ *  08-20-2016 : BG: Added weighted averaging when using High Accuracy (reportThreshhold = 1).
  *
  */
 metadata {
@@ -93,10 +93,10 @@ metadata {
 			state "batteryReplaced", icon:"http://swiftlet.technology/wp-content/uploads/2016/04/Full-Battery-96.png", backgroundColor:"#cccccc"
 			state "noBattery", icon:"http://swiftlet.technology/wp-content/uploads/2016/04/No-Battery-96.png", backgroundColor:"#cc0000"
 		}
-		standardTile("waterState", "device.waterState", width: 3, height: 2, canChangeIcon: true, canChangeBackground: true, decoration: "flat") {
-			state "none", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#cccccc", label: "None"
+		standardTile("waterState", "device.waterState", width: 3, height: 2, canChangeIcon: true, decoration: "flat") {
+			state "none", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#cccccc", label: "No Flow"
 			state "flow", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#01AAE8", label: "Flow"
-			state "overflow", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#ff0000", label: "High"
+			state "overflow", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#ff0000", label: "High Flow"
 		}
 		standardTile("heatState", "device.heatState", width: 2, height: 2) {
 			state "normal", label:'Normal', icon:"st.alarm.temperature.normal", backgroundColor:"#ffffff"
@@ -139,15 +139,17 @@ def parse(String description) {
 			results << createEvent( zwaveEvent(cmd) )
 		}
 	}
-    if(gallonThreshhold != device.currentValue("lastThreshhold"))
+//why here - BG
+	if(gallonThreshhold != device.currentValue("lastThreshhold")) //gallonThreshold is setting, lastThreshhold is....
     {
     	results << setThreshhold(gallonThreshhold)
     }
-    log.debug "Data parsed to : ${results.inspect()}"
+	log.debug "zwave parsed to ${results.inspect()}"
 	return results
 }
 
-def setHighFlowLevel(level) {
+def setHighFlowLevel(level)  //exposed command to set alarm level
+{
 	setThreshhold(level)
 }
 
@@ -265,84 +267,143 @@ def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv5.SensorMultilevelR
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
-	log.debug cmd
+	
     def dispValue
     def dispGallon
     def prevCumulative
     def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
-	def map = [:]
-    map.name = "gpm"
-    def delta = Math.round((((cmd.scaledMeterValue - cmd.scaledPreviousMeterValue) / (reportThreshhold*10)) * 60)*100)/100 //rounds to 2 decimal positions
-	if (delta < 0) {delta = 0}
-    if (delta == 0) {
-    	sendEvent(name: "waterState", value: "none")
-        sendEvent(name: "water", value: "dry")
-        sendAlarm("")
-    	prevCumulative = cmd.scaledMeterValue - state.lastCumulative
-    	map.value = "Cumulative\nWater Usage\n"+cmd.scaledMeterValue+" gallons"+"\n(last used "+prevCumulative+" gallons)"
+	def map = [name: 'gpm']
+    def scaledMeterDelta = cmd.scaledMeterValue - cmd.scaledPreviousMeterValue
+    def delta = (scaledMeterDelta / (reportThreshhold*10)) * 60  // delta here is instantaneous gpm
+
+	log.debug "Meter Report ======================================================"
+	log.trace "cmd.scaledPreviousMeterValue: ${cmd.scaledPreviousMeterValue}"
+	log.trace "cmd.scaledMeterValue: ${cmd.scaledMeterValue}"
+	log.trace "reportThreshhold: ${reportThreshhold}"
+	log.trace "delta: ${delta}"
+
+	if (delta < 0) {delta = 0.0} //fix negative values
+
+//initialize our states
+    if (state.deltaList == null) {state.deltaList = []}
+    if (state.lastCumulative == null) {state.lastCumulative = 0.0}
+    
+    state.deltaList.add(delta) 
+	log.trace "Current Measurement Number: ${state.deltaList.size()}"
+	log.trace "Current Measurement Value: ${state.deltaList[state.deltaList.size()]}"
+
+// High accuracy GPM calculations here
+// Only run high accuracy gpm if reportThreshhold is 1 (10 seconds)
+	if (reportThreshhold == 1) {
+    	if (delta > 0) { // if delta is not zero, process, otherwise leave zero to stop flow
+            switch (state.deltaList.size()) {
+            	case 1: delta = scaledMeterDelta; break; //first measurement is actual gallons, this may be all we get in this short time
+                case 2: delta = delta; break; //second measurement,low accuracy but first measurement we know gal/time
+                case 3: delta = (state.deltaList[2]*3 + state.deltaList[1])/4
+                default: delta = (state.deltaList[state.deltaList.size()-1]*9 + state.deltaList[state.deltaList.size()-2]*3 + state.deltaList[state.deltaList.size()-3])/13; break;
+            }
+        }
+    }
+    
+	delta = Math.round(delta*100)/100
+
+    if (delta == 0) {  //no reading, stop measurement
+		log.trace "cmd.scaledMeterValue: ${cmd.scaledMeterValue}"
+		log.trace "state.lastCumulative: ${state.lastCumulative}"
+    	prevCumulative = cmd.scaledMeterValue - state.lastCumulative  //record gallons used during this flow event that just stopped
+		log.trace "prevCumulative: ${prevCumulative}"
+    	map.value = "Cumulative Usage\n"+cmd.scaledMeterValue+" gallons"+"\n(last used "+prevCumulative+" gallons)"
         state.lastCumulative = cmd.scaledMeterValue
         if (prevCumulative > state.lastGallon) {
             dispGallon = prevCumulative+" gallons on"+"\n"+timeString
             sendEvent(name: "gallonHigh", value: dispGallon as String, displayed: false)
             state.lastGallon = prevCumulative
-        }        
-    } else {
+        }
+        state.deltaList = []
+    } else {  //reading made, report it
     	map.value = "Flow detected\n"+delta+" gpm"+"\nat "+timeString
-        if (delta > gallonThreshhold) {
-            sendEvent(name: "waterState", value: "overflow")
-            sendEvent(name: "water", value: "wet")
-            sendAlarm("waterOverflow")
-        } else {
-        	sendEvent(name: "waterState", value: "flow")
-            sendEvent(name: "water", value: "dry")
-            sendAlarm("")
-		}
+        if (delta > state.deltaHigh) {
+            dispValue = delta+" gpm on"+"\n"+timeString
+            sendEvent(name: "gpmHigh", value: dispValue as String, displayed: false)
+            state.deltaHigh = delta
+        }
     }
-    sendDataToCloud(delta)
+
+	sendDataToCloud(delta)  //report data to cloud, even zeroes
     sendEvent(name: "cumulative", value: cmd.scaledMeterValue, displayed: false, unit: "gal")
-	if (delta > state.deltaHigh) {
-		dispValue = delta+" gpm on"+"\n"+timeString
-		sendEvent(name: "gpmHigh", value: dispValue as String, displayed: false)
-		state.deltaHigh = delta
-	}
+
 	return map
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.alarmv2.AlarmReport cmd) {
 	def map = [:]
-    if (cmd.zwaveAlarmType == 8) { // Power Alarm
+    if (cmd.zwaveAlarmType == 8) // Power Alarm
+    {
     	map.name = "powerState" // For Tile (shows in "Recently")
-        if (cmd.zwaveAlarmEvent == 2) { // AC Mains Disconnected
+        if (cmd.zwaveAlarmEvent == 2) // AC Mains Disconnected
+        {
             map.value = "disconnected"
             sendAlarm("acMainsDisconnected")
         }
-        else if (cmd.zwaveAlarmEvent == 3) { // AC Mains Reconnected
+        else if (cmd.zwaveAlarmEvent == 3) // AC Mains Reconnected
+        {
             map.value = "reconnected"
             sendAlarm("acMainsReconnected")
         }
-        else if (cmd.zwaveAlarmEvent == 0x0B) { // Replace Battery Now
+        else if (cmd.zwaveAlarmEvent == 0x0B) // Replace Battery Now
+        {
             map.value = "noBattery"
             sendAlarm("replaceBatteryNow")
         }
-        else if (cmd.zwaveAlarmEvent == 0x00) { // Battery Replaced
+        else if (cmd.zwaveAlarmEvent == 0x00) // Battery Replaced
+        {
             map.value = "batteryReplaced"
             sendAlarm("batteryReplaced")
         }
     }
-    else if (cmd.zwaveAlarmType == 4) { // Heat Alarm
+    else if (cmd.zwaveAlarmType == 4) // Heat Alarm
+    {
     	map.name = "heatState"
-        if (cmd.zwaveAlarmEvent == 0) { // Normal
+        if (cmd.zwaveAlarmEvent == 0) // Normal
+        {
             map.value = "normal"
         }
-        else if (cmd.zwaveAlarmEvent == 1) { // Overheat
+        else if (cmd.zwaveAlarmEvent == 1) // Overheat
+        {
             map.value = "overheated"
             sendAlarm("tempOverheated")
         }
-        else if (cmd.zwaveAlarmEvent == 5) { // Underheat
+        else if (cmd.zwaveAlarmEvent == 5) // Underheat
+        {
             map.value = "freezing"
             sendAlarm("tempFreezing")
         }
     }
+    else if (cmd.zwaveAlarmType == 5) // Water Alarm
+    {
+    	map.name = "waterState"
+        if (cmd.zwaveAlarmEvent == 0) // Normal
+        {
+            map.value = "none"
+            sendEvent(name: "water", value: "dry")
+        }
+        else if (cmd.zwaveAlarmEvent == 6) // Flow Detected
+        {
+        	if(cmd.eventParameter[0] == 2)
+            {
+                map.value = "flow"
+                sendEvent(name: "water", value: "dry")
+            }
+            else if(cmd.eventParameter[0] == 3)
+            {
+            	map.value = "overflow"
+                sendAlarm("waterOverflow")
+                sendEvent(name: "water", value: "wet")
+            }
+        }
+    }
+    //log.debug "alarmV2: $cmd"
+    
 	return map
 }
 
@@ -383,7 +444,7 @@ def sendDataToCloud(double data) {
             resp.headers.each {
                 //log.debug "${it.name} : ${it.value}"
             }
-            //log.debug "query response: ${resp.data}"
+            log.debug "query response: ${resp.data}"
         }
     } catch (e) {
         log.debug "something went wrong: $e"
