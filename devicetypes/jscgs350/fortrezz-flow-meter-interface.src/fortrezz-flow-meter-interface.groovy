@@ -53,7 +53,7 @@ metadata {
         command "chartMode"
         command "resetgpmHigh"
         command "resetgallonHigh"
-        command "zero"
+        command "resetMeter"
         command "setHighFlowLevel", ["number"]
 
 	    fingerprint deviceId: "0x2101", inClusters: "0x5E, 0x86, 0x72, 0x5A, 0x73, 0x71, 0x85, 0x59, 0x32, 0x31, 0x70, 0x80, 0x7A"
@@ -118,7 +118,7 @@ metadata {
 			state "month", label:'4 Week\nChart Format', nextState: "day", action: 'chartMode', icon: "st.secondary.tools"
 		}
         standardTile("zeroTile", "device.zero", width: 2, height: 2, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
-			state "zero", label:'Reset Meter', action: 'zero', icon: "st.secondary.refresh-icon"
+			state "zero", label:'Reset Meter', action: 'resetMeter', icon: "st.secondary.refresh-icon"
 		}
 		standardTile("configure", "device.configure", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "configure", label: "Configuration", action: "configuration.configure", icon: "st.secondary.tools"
@@ -233,7 +233,7 @@ def take28() {
     }
 }
 
-def zero() {
+def resetMeter() {
 	log.debug "Resetting water meter..."
     // Still more testing needed
 /*    def cmds = []
