@@ -180,8 +180,9 @@ def zwaveEvent(physicalgraph.zwave.Command cmd) {
 def configure() {
     log.debug "PSM01: configure() called"
 	delayBetween([
-        //1 tick = 30 minutes
+        //value of 1 = 30 minutes for reporting times, or 1 = 8 seconds for how long the light stays on.
         zwave.configurationV1.configurationSet(parameterNumber: 5, size: 1, scaledConfigurationValue: 0).format(),  // Enable the door/window function, default 0
+//      zwave.configurationV1.configurationSet(parameterNumber: 9, size: 1, scaledConfigurationValue: 0).format(),  // How long the light stays on, default ?     
 		zwave.configurationV1.configurationSet(parameterNumber: 10, size: 1, scaledConfigurationValue: 2).format(), // Auto report Battery time 1-127, default 12
 		zwave.configurationV1.configurationSet(parameterNumber: 11, size: 1, scaledConfigurationValue: 2).format(), // Auto report Door/Window state time 1-127, default 12
 		zwave.configurationV1.configurationSet(parameterNumber: 12, size: 1, scaledConfigurationValue: 2).format(), // Auto report Illumination time 1-127, default 12
