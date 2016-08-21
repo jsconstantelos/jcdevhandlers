@@ -29,6 +29,7 @@
  *  03-25-2016 : Removed the \n from the two tiles for resetting watta and energy due to rendering issues on iOS
  *  07-07-2016 : Check for wildly large watts value coming from the HEM and do not process them.  Firmware updates should have resolved this.
  *  08-10-2016 : Check for 0 or negative watts value coming from the HEM and do not process them.  Firmware updates should have resolved this.
+ *  08-21-2016 : Created separate tiles to reset min and max instead of having a single tile for both values.  Changed many tiles to different sizes.
  *
  */
 metadata {
@@ -54,7 +55,8 @@ metadata {
     
     command "reset"
     command "configure"
-    command "resetmaxmin"
+    command "resetmin"
+    command "resetmax"
     
     fingerprint deviceId: "0x2101", inClusters: " 0x70,0x31,0x72,0x86,0x32,0x80,0x85,0x60"
 
@@ -71,13 +73,13 @@ metadata {
             }
 		}    
 
-        valueTile("energyDisp", "device.energyDisp", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
+        valueTile("energyDisp", "device.energyDisp", width: 2, height: 1, inactiveLabel: false, decoration: "flat") {
             state("default", label: '${currentValue}', backgroundColor:"#ffffff")
         }
-        valueTile("energyOne", "device.energyOne", width: 6, height: 2, inactiveLabel: false, decoration: "flat") {
+        valueTile("energyOne", "device.energyOne", width: 5, height: 1, inactiveLabel: false, decoration: "flat") {
             state("default", label: '${currentValue}', backgroundColor:"#ffffff")
         }        
-        valueTile("energyTwo", "device.energyTwo", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
+        valueTile("energyTwo", "device.energyTwo", width: 2, height: 1, inactiveLabel: false, decoration: "flat") {
             state("default", label: '${currentValue}', backgroundColor:"#ffffff")
         }
 
@@ -88,11 +90,14 @@ metadata {
         	state "configure", label:'', action:"configure", icon:"st.secondary.configure"
     	}
     
-        valueTile("battery", "device.battery", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
+        valueTile("battery", "device.battery", width: 2, height: 1, inactiveLabel: false, decoration: "flat") {
             state "battery", label:'${currentValue}%\nbattery', unit:""
         }
-    
-        valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 6, height: 2) {
+        
+        standardTile("blankTile", "statusText", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
+			state "default", label:'', icon:"st.secondary.activity"
+		}    
+        valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}
 
@@ -104,15 +109,18 @@ metadata {
             state "default", label:'Max:\n${currentValue}', backgroundColor:"#ffffff"
         }
 
-        standardTile("resetmaxmin", "device.energy", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
-            state "default", label:'Reset Watts', action:"resetmaxmin", icon:"st.secondary.refresh-icon"
+        standardTile("resetmin", "device.energy", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
+            state "default", label:'Reset Minimum', action:"resetmin", icon:"st.secondary.refresh-icon"
         }
-        standardTile("reset", "device.energy", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
+        standardTile("resetmax", "device.energy", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
+            state "default", label:'Reset Maximum', action:"resetmax", icon:"st.secondary.refresh-icon"
+        }        
+        standardTile("reset", "device.energy", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "default", label:'Reset Energy', action:"reset", icon:"st.secondary.refresh-icon"
 		}
           
         main (["powerDisp"])
-        details(["powerDisp", "statusText", "battery", "energyDisp", "energyTwo", "energyOne", "resetmaxmin", "resetenergy", "reset", "refresh", "configure"])
+        details(["powerDisp", "blankTile", "statusText", "blankTile", "energyOne", "battery", "energyDisp", "energyTwo", "resetmin", "resetmax", "resetenergy", "reset", "refresh", "configure"])
         }
 
         preferences {
@@ -275,14 +283,28 @@ def reset() {
     cmd
 }
 
-def resetmaxmin() {
-    log.debug "${device.name} reset max/min values"
-    state.powerHigh = 0
+def resetmin() {
+    log.debug "${device.name} reset minimum watt value"
     state.powerLow = 99999
     
 	def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
-    sendEvent(name: "energyOne", value: "Watts Data (min/max) Reset On:\n"+timeString, unit: "")
+    sendEvent(name: "energyOne", value: "Watts Data Minimum Value Reset On:\n"+timeString, unit: "")
     sendEvent(name: "powerOne", value: "", unit: "")    
+
+    def cmd = delayBetween( [
+        zwave.meterV2.meterGet(scale: 0).format(),
+    	zwave.meterV2.meterGet(scale: 2).format()
+    ])
+    
+    cmd
+}
+
+def resetmax() {
+    log.debug "${device.name} reset maximum watt value"
+    state.powerHigh = 0
+    
+	def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
+    sendEvent(name: "energyOne", value: "Watts Data Maximum Value Reset On:\n"+timeString, unit: "")    
     sendEvent(name: "powerTwo", value: "", unit: "")    
 
     def cmd = delayBetween( [
