@@ -12,7 +12,7 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
- *  Contributors: FortrezZ (Daniel Kurin), jscgs350, bridaus
+ *  Contributors: FortrezZ (original - Daniel Kurin), jscgs350, bridaus
  *
  *  Updates:
  *  -------
@@ -26,6 +26,7 @@
  *  08-10-2016 : bridaus : Some optimization, some documentation supporting future changes.
  *  08-20-2016 : bridaus : Added weighted averaging when using High Accuracy (reportThreshhold = 1).
  *  08-20-2016 : jscgs350: Merged bridaus's changes, changed how parameters are handled (via Updated section now) and removed unneeded code due to that change.
+ *  08-21-2016 : bridaus : Fixed log.trace issue with "Current Measurement Value".
  *
  */
 metadata {
@@ -282,12 +283,20 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
 
     def scaledMeterDelta = cmd.scaledMeterValue - cmd.scaledPreviousMeterValue
     def delta = (scaledMeterDelta / (reportThreshhold*10)) * 60  // delta here is instantaneous gpm
+    
+//	log.debug "Meter Report ======================================================"
+//	log.trace "cmd.scaledPreviousMeterValue: ${cmd.scaledPreviousMeterValue}"
+//	log.trace "cmd.scaledMeterValue: ${cmd.scaledMeterValue}"
+//	log.trace "reportThreshhold: ${reportThreshhold}"
+//	log.trace "delta: ${delta}"    
 
 	if (delta < 0) {delta = 0.0} //fix negative values because there should never be negative readings from the meter. 
     if (state.deltaList == null) {state.deltaList = []}
     if (state.lastCumulative == null) {state.lastCumulative = 0.0}
     
-    state.deltaList.add(delta) 
+    state.deltaList.add(delta)
+//  log.trace "Current Measurement Number: ${state.deltaList.size()}"
+//	log.trace "Current Measurement Value: ${state.deltaList[state.deltaList.size()-1]}"
 
 // High accuracy GPM calculations here
 // Only run high accuracy gpm if reportThreshhold is 1 (10 seconds)
@@ -305,10 +314,13 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
 	delta = Math.round(delta*100)/100 //rounds to 2 decimal positions
     
     if (delta == 0) {  //no reading, stop measurement
+//		log.trace "cmd.scaledMeterValue: ${cmd.scaledMeterValue}"
+//		log.trace "state.lastCumulative: ${state.lastCumulative}"    
     	sendEvent(name: "waterState", value: "none")
         sendEvent(name: "water", value: "dry")
         sendAlarm("")
     	prevCumulative = cmd.scaledMeterValue - state.lastCumulative  //record gallons used during this flow event that just stopped
+//      log.trace "prevCumulative: ${prevCumulative}"
     	map.value = "Cumulative Usage\n"+cmd.scaledMeterValue+" gallons"+"\n(last used "+prevCumulative+" gallons)"
         state.lastCumulative = cmd.scaledMeterValue
         if (prevCumulative > state.lastGallon) {
