@@ -12,15 +12,20 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
+ *  Contributors: FortrezZ (Daniel Kurin), jscgs350, bridaus
+ *
  *  Updates:
  *  -------
- *  07-06-2016 : Original commit.
- *  07-13-2016 : Modified the device handler for my liking, primarly for looks and feel.
- *  07-16-2016 : Changed GPM tile to be more descriptive during water flow, and then to show cumulative and last used gallons.
- *  07-23-2016 : Added tracking for highest recorded usage in gallons, and added actions for tiles to reset high values.  Added Reset Meter tile.
- *  08-07-2016 : Fixed GPM calculation error whenever the reporting threshold was less than 60 seconds.  Line 273 specifically.
- *  08-08-2016 : Moved where "waterState" gets defined (none, flow, highflow) - from AlarmReport to MeterReport sections.
- *  08-11-2016 : Fixed decimal positions so that only 2 positions are displayed vs as many as 9, 10, or more.  Minor cosmetic changes as well.
+ *  07-06-2016 : jscgs350: Original commit.
+ *  07-13-2016 : jscgs350: Modified the device handler for my liking, primarly for looks and feel.
+ *  07-16-2016 : jscgs350: Changed GPM tile to be more descriptive during water flow, and then to show cumulative and last used gallons.
+ *  07-23-2016 : jscgs350: Added tracking for highest recorded usage in gallons, and added actions for tiles to reset high values.  Added Reset Meter tile.
+ *  08-07-2016 : jscgs350: Fixed GPM calculation error whenever the reporting threshold was less than 60 seconds.
+ *  08-08-2016 : jscgs350: Moved where "waterState" gets defined (none, flow, highflow) - from AlarmReport to the MeterReport section since this DH handles this alarm condition differently than FortrezZ's original design.
+ *  08-11-2016 : jscgs350: Fixed decimal positions so that only 2 positions are displayed vs as many as 9, 10, or more.  Minor cosmetic changes as well.
+ *  08-10-2016 : bridaus : Some optimization, some documentation supporting future changes.
+ *  08-20-2016 : bridaus : Added weighted averaging when using High Accuracy (reportThreshhold = 1).
+ *  08-20-2016 : jscgs350: Merged bridaus's changes, changed how parameters are handled (via Updated section now) and removed unneeded code due to that change.
  *
  */
 metadata {
@@ -54,7 +59,7 @@ metadata {
 	}
     
     preferences {
-       input "reportThreshhold", "decimal", title: "Reporting Rate Threshhold", description: "The time interval between meter reports\nwhile water is flowing. 6 = 60 seconds, 1 = 10 seconds.\nOptions are 1, 2, 3, 4, 5, or 6 (default).", defaultValue: 6, required: false, displayDuringSetup: true
+       input "reportThreshhold", "decimal", title: "Reporting Rate Threshhold", description: "The time interval between meter reports\nwhile water is flowing. 6 = 60 seconds, 1 = 10 seconds.\nOptions are 1, 2, 3, 4, 5, or 6.", defaultValue: 1, required: false, displayDuringSetup: true
        input "gallonThreshhold", "decimal", title: "High Flow Rate Threshhold", description: "Flow rate (in gpm) that will trigger a notification.", defaultValue: 5, required: false, displayDuringSetup: true
        input("registerEmail", type: "email", required: false, title: "Email Address", description: "Register your device with FortrezZ", displayDuringSetup: true)
     }
@@ -128,6 +133,12 @@ def installed() {
     state.lastGallon = 0
 }
 
+// Update device parameters if the user changes anything, or just taps on Done in the ST mobile app.
+def updated() {
+	configure()
+    setThreshhold(gallonThreshhold)
+}
+
 // parse events into attributes
 def parse(String description) {
 	def results = []
@@ -139,11 +150,7 @@ def parse(String description) {
 			results << createEvent( zwaveEvent(cmd) )
 		}
 	}
-    if(gallonThreshhold != device.currentValue("lastThreshhold"))
-    {
-    	results << setThreshhold(gallonThreshhold)
-    }
-    log.debug "Data parsed to : ${results.inspect()}"
+//    log.debug "Data parsed to : ${results.inspect()}"
 	return results
 }
 
@@ -272,22 +279,51 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
     def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
 	def map = [:]
     map.name = "gpm"
-    def delta = Math.round((((cmd.scaledMeterValue - cmd.scaledPreviousMeterValue) / (reportThreshhold*10)) * 60)*100)/100 //rounds to 2 decimal positions
-	if (delta < 0) {delta = 0}
-    if (delta == 0) {
+
+    def scaledMeterDelta = cmd.scaledMeterValue - cmd.scaledPreviousMeterValue
+    def delta = (scaledMeterDelta / (reportThreshhold*10)) * 60  // delta here is instantaneous gpm
+
+	if (delta < 0) {delta = 0.0} //fix negative values because there should never be negative readings from the meter. 
+    if (state.deltaList == null) {state.deltaList = []}
+    if (state.lastCumulative == null) {state.lastCumulative = 0.0}
+    
+    state.deltaList.add(delta) 
+
+// High accuracy GPM calculations here
+// Only run high accuracy gpm if reportThreshhold is 1 (10 seconds)
+	if (reportThreshhold == 1) {
+    	if (delta > 0) { // if delta is not zero, process, otherwise leave zero to stop flow
+            switch (state.deltaList.size()) {
+            	case 1: delta = scaledMeterDelta; break; //first measurement is actual gallons, this may be all we get in this short time
+                case 2: delta = delta; break; //second measurement,low accuracy but first measurement we know gal/time
+                case 3: delta = (state.deltaList[2]*3 + state.deltaList[1])/4
+                default: delta = (state.deltaList[state.deltaList.size()-1]*9 + state.deltaList[state.deltaList.size()-2]*3 + state.deltaList[state.deltaList.size()-3])/13; break;
+            }
+        }
+    }
+    
+	delta = Math.round(delta*100)/100 //rounds to 2 decimal positions
+    
+    if (delta == 0) {  //no reading, stop measurement
     	sendEvent(name: "waterState", value: "none")
         sendEvent(name: "water", value: "dry")
         sendAlarm("")
-    	prevCumulative = cmd.scaledMeterValue - state.lastCumulative
-    	map.value = "Cumulative\nWater Usage\n"+cmd.scaledMeterValue+" gallons"+"\n(last used "+prevCumulative+" gallons)"
+    	prevCumulative = cmd.scaledMeterValue - state.lastCumulative  //record gallons used during this flow event that just stopped
+    	map.value = "Cumulative Usage\n"+cmd.scaledMeterValue+" gallons"+"\n(last used "+prevCumulative+" gallons)"
         state.lastCumulative = cmd.scaledMeterValue
         if (prevCumulative > state.lastGallon) {
             dispGallon = prevCumulative+" gallons on"+"\n"+timeString
             sendEvent(name: "gallonHigh", value: dispGallon as String, displayed: false)
             state.lastGallon = prevCumulative
-        }        
-    } else {
+        }
+        state.deltaList = []
+    } else {  //reading made, report it
     	map.value = "Flow detected\n"+delta+" gpm"+"\nat "+timeString
+        if (delta > state.deltaHigh) {
+            dispValue = delta+" gpm on"+"\n"+timeString
+            sendEvent(name: "gpmHigh", value: dispValue as String, displayed: false)
+            state.deltaHigh = delta
+        }
         if (delta > gallonThreshhold) {
             sendEvent(name: "waterState", value: "overflow")
             sendEvent(name: "water", value: "wet")
@@ -296,15 +332,12 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
         	sendEvent(name: "waterState", value: "flow")
             sendEvent(name: "water", value: "dry")
             sendAlarm("")
-		}
-    }
+		}        
+    }    
+     
     sendDataToCloud(delta)
     sendEvent(name: "cumulative", value: cmd.scaledMeterValue, displayed: false, unit: "gal")
-	if (delta > state.deltaHigh) {
-		dispValue = delta+" gpm on"+"\n"+timeString
-		sendEvent(name: "gpmHigh", value: dispValue as String, displayed: false)
-		state.deltaHigh = delta
-	}
+
 	return map
 }
 
@@ -431,17 +464,21 @@ def sendAlarm(text) {
 }
 
 def setThreshhold(rate) {
-	log.debug "Setting Threshhold to ${rate}"
+	log.debug "Configuring FortrezZ flow meter interface (FMI)..."
+	log.debug "Setting gallon threshhold to ${rate}"
     def event = createEvent(name: "lastThreshhold", value: rate, displayed: false)
     def cmds = []
     cmds << zwave.configurationV2.configurationSet(configurationValue: [(int)Math.round(rate*10)], parameterNumber: 5, size: 1).format()
     sendEvent(event)
+    log.debug "ConfigurationReport for Gallon Threshold: '${cmds}'"
     return response(cmds) // return a list containing the event and the result of response()
 }
 
 def configure() {
+	log.debug "Configuring FortrezZ flow meter interface (FMI)..."
 	log.debug "Setting reporting interval to ${reportThreshhold}"
     def cmds = []
     cmds << zwave.configurationV2.configurationSet(configurationValue: [(int)Math.round(reportThreshhold)], parameterNumber: 4, size: 1).format()
+    log.debug "ConfigurationReport for reporting interval: '${cmds}'"
     response(cmds) // return a list containing the event and the result of response()
 }
