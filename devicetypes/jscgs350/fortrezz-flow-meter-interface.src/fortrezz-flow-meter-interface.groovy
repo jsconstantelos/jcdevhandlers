@@ -27,6 +27,7 @@
  *  08-20-2016 : bridaus : Added weighted averaging when using High Accuracy (reportThreshhold = 1).
  *  08-20-2016 : jscgs350: Merged bridaus's changes, changed how parameters are handled (via Updated section now) and removed unneeded code due to that change.
  *  08-21-2016 : bridaus : Fixed log.trace issue with "Current Measurement Value".
+ *  08-21-2016 : jscgs350: Removed the Updated section because ST would execute Configure twice for some reason.  User needs to tap on the Config tile after parameters are changed.
  *
  */
 metadata {
@@ -54,6 +55,7 @@ metadata {
         command "resetgpmHigh"
         command "resetgallonHigh"
         command "resetMeter"
+        command "fixChart"
         command "setHighFlowLevel", ["number"]
 
 	    fingerprint deviceId: "0x2101", inClusters: "0x5E, 0x86, 0x72, 0x5A, 0x73, 0x71, 0x85, 0x59, 0x32, 0x31, 0x70, 0x80, 0x7A"
@@ -85,7 +87,7 @@ metadata {
             )
         }
         valueTile("gpm", "device.gpm", inactiveLabel: false, width: 2, height: 2) {
-			state "gpm", label:'${currentValue}', unit:""//, action: 'zero'
+			state "gpm", label:'${currentValue}', unit:""
 		}        
         valueTile("gpmHigh", "device.gpmHigh", inactiveLabel: false, width: 2, height: 2, decoration: "flat") {
 			state "default", label:'Highest recorded flow\n${currentValue}', action: 'resetgpmHigh'
@@ -121,7 +123,7 @@ metadata {
 			state "zero", label:'Reset Meter', action: 'resetMeter', icon: "st.secondary.refresh-icon"
 		}
 		standardTile("configure", "device.configure", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
-			state "configure", label: "Configuration", action: "configuration.configure", icon: "st.secondary.tools"
+			state "configure", label: "Configure\nDevice", action: "configuration.configure", icon: "st.secondary.tools"
 		}
 		main (["waterState"])
 		details(["flowHistory", "waterState", "temperature", "gpm", "gallonHigh", "gpmHigh", "chartMode", "take1", "battery", "powerState", "zeroTile", "configure"])
@@ -132,12 +134,6 @@ def installed() {
 	state.deltaHigh = 0
     state.lastCumulative = 0
     state.lastGallon = 0
-}
-
-// Update device parameters if the user changes anything, or just taps on Done in the ST mobile app.
-def updated() {
-	configure()
-    setThreshhold(gallonThreshhold)
 }
 
 // parse events into attributes
@@ -234,15 +230,19 @@ def take28() {
 }
 
 def resetMeter() {
+//	This isn't working yet...
 	log.debug "Resetting water meter..."
-    // Still more testing needed
-/*    def cmds = []
-    cmds << zwave.configurationV2.configurationSet(configurationValue: [0], parameterNumber: 4, size: 1).format()
-    response(cmds)
+    def cmds = delayBetween([
+		zwave.configurationV2.configurationSet(configurationValue: [(int)Math.round(0*10)], parameterNumber: 3, size: 1).format(),
+    	zwave.meterV3.meterReset().format()
+    ],200)
+    log.debug "ConfigurationReport for meter reset: '${cmds}'"
+    cmds
+    log.debug "...done resetting water meter"
     sendEvent(name: "gpm", value: "Water Meter Was Just Reset" as String, displayed: false)
     state.lastCumulative = 0
     resetgpmHigh()
-    resetgallonHigh() */
+    resetgallonHigh()
 }
 
 def resetgpmHigh() {
@@ -298,8 +298,8 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
 //  log.trace "Current Measurement Number: ${state.deltaList.size()}"
 //	log.trace "Current Measurement Value: ${state.deltaList[state.deltaList.size()-1]}"
 
-// High accuracy GPM calculations here
-// Only run high accuracy gpm if reportThreshhold is 1 (10 seconds)
+//  High accuracy GPM calculations here
+//  Only run high accuracy gpm if reportThreshhold is 1 (10 seconds)
 	if (reportThreshhold == 1) {
     	if (delta > 0) { // if delta is not zero, process, otherwise leave zero to stop flow
             switch (state.deltaList.size()) {
@@ -475,22 +475,15 @@ def sendAlarm(text) {
 	sendEvent(name: "alarmState", value: text, descriptionText: text, displayed: false)
 }
 
-def setThreshhold(rate) {
-	log.debug "Configuring FortrezZ flow meter interface (FMI)..."
-	log.debug "Setting gallon threshhold to ${rate}"
-    def event = createEvent(name: "lastThreshhold", value: rate, displayed: false)
-    def cmds = []
-    cmds << zwave.configurationV2.configurationSet(configurationValue: [(int)Math.round(rate*10)], parameterNumber: 5, size: 1).format()
-    sendEvent(event)
-    log.debug "ConfigurationReport for Gallon Threshold: '${cmds}'"
-    return response(cmds) // return a list containing the event and the result of response()
-}
-
 def configure() {
 	log.debug "Configuring FortrezZ flow meter interface (FMI)..."
 	log.debug "Setting reporting interval to ${reportThreshhold}"
-    def cmds = []
-    cmds << zwave.configurationV2.configurationSet(configurationValue: [(int)Math.round(reportThreshhold)], parameterNumber: 4, size: 1).format()
-    log.debug "ConfigurationReport for reporting interval: '${cmds}'"
-    response(cmds) // return a list containing the event and the result of response()
+	log.debug "Setting gallon threshhold to ${gallonThreshhold}"
+    sendEvent(name: "lastThreshhold", value: gallonThreshhold, displayed: false)
+    def cmds = delayBetween([
+		zwave.configurationV2.configurationSet(configurationValue: [(int)Math.round(reportThreshhold)], parameterNumber: 4, size: 1).format(),
+    	zwave.configurationV2.configurationSet(configurationValue: [(int)Math.round(gallonThreshhold*10)], parameterNumber: 5, size: 1).format()
+    ],200)
+    log.debug "Configuration report for FortrezZ flow meter interface (FMI): '${cmds}'"
+    cmds
 }
