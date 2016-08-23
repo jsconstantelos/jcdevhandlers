@@ -23,6 +23,7 @@
  *  03-11-2016 : Due to ST's v2.1.0 app totally hosing up SECONDARY_CONTROL, implemented a workaround to display that info in a separate tile.
  *  03-19-2016 : Changed tile layout, added clarity for preferences, and removed rounding (line 171)
  *  07-07-2016 : Check for wildly large watts value coming from the switch and do not process them.
+ *  08-22-2016 : Tile format changes, specifically statusText.
  *
  */
 metadata {
@@ -112,7 +113,10 @@ metadata {
         valueTile("powerTwo", "device.powerTwo", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
             state("default", label:'High ${currentValue}')
         }
-//
+        
+        standardTile("blankTile", "statusText", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
+			state "default", label:'', icon:"st.secondary.activity"
+		}
 
 		valueTile("energy", "device.energy", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "default", label:'${currentValue} kWh'
@@ -129,11 +133,11 @@ metadata {
 		standardTile("refresh", "device.power", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "default", label:'', action:"refresh.refresh", icon:"st.secondary.refresh"
 		}
-        valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 6, height: 2) {
+        valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}
 		main "powerDisp"
-		details(["switch", "statusText", "energyOne", "reset", "refresh","configure"])
+		details(["switch", "blankTile", "statusText", "energyOne", "reset", "refresh","configure"])
 	}
 }
 

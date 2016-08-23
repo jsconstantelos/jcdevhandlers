@@ -233,8 +233,10 @@ def resetMeter() {
 //	This isn't working yet...
 	log.debug "Resetting water meter..."
     def cmds = delayBetween([
-		zwave.configurationV2.configurationSet(configurationValue: [(int)Math.round(0*10)], parameterNumber: 3, size: 1).format(),
-    	zwave.meterV3.meterReset().format()
+//    	zwave.configurationV1.configurationSet(scaledConfigurationValue: 0, parameterNumber: 3, size: 2).format(),
+//      zwave.configurationV2.configurationSet(configurationValue: [0], parameterNumber: 3, size: 2).format(),
+        zwave.meterV3.meterReset().format(),
+        zwave.meterV3.meterGet().format()
     ],200)
     log.debug "ConfigurationReport for meter reset: '${cmds}'"
     cmds
