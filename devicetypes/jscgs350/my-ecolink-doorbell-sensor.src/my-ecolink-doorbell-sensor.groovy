@@ -32,7 +32,7 @@ metadata {
 	// UI tile definitions
 
 	tiles(scale: 2) {
-		multiAttributeTile(name:"contact", type: "lighting", width: 6, height: 4){
+		multiAttributeTile(name:"contact", type: "lighting", width: 6, height: 4, canChangeIcon: true){
 			tileAttribute ("device.contact", key: "PRIMARY_CONTROL") {
 				attributeState "closed", label: "Ding Dong", icon: "st.Home.home30", backgroundColor: "#53a7c0"
 				attributeState "open", label: "Ding Dong", icon: "st.Home.home30", backgroundColor: "#53a7c0"
@@ -42,14 +42,17 @@ metadata {
                 attributeState "statusText", label:''       		
             }
 		}
+        standardTile("blankTile", "statusText", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
+			state "default", label:'', icon:"st.Home.home30"
+		}        
 		valueTile("battery", "device.battery", width: 6, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "battery", label:'${currentValue}% battery', unit:""
 		}
-        valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 6, height: 2) {
+        valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}
 		main "contact"
-		details(["contact", "statusText", "battery"])
+		details(["contact", "blankTile", "statusText", "battery"])
 	}
 }
 
