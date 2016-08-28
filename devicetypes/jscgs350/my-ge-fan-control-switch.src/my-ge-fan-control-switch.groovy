@@ -15,6 +15,7 @@
  *  02-18-2016 : Initial commit
  *  03-11-2016 : Due to ST's v2.1.0 app totally hosing up SECONDARY_CONTROL, implemented a workaround to display that info in a separate tile.
  *  08-14-2016 : Completely changed the code to use ST's updated DH for "dimmer switch".  Did not reimplement "adjusting" state.
+ *  08-28-2016 : Made some cosmetic changes, and fixed the low/med/high reporting to properly reflect any physical adjustment at the switch.
  *
  */
  
@@ -39,9 +40,9 @@ metadata {
 	preferences {
 		input "ledIndicator", "enum", title: "LED Indicator", description: "Turn LED indicator... ", required: false, options:["on": "When On", "off": "When Off", "never": "Never"], defaultValue: "off"
         section("Fan Thresholds") {
-			input "lowThreshold", "number", title: "Low Threshold", range: "1..99", defaultValue: 30
-			input "medThreshold", "number", title: "Medium Threshold", range: "1..99", defaultValue: 60
-			input "highThreshold", "number", title: "High Threshold", range: "1..99", defaultValue: 99
+			input "lowThreshold", "number", title: "Low Threshold (typical is 1-33)", range: "1..99", defaultValue: 33
+			input "medThreshold", "number", title: "Medium Threshold (typical is 34-67)", range: "1..99", defaultValue: 67
+			input "highThreshold", "number", title: "High Threshold (typical is 68-99)", range: "1..99", defaultValue: 99
 		}
 	}
 
@@ -82,29 +83,26 @@ metadata {
 	}
 }
 
-def updated(){
-  switch (ledIndicator) {
-        case "on":
-            indicatorWhenOn()
-            break
-        case "off":
-            indicatorWhenOff()
-            break
-        case "never":
-            indicatorNever()
-            break
-        default:
-            indicatorWhenOn()
-            break
-    }
-}
-
 def parse(String description) {
 	def result = null
 	if (description != "updated") {
 		log.debug "parse() >> zwave.parse($description)"
 		def cmd = zwave.parse(description, [0x20: 1, 0x26: 1, 0x70: 1])
 		if (cmd) {
+            if (cmd.value > 0) {
+                if (cmd.value <= lowThreshold) {
+                    sendEvent(name: "currentSpeed", value: "LOW" as String)
+                    sendEvent(name: "currentState", value: "LOW" as String)
+                }
+                if (cmd.value > lowThreshold && level <= medThreshold) {
+                    sendEvent(name: "currentSpeed", value: "MEDIUM" as String)
+                    sendEvent(name: "currentState", value: "MED" as String)
+                }
+                if (cmd.value > medThreshold) {
+                    sendEvent(name: "currentSpeed", value: "HIGH" as String)
+                    sendEvent(name: "currentState", value: "HIGH" as String)
+                }
+            }
 			result = zwaveEvent(cmd)
 		}
 	}
@@ -194,7 +192,7 @@ def off() {
 }
 
 def setLevel(value) {
-	log.debug "setLevel >> value: $value"
+//	log.debug "setLevel >> value: $value"
 	def valueaux = value as Integer
 	def level = Math.max(Math.min(valueaux, 99), 0)
 	if (level > 0) {
@@ -206,7 +204,7 @@ def setLevel(value) {
 }
 
 def setLevel(value, duration) {
-	log.debug "setLevel >> value: $value, duration: $duration"
+//	log.debug "setLevel >> value: $value, duration: $duration"
 	def valueaux = value as Integer
 	def level = Math.max(Math.min(valueaux, 99), 0)
 	def dimmingDuration = duration < 128 ? duration : 128 + Math.round(duration / 60)
@@ -218,22 +216,19 @@ def setLevel(value, duration) {
 def lowSpeed() {
 	sendEvent(name: "currentSpeed", value: "LOW" as String)
     sendEvent(name: "currentState", value: "LOW" as String)
-	def lowThresholdvalue = (settings.lowThreshold != null && settings.lowThreshold != "") ? settings.lowThreshold.toString() : "33"
-	setLevel(lowThresholdvalue)
+	setLevel(lowThreshold)
 }
 
 def medSpeed() {
 	sendEvent(name: "currentSpeed", value: "MEDIUM" as String)
     sendEvent(name: "currentState", value: "MED" as String)
-	def medThresholdvalue = (settings.medThreshold != null && settings.medThreshold != "") ? settings.medThreshold.toString()  : "67"
-	setLevel(medThresholdvalue)
+	setLevel(medThreshold)
 }
 
 def highSpeed() {
 	sendEvent(name: "currentSpeed", value: "HIGH" as String)
     sendEvent(name: "currentState", value: "HIGH" as String)
-	def highThresholdvalue = (settings.highThreshold != null && settings.highThreshold != "") ? settings.highThreshold.toString() : "99"
-	setLevel(highThresholdvalue)
+	setLevel(highThreshold)
 }
 
 def poll() {
