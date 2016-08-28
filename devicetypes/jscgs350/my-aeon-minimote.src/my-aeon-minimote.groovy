@@ -1,6 +1,6 @@
 /*
  *
- *  Modified and extended from SmartThings Aeon Minimote Device Handler Template.
+ *  Modified from SmartThings Aeon Minimote Device Handler Template.
  *
  *  Copyright 2015 SmartThings
  *

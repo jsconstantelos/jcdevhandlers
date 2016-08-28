@@ -12,6 +12,12 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
+ *  Updates:
+ *  -------
+ *  04-05-2016 : Initial commit
+ *  04-05-2016 : Made Humidity the primary tile.
+ *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel. 
+ *
  */
 metadata {
 	definition (name: "My SmartSense Humidity Sensor",namespace: "jscgs350", author: "SmartThings") {

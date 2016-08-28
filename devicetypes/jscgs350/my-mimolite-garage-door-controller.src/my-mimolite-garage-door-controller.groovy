@@ -18,6 +18,7 @@
  *  02-18-2016 : Initial commit
  *  03-05-2016 : Changed date format to MM-dd-yyyy h:mm a
  *  03-11-2016 : Due to ST's v2.1.0 app totally hosing up SECONDARY_CONTROL, implemented a workaround to display that info in a separate tile.
+ *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.  
  *
  */
 metadata {
@@ -62,7 +63,7 @@ metadata {
 			state "closed", label: '${name}', icon: "st.contact.contact.closed", backgroundColor: "#79b821"
 		}
         standardTile("refresh", "device.switch", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
-			state "default", label:'', action:"refresh.refresh", icon:"st.secondary.refresh"
+			state "default", label:'Refresh', action:"refresh.refresh", icon:"st.secondary.refresh-icon"
 		}
         standardTile("powered", "device.powered", width: 2, height: 2, inactiveLabel: false) {
 			state "powerOn", label: "Power On", icon: "st.switches.switch.on", backgroundColor: "#79b821"

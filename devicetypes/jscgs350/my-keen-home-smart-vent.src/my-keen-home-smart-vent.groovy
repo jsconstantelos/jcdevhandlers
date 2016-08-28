@@ -10,11 +10,10 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
- *  Version: v4
- *
  *  Updates:
  *  -------
  *  02-18-2016 : Initial commit
+ *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.  
  *
  */
 metadata {
@@ -95,7 +94,7 @@ metadata {
             state "battery", label: 'Battery \n${currentValue}%', backgroundColor:"#ffffff"
         }
         standardTile("refresh", "device.power", inactiveLabel: false, width: 3, height: 2, decoration: "flat") {
-            state "default", label:'', action:"refresh.refresh", icon:"st.secondary.refresh"
+            state "default", label:'Refresh', action:"refresh.refresh", icon:"st.secondary.refresh-icon"
         }        
         standardTile("configure", "device.configure", inactiveLabel: false, width: 3, height: 2, decoration: "flat") {
             state "configure", label:'', action:"configuration.configure", icon:"st.secondary.configure"

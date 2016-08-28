@@ -11,8 +11,6 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
- *  Version: v3.0
- *
  *  Updates:
  *  -------
  *  02-18-2016 : Initial commit
@@ -21,6 +19,7 @@
  *  04-05-2016 : Added fingerprint for the PSM01
  *  04-09-2016 : Rewrote several sections of code, added additional config parameter (5) to ensure open/close not disabled
  *  04-13-2016 : Added icon for illuminance
+ *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.  
  *
  */ 
 metadata {

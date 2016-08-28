@@ -19,6 +19,7 @@
  *  02-21-2016 : Updated with @mitchp's changes (https://github.com/mitchpond/SmartThingsPublic/blob/master/devicetypes/mitchpond/iris-smart-button.src/iris-smart-button.groovy)
  *  03-11-2016 : Due to ST's v2.1.0 app totally hosing up SECONDARY_CONTROL, implemented a workaround to display that info in a separate tile.
  *  03-25-2016 : Modified to always be Pushed (for the way I use these buttons).  Lines 160/161 can be changed to revert back to normal operation.
+ *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel. 
  *
  */
 metadata {
@@ -47,7 +48,7 @@ metadata {
 	tiles(scale: 2) {
 		multiAttributeTile(name:"button", type: "lighting", width: 6, height: 4, canChangeIcon: true, decoration: "flat"){
 			tileAttribute ("device.button", key: "PRIMARY_CONTROL") {
-				attributeState "default", label: "Button", icon: "st.Electronics.electronics13", backgroundColor: "#53a7c0"
+				attributeState "default", label: "Button", icon: "st.unknown.thing.thing-circle", backgroundColor: "#53a7c0"
 			}
             tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
 //           		attributeState "statusText", label:'${currentValue}'
@@ -70,7 +71,7 @@ metadata {
 				]
 		}
         standardTile("refresh", "device.refresh", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
-			state "default", action:"refresh.refresh", icon:"st.secondary.refresh"
+			state "default", label: "Refresh", action:"refresh.refresh", icon:"st.secondary.refresh-icon"
 		}
         valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 6, height: 2) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"

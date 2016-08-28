@@ -10,13 +10,12 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
- *  Version: v2.1
- *
  *  Updates:
  *  -------
  *  02-19-2016 : Initial commit
  *  03-11-2016 : Due to ST's v2.1.0 app totally hosing up SECONDARY_CONTROL, implemented a workaround to display that info in a separate tile.
  *  08-14-2016 : Reimplemented SECONDARY_CONTROL (looks like formatting issues were fixed.
+ *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel. 
  *
  */
 metadata {
@@ -50,7 +49,7 @@ metadata {
 			state "battery", label:'${currentValue}% battery', unit:""
 		}
         standardTile("refresh", "device.refresh", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
-			state "default", label:'', action:"refresh.refresh", icon:"st.secondary.refresh"
+			state "default", label:'Refresh', action:"refresh.refresh", icon:"st.secondary.refresh-icon"
 		}
         valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 6, height: 2) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"

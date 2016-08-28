@@ -15,11 +15,10 @@
  *  License  for the specific language governing permissions and limitations
  *  under the License.
  *
- *  The latest version of this file can be found at:
- *  https://github.com/statusbits/smartthings/blob/master/VirtualThings/VirtualTemperatureTile.device.groovy
- *
  *  2014-08-28  V1.1.0  parse takes 'temperature:<value>' as an argument
  *  2014-08-10  V1.0.0  Initial release
+ *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.
+ *
  */
 
 metadata {

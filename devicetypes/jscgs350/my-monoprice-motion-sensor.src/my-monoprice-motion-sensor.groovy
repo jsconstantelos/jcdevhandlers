@@ -10,13 +10,12 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
- *  Version: v2
- *
  *  Updates:
  *  -------
  *  02-18-2016 : Initial commit
  *  04-08-2016 : Added fingerprint info
  *  04-10-2016 : Added Refesh tile
+ *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.  
  *
  */
 
@@ -71,7 +70,7 @@ metadata {
 			state "battery", label:'${currentValue}% battery', unit:""
 		}
         standardTile("refresh", "device.motion", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
-			state "default", label:'', action:"refresh.refresh", icon:"st.secondary.refresh"
+			state "default", label:'Refresh', action:"refresh.refresh", icon:"st.secondary.refresh-icon"
 		}
 		main(["motion", "temperature"])
 		details(["motion", "temperature", "battery", "refresh"])

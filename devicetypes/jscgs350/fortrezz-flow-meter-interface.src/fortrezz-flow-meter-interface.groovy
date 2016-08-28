@@ -28,7 +28,7 @@
  *  08-20-2016 : jscgs350: Merged bridaus's changes, changed how parameters are handled (via Updated section now) and removed unneeded code due to that change.
  *  08-21-2016 : bridaus : Fixed log.trace issue with "Current Measurement Value".
  *  08-21-2016 : jscgs350: Removed the Updated section because ST would execute Configure twice for some reason.  User needs to tap on the Config tile after parameters are changed.
- *  08-27-2016 : jscgs350: Modified the device handler for my liking, primarly for looks and feel. 
+ *  08-27-2016 : jscgs350: Modified the device handler for my liking, primarly for looks and feel for some of the tiles.
  *
  */
 metadata {
