@@ -29,6 +29,7 @@
  *  08-21-2016 : bridaus : Fixed log.trace issue with "Current Measurement Value".
  *  08-21-2016 : jscgs350: Removed the Updated section because ST would execute Configure twice for some reason.  User needs to tap on the Config tile after parameters are changed.
  *  08-27-2016 : jscgs350: Modified the device handler for my liking, primarly for looks and feel for some of the tiles.
+ *  08-28-2016 : jscgs350: Reverted back to original gpm flow calculation instead of using weighted average due to large flow rate calculations (under review)
  *
  */
 metadata {
@@ -234,10 +235,8 @@ def resetMeter() {
 //	This isn't working yet...
 	log.debug "Resetting water meter..."
     def cmds = delayBetween([
-//    	zwave.configurationV1.configurationSet(scaledConfigurationValue: 0, parameterNumber: 3, size: 2).format(),
-//      zwave.configurationV2.configurationSet(configurationValue: [0], parameterNumber: 3, size: 2).format(),
-        zwave.meterV3.meterReset().format(),
-        zwave.meterV3.meterGet().format()
+        zwave.configurationV2.configurationSet(configurationValue: [0], parameterNumber: 3, size: 2).format()
+//      zwave.meterV3.meterReset().format()
     ],200)
     log.debug "ConfigurationReport for meter reset: '${cmds}'"
     cmds
@@ -283,62 +282,22 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
     def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
 	def map = [:]
     map.name = "gpm"
-
-    def scaledMeterDelta = cmd.scaledMeterValue - cmd.scaledPreviousMeterValue
-    def delta = (scaledMeterDelta / (reportThreshhold*10)) * 60  // delta here is instantaneous gpm
-    
-//	log.debug "Meter Report ======================================================"
-//	log.trace "cmd.scaledPreviousMeterValue: ${cmd.scaledPreviousMeterValue}"
-//	log.trace "cmd.scaledMeterValue: ${cmd.scaledMeterValue}"
-//	log.trace "reportThreshhold: ${reportThreshhold}"
-//	log.trace "delta: ${delta}"    
-
-	if (delta < 0) {delta = 0.0} //fix negative values because there should never be negative readings from the meter. 
-    if (state.deltaList == null) {state.deltaList = []}
-    if (state.lastCumulative == null) {state.lastCumulative = 0.0}
-    
-    state.deltaList.add(delta)
-//  log.trace "Current Measurement Number: ${state.deltaList.size()}"
-//	log.trace "Current Measurement Value: ${state.deltaList[state.deltaList.size()-1]}"
-
-//  High accuracy GPM calculations here
-//  Only run high accuracy gpm if reportThreshhold is 1 (10 seconds)
-	if (reportThreshhold == 1) {
-    	if (delta > 0) { // if delta is not zero, process, otherwise leave zero to stop flow
-            switch (state.deltaList.size()) {
-            	case 1: delta = scaledMeterDelta; break; //first measurement is actual gallons, this may be all we get in this short time
-                case 2: delta = delta; break; //second measurement,low accuracy but first measurement we know gal/time
-                case 3: delta = (state.deltaList[2]*3 + state.deltaList[1])/4
-                default: delta = (state.deltaList[state.deltaList.size()-1]*9 + state.deltaList[state.deltaList.size()-2]*3 + state.deltaList[state.deltaList.size()-3])/13; break;
-            }
-        }
-    }
-    
-	delta = Math.round(delta*100)/100 //rounds to 2 decimal positions
-    
-    if (delta == 0) {  //no reading, stop measurement
-//		log.trace "cmd.scaledMeterValue: ${cmd.scaledMeterValue}"
-//		log.trace "state.lastCumulative: ${state.lastCumulative}"    
+    def delta = Math.round((((cmd.scaledMeterValue - cmd.scaledPreviousMeterValue) / (reportThreshhold*10)) * 60)*100)/100 //rounds to 2 decimal positions
+	if (delta < 0) {delta = 0}
+    if (delta == 0) {
     	sendEvent(name: "waterState", value: "none")
         sendEvent(name: "water", value: "dry")
         sendAlarm("")
-    	prevCumulative = cmd.scaledMeterValue - state.lastCumulative  //record gallons used during this flow event that just stopped
-//      log.trace "prevCumulative: ${prevCumulative}"
+    	prevCumulative = cmd.scaledMeterValue - state.lastCumulative
     	map.value = "Cumulative:\n"+cmd.scaledMeterValue+" gallons"+"\n(last used "+prevCumulative+" gallons)"
         state.lastCumulative = cmd.scaledMeterValue
         if (prevCumulative > state.lastGallon) {
             dispGallon = prevCumulative+" gallons on"+"\n"+timeString
             sendEvent(name: "gallonHigh", value: dispGallon as String, displayed: false)
             state.lastGallon = prevCumulative
-        }
-        state.deltaList = []
-    } else {  //reading made, report it
+        }        
+    } else {
     	map.value = "Flow detected\n"+delta+" gpm"+"\nat "+timeString
-        if (delta > state.deltaHigh) {
-            dispValue = delta+" gpm on"+"\n"+timeString
-            sendEvent(name: "gpmHigh", value: dispValue as String, displayed: false)
-            state.deltaHigh = delta
-        }
         if (delta > gallonThreshhold) {
             sendEvent(name: "waterState", value: "overflow")
             sendEvent(name: "water", value: "wet")
@@ -347,12 +306,15 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
         	sendEvent(name: "waterState", value: "flow")
             sendEvent(name: "water", value: "dry")
             sendAlarm("")
-		}        
-    }    
-     
+		}
+    }
     sendDataToCloud(delta)
     sendEvent(name: "cumulative", value: cmd.scaledMeterValue, displayed: false, unit: "gal")
-
+	if (delta > state.deltaHigh) {
+		dispValue = delta+" gpm on"+"\n"+timeString
+		sendEvent(name: "gpmHigh", value: dispValue as String, displayed: false)
+		state.deltaHigh = delta
+	}
 	return map
 }
 
