@@ -16,6 +16,7 @@
  *  -------
  *  02-18-2016 : Initial commit
  *  03-05-2016 : Cleaned up code
+ *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel. 
  *
  */
 
@@ -39,10 +40,10 @@ metadata {
 				attributeState "unlocked", label: 'Unlocked', icon: "st.presence.house.unlocked", backgroundColor: "#ffa81e"
 			}
 		}        
-        valueTile("battery", "device.battery", width: 6, height: 2, inactiveLabel: false, decoration: "flat") {
+        valueTile("battery", "device.battery", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "battery", label:'${currentValue}% battery', unit:""
 		}
-        standardTile("refresh", "device.lock", width: 6, height: 2, inactiveLabel: false, decoration: "flat") {
+        standardTile("refresh", "device.lock", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "default", label:'FORCE LOCK', action:"refresh.refresh", icon: "st.presence.house.secured"
 		}
 		main "lock"

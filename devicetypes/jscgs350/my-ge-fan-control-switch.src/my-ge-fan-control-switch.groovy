@@ -10,19 +10,16 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
- *  Version: v3
- *
  *  Updates:
  *  -------
  *  02-18-2016 : Initial commit
  *  03-11-2016 : Due to ST's v2.1.0 app totally hosing up SECONDARY_CONTROL, implemented a workaround to display that info in a separate tile.
- *  08-14-2016 : Using SECONDARY_CONTROL again.
+ *  08-14-2016 : Completely changed the code to use ST's updated DH for "dimmer switch".  Did not reimplement "adjusting" state.
  *
  */
  
 metadata {
-	
-	definition (name: "My GE Fan Control Switch", namespace: "jscgs350", author: "SmartThings") {
+	definition (name: "My GE Fan Control Switch", namespace: "jscgs350", author: "jscgs350") {
 		capability "Switch Level"
 		capability "Actuator"
 		capability "Indicator"
@@ -37,21 +34,25 @@ metadata {
 
 		attribute "currentState", "string"
         attribute "currentSpeed", "string"
-
-		//fingerprint inClusters: "0x26"
 	}
-	tiles (scale:2) {
-		multiAttributeTile(name: "switch", type: "lighting", width: 6, height: 4, canChangeIcon: true) {
-			tileAttribute ("device.currentState", key: "PRIMARY_CONTROL") {
-				attributeState "default", label:'${currentValue}', action:"switch.off", icon:"st.Lighting.light24", backgroundColor:"#2179b8", nextState: "turningOff"
-				attributeState "HIGH", label:'HIGH', action:"switch.off", icon:"st.Lighting.light24", backgroundColor:"#486e13", nextState: "turningOff"
-				attributeState "MED", label:'MED', action:"switch.off", icon:"st.Lighting.light24", backgroundColor:"#60931a", nextState: "turningOff"
-				attributeState "LOW", label:'LOW', action:"switch.off", icon:"st.Lighting.light24", backgroundColor:"#79b821", nextState: "turningOff"
-				attributeState "OFF", label:'OFF', action:"switch.on", icon:"st.Lighting.light24", backgroundColor:"#ffffff", nextState: "turningOn"
-				attributeState "turningOn", action:"switch.on", label:'TURNINGON', icon:"st.Lighting.light24", backgroundColor:"#2179b8", nextState: "turningOn"
-				attributeState "turningOff", action:"switch.off", label:'TURNINGOFF', icon:"st.Lighting.light24", backgroundColor:"#2179b8", nextState: "turningOff"
-				attributeState "changingState", action:"refresh.refresh", label:'ADJUSTING', icon:"st.Lighting.light24", backgroundColor:"#2179b8"
-			}
+
+	preferences {
+		input "ledIndicator", "enum", title: "LED Indicator", description: "Turn LED indicator... ", required: false, options:["on": "When On", "off": "When Off", "never": "Never"], defaultValue: "off"
+        section("Fan Thresholds") {
+			input "lowThreshold", "number", title: "Low Threshold", range: "1..99", defaultValue: 30
+			input "medThreshold", "number", title: "Medium Threshold", range: "1..99", defaultValue: 60
+			input "highThreshold", "number", title: "High Threshold", range: "1..99", defaultValue: 99
+		}
+	}
+
+	tiles(scale: 2) {
+		multiAttributeTile(name:"switch", type: "lighting", width: 6, height: 4, canChangeIcon: true){
+			tileAttribute ("device.switch", key: "PRIMARY_CONTROL") {    
+				attributeState "on", action:"switch.off", label:'ON', icon:"st.Lighting.light24", backgroundColor:"#79b821", nextState:"turningOff"
+				attributeState "off", action:"switch.on", label:'OFF', icon:"st.Lighting.light24", backgroundColor:"#ffffff", nextState:"turningOn"
+				attributeState "turningOn", label:'TURNINGON', icon:"st.Lighting.light24", backgroundColor:"#2179b8", nextState: "turningOn"
+				attributeState "turningOff", label:'TURNINGOFF', icon:"st.Lighting.light24", backgroundColor:"#2179b8", nextState: "turningOff"
+			}   
             tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
            		attributeState "statusText", label:'${currentValue}'
             }
@@ -65,13 +66,13 @@ metadata {
 		standardTile("highSpeed", "device.currentState", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
 			state "HIGH", label: 'HIGH', action: "highSpeed", icon:"st.Home.home30"
 		}
-		standardTile("refresh", "device.switch", inactiveLabel: false, decoration: "flat", width: 3, height: 2) {
-			state "default", label:"", action:"refresh.refresh", icon:"st.secondary.refresh"
-		}
-		standardTile("indicator", "device.indicatorStatus", inactiveLabel: false, decoration: "flat", width: 3, height: 2) {
+		standardTile("indicator", "device.indicatorStatus", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "when off", action:"indicator.indicatorWhenOn", icon:"st.indicators.lit-when-off"
 			state "when on", action:"indicator.indicatorNever", icon:"st.indicators.lit-when-on"
 			state "never", action:"indicator.indicatorWhenOff", icon:"st.indicators.never-lit"
+		}
+		standardTile("refresh", "device.switch", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
+			state "default", label:'Refresh', action:"refresh.refresh", icon:"st.secondary.refresh-icon"
 		}
         valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 6, height: 2) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
@@ -79,184 +80,158 @@ metadata {
 		main(["switch"])
 		details(["switch", "lowSpeed", "medSpeed", "highSpeed", "indicator", "refresh"])
 	}
-	preferences {
-		section("Fan Thresholds") {
-			input "lowThreshold", "number", title: "Low Threshold", range: "1..99"
-			input "medThreshold", "number", title: "Medium Threshold", range: "1..99"
-			input "highThreshold", "number", title: "High Threshold", range: "1..99"
-		}
-	}
+}
+
+def updated(){
+  switch (ledIndicator) {
+        case "on":
+            indicatorWhenOn()
+            break
+        case "off":
+            indicatorWhenOff()
+            break
+        case "never":
+            indicatorNever()
+            break
+        default:
+            indicatorWhenOn()
+            break
+    }
 }
 
 def parse(String description) {
-	def item1 = [
-		canBeCurrentState: false,
-		linkText: getLinkText(device),
-		isStateChange: false,
-		displayed: false,
-		descriptionText: description,
-		value:  description
-	]
-	def result
-	def cmd = zwave.parse(description, [0x20: 1, 0x26: 1, 0x70: 1])
-	if (cmd) {
-		result = createEvent(cmd, item1)
+	def result = null
+	if (description != "updated") {
+		log.debug "parse() >> zwave.parse($description)"
+		def cmd = zwave.parse(description, [0x20: 1, 0x26: 1, 0x70: 1])
+		if (cmd) {
+			result = zwaveEvent(cmd)
+		}
 	}
-	else {
-		item1.displayed = displayed(description, item1.isStateChange)
-		result = [item1]
+	if (result?.name == 'hail' && hubFirmwareLessThan("000.011.00602")) {
+		result = [result, response(zwave.basicV1.basicGet())]
+		log.debug "Was hailed: requesting state update"
+	} else {
+		log.debug "Parse returned ${result?.descriptionText}"
 	}
-	log.debug "Parse returned ${result?.descriptionText}"
     def statusTextmsg = ""
     statusTextmsg = "Fan speed is set to ${device.currentState('currentSpeed').value}"
     sendEvent("name":"statusText", "value":statusTextmsg)
-	result
+	return result
 }
 
-def createEvent(physicalgraph.zwave.commands.basicv1.BasicReport cmd, Map item1) {
-	def result = doCreateEvent(cmd, item1)
-	for (int i = 0; i < result.size(); i++) {
-  	result[i].type = "physical"
+def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicReport cmd) {
+	dimmerEvents(cmd)
+}
+
+def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicSet cmd) {
+	dimmerEvents(cmd)
+}
+
+def zwaveEvent(physicalgraph.zwave.commands.switchmultilevelv1.SwitchMultilevelReport cmd) {
+	dimmerEvents(cmd)
+}
+
+def zwaveEvent(physicalgraph.zwave.commands.switchmultilevelv1.SwitchMultilevelSet cmd) {
+	dimmerEvents(cmd)
+}
+
+private dimmerEvents(physicalgraph.zwave.Command cmd) {
+	def value = (cmd.value ? "on" : "off")
+	def result = [createEvent(name: "switch", value: value)]
+	if (cmd.value && cmd.value <= 100) {
+		result << createEvent(name: "level", value: cmd.value, unit: "%")
 	}
-	log.trace "BasicReport"
-  result
-}
-
-def createEvent(physicalgraph.zwave.commands.basicv1.BasicSet cmd, Map item1) {
-	def result = doCreateEvent(cmd, item1)
-	for (int i = 0; i < result.size(); i++) {
-		result[i].type = "physical"
-	}
-	log.trace "BasicSet"
-	result
-}
-
-def createEvent(physicalgraph.zwave.commands.switchmultilevelv1.SwitchMultilevelStartLevelChange cmd, Map item1) {
-	[]
-	log.trace "StartLevel"
-}
-
-def createEvent(physicalgraph.zwave.commands.switchmultilevelv1.SwitchMultilevelStopLevelChange cmd, Map item1) {
-	[response(zwave.basicV1.basicGet())]
-}
-
-def createEvent(physicalgraph.zwave.commands.switchmultilevelv1.SwitchMultilevelSet cmd, Map item1) {
-	def result = doCreateEvent(cmd, item1)
-	for (int i = 0; i < result.size(); i++) {
-		result[i].type = "physical"
-	}
-	log.trace "SwitchMultiLevelSet"
-	result
-}
-
-def createEvent(physicalgraph.zwave.commands.switchmultilevelv1.SwitchMultilevelReport cmd, Map item1) {
-	def result = doCreateEvent(cmd, item1)
-	result[0].descriptionText = "${item1.linkText} is ${item1.value}"
-	result[0].handlerName = cmd.value ? "statusOn" : "statusOff"
-	for (int i = 0; i < result.size(); i++) {
-		result[i].type = "digital"
-	}
-	log.trace "SwitchMultilevelReport"
-	result
-}
-
-def doCreateEvent(physicalgraph.zwave.Command cmd, Map item1) {
-	def result = [item1]
-	def lowThresholdvalue = (settings.lowThreshold != null && settings.lowThreshold != "") ? settings.lowThreshold.toString() : "30"
-	def medThresholdvalue = (settings.medThreshold != null && settings.medThreshold != "") ? settings.medThreshold.toString() : "62"
-	def highThresholdvalue = (settings.highThreshold != null && settings.highThreshold != "") ? settings.highThreshold.toString() : "99"
-
-	item1.name = "switch"
-	item1.value = cmd.value ? "on" : "off"
-	if (item1.value == "off") {
-		sendEvent(name: "currentState", value: "OFF" as String, isStateChange: true)
-        sendEvent(name: "switch", value: "off" as String, isStateChange: true)
-	}
-	item1.handlerName = item1.value
-	item1.descriptionText = "${item1.linkText} was turned ${item1.value}"
-	item1.canBeCurrentState = true
-	item1.isStateChange = isStateChange(device, item1.name, item1.value)
-	item1.displayed = false
-
-	if (cmd.value) {
-		def item2 = new LinkedHashMap(item1)
-		item2.name = "level"
-		item2.value = cmd.value as String
-		item2.unit = "%"
-		item2.descriptionText = "${item1.linkText} dimmed ${item2.value} %"
-		item2.canBeCurrentState = true
-		item2.isStateChange = isStateChange(device, item2.name, item2.value)
-		item2.displayed = false
-
-		if (item2.value <= lowThresholdvalue) {
-			sendEvent(name: "currentState", value: "LOW" as String, isStateChange: true)
-            sendEvent(name: "currentSpeed", value: "LOW" as String)
-		}
-		if (item2.value >= lowThresholdvalue+1 && item2.value <= medThresholdvalue) {
-			sendEvent(name: "currentState", value: "MED" as String, isStateChange: true)
-            sendEvent(name: "currentSpeed", value: "MED" as String)
-	 	}
-		if (item2.value >= medThresholdvalue+1) {
-			sendEvent(name: "currentState", value: "HIGH" as String, isStateChange: true)
-            sendEvent(name: "currentSpeed", value: "HIGH" as String)
-		}
-
-		result << item2
-	}
-	log.trace "doCreateEvent"
-	result
+	return result
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.configurationv1.ConfigurationReport cmd) {
+	log.debug "ConfigurationReport $cmd"
 	def value = "when off"
-	log.trace "ConfigurationReport"
 	if (cmd.configurationValue[0] == 1) {value = "when on"}
 	if (cmd.configurationValue[0] == 2) {value = "never"}
-	[name: "indicatorStatus", value: value, display: false]
+	createEvent([name: "indicatorStatus", value: value])
 }
 
-def createEvent(physicalgraph.zwave.Command cmd,  Map map) {
-	// Handles any Z-Wave commands we aren't interested in
-	log.debug "UNHANDLED COMMAND $cmd"
+def zwaveEvent(physicalgraph.zwave.commands.hailv1.Hail cmd) {
+	createEvent([name: "hail", value: "hail", descriptionText: "Switch button was pressed", displayed: false])
+}
+
+def zwaveEvent(physicalgraph.zwave.commands.manufacturerspecificv2.ManufacturerSpecificReport cmd) {
+	log.debug "manufacturerId:   ${cmd.manufacturerId}"
+	log.debug "manufacturerName: ${cmd.manufacturerName}"
+	log.debug "productId:        ${cmd.productId}"
+	log.debug "productTypeId:    ${cmd.productTypeId}"
+	def msr = String.format("%04X-%04X-%04X", cmd.manufacturerId, cmd.productTypeId, cmd.productId)
+	updateDataValue("MSR", msr)
+	updateDataValue("manufacturer", cmd.manufacturerName)
+	createEvent([descriptionText: "$device.displayName MSR: $msr", isStateChange: false])
+}
+
+def zwaveEvent(physicalgraph.zwave.commands.switchmultilevelv1.SwitchMultilevelStopLevelChange cmd) {
+	[createEvent(name:"switch", value:"on"), response(zwave.switchMultilevelV1.switchMultilevelGet().format())]
+}
+
+def zwaveEvent(physicalgraph.zwave.Command cmd) {
+	// Handles all Z-Wave commands we aren't interested in
+	[:]
 }
 
 def on() {
-	log.info "on"
-	delayBetween([zwave.basicV1.basicSet(value: 0xFF).format(), zwave.switchMultilevelV1.switchMultilevelGet().format()], 1000)
+	sendEvent(name: "switch", value: "on", isStateChange: true)
+	delayBetween([
+			zwave.basicV1.basicSet(value: 0xFF).format(),
+			zwave.switchMultilevelV1.switchMultilevelGet().format()
+	],5000)
 }
 
 def off() {
-	log.info "off"
-	delayBetween ([zwave.basicV1.basicSet(value: 0x00).format(), zwave.switchMultilevelV1.switchMultilevelGet().format()], 1000)
-    sendEvent(name: "currentState", value: "OFF" as String, isStateChange: true)
-    sendEvent(name: "switch", value: "off" as String, isStateChange: true)
+	sendEvent(name: "switch", value: "off", isStateChange: true)
+	delayBetween([
+			zwave.basicV1.basicSet(value: 0x00).format(),
+			zwave.switchMultilevelV1.switchMultilevelGet().format()
+	],5000)
 }
 
 def setLevel(value) {
-	sendEvent(name: "currentState", value: "changingState" as String, displayed: false)
-	def level = Math.min(value as Integer, 99)
-	log.trace "setLevel(value): ${level}"
-	delayBetween ([zwave.basicV1.basicSet(value: level as Integer).format(), zwave.switchMultilevelV1.switchMultilevelGet().format()], 1000)
+	log.debug "setLevel >> value: $value"
+	def valueaux = value as Integer
+	def level = Math.max(Math.min(valueaux, 99), 0)
+	if (level > 0) {
+		sendEvent(name: "switch", value: "on", isStateChange: true)
+	} else {
+		sendEvent(name: "switch", value: "off", isStateChange: true)
+	}
+	delayBetween ([zwave.basicV1.basicSet(value: level).format(), zwave.switchMultilevelV1.switchMultilevelGet().format()], 5000)
 }
 
 def setLevel(value, duration) {
-	sendEvent(name: "currentState", value: "changingState" as String, displayed: false)
-	def level = Math.min(value as Integer, 99)
+	log.debug "setLevel >> value: $value, duration: $duration"
+	def valueaux = value as Integer
+	def level = Math.max(Math.min(valueaux, 99), 0)
 	def dimmingDuration = duration < 128 ? duration : 128 + Math.round(duration / 60)
-	zwave.switchMultilevelV2.switchMultilevelSet(value: level, dimmingDuration: dimmingDuration).format()
+	def getStatusDelay = duration < 128 ? (duration*1000)+2000 : (Math.round(duration / 60)*60*1000)+2000
+	delayBetween ([zwave.switchMultilevelV2.switchMultilevelSet(value: level, dimmingDuration: dimmingDuration).format(),
+				   zwave.switchMultilevelV1.switchMultilevelGet().format()], getStatusDelay)
 }
 
 def lowSpeed() {
+	sendEvent(name: "currentSpeed", value: "LOW" as String)
+    sendEvent(name: "currentState", value: "LOW" as String)
 	def lowThresholdvalue = (settings.lowThreshold != null && settings.lowThreshold != "") ? settings.lowThreshold.toString() : "33"
 	setLevel(lowThresholdvalue)
 }
 
 def medSpeed() {
+	sendEvent(name: "currentSpeed", value: "MEDIUM" as String)
+    sendEvent(name: "currentState", value: "MED" as String)
 	def medThresholdvalue = (settings.medThreshold != null && settings.medThreshold != "") ? settings.medThreshold.toString()  : "67"
 	setLevel(medThresholdvalue)
 }
 
 def highSpeed() {
+	sendEvent(name: "currentSpeed", value: "HIGH" as String)
+    sendEvent(name: "currentState", value: "HIGH" as String)
 	def highThresholdvalue = (settings.highThreshold != null && settings.highThreshold != "") ? settings.highThreshold.toString() : "99"
 	setLevel(highThresholdvalue)
 }
@@ -266,20 +241,35 @@ def poll() {
 }
 
 def refresh() {
-	zwave.switchMultilevelV1.switchMultilevelGet().format()
+	log.debug "refresh() is called"
+	def commands = []
+	commands << zwave.switchMultilevelV1.switchMultilevelGet().format()
+	if (getDataValue("MSR") == null) {
+		commands << zwave.manufacturerSpecificV1.manufacturerSpecificGet().format()
+	}
+	delayBetween(commands,100)
 }
 
-def indicatorWhenOn() {
+void indicatorWhenOn() {
 	sendEvent(name: "indicatorStatus", value: "when on", display: false)
-	zwave.configurationV1.configurationSet(configurationValue: [1], parameterNumber: 3, size: 1).format()
+	sendHubCommand(new physicalgraph.device.HubAction(zwave.configurationV1.configurationSet(configurationValue: [1], parameterNumber: 3, size: 1).format()))
 }
 
-def indicatorWhenOff() {
+void indicatorWhenOff() {
 	sendEvent(name: "indicatorStatus", value: "when off", display: false)
-	zwave.configurationV1.configurationSet(configurationValue: [0], parameterNumber: 3, size: 1).format()
+	sendHubCommand(new physicalgraph.device.HubAction(zwave.configurationV1.configurationSet(configurationValue: [0], parameterNumber: 3, size: 1).format()))
 }
 
-def indicatorNever() {
+void indicatorNever() {
 	sendEvent(name: "indicatorStatus", value: "never", display: false)
-	zwave.configurationV1.configurationSet(configurationValue: [2], parameterNumber: 3, size: 1).format()
+	sendHubCommand(new physicalgraph.device.HubAction(zwave.configurationV1.configurationSet(configurationValue: [2], parameterNumber: 3, size: 1).format()))
+}
+
+def invertSwitch(invert=true) {
+	if (invert) {
+		zwave.configurationV1.configurationSet(configurationValue: [1], parameterNumber: 4, size: 1).format()
+	}
+	else {
+		zwave.configurationV1.configurationSet(configurationValue: [0], parameterNumber: 4, size: 1).format()
+	}
 }

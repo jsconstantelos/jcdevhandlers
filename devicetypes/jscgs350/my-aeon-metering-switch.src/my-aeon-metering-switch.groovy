@@ -10,8 +10,6 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
- *  Version: v2.1
- *
  *  Updates:
  *  -------
  *  02-16-2016 : Removed posting to the Activity Feed (Recently tab) in the phone app and event log.
@@ -24,6 +22,7 @@
  *  03-19-2016 : Changed tile layout, added clarity for preferences, and removed rounding (line 171)
  *  07-07-2016 : Check for wildly large watts value coming from the switch and do not process them.
  *  08-22-2016 : Tile format changes, specifically statusText.
+ *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel. 
  *
  */
 metadata {
@@ -94,9 +93,8 @@ metadata {
 				attributeState "on", label: '${name}', action: "switch.off", icon: "st.switches.switch.on", backgroundColor: "#79b821"
 				attributeState "off", label: '${name}', action: "switch.on", icon: "st.switches.switch.off", backgroundColor: "#ffffff"
 			}
-            tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
-//           		attributeState "statusText", label:'${currentValue}'
-                attributeState "statusText", label:''
+            tileAttribute ("secondaryText", key: "SECONDARY_CONTROL") {
+           		attributeState "secondaryText", label:'${currentValue}'
             }
 		}
 
@@ -115,7 +113,7 @@ metadata {
         }
         
         standardTile("blankTile", "statusText", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
-			state "default", label:'', icon:"st.secondary.activity"
+			state "default", label:'', icon:"http://cdn.device-icons.smartthings.com/secondary/device-activity-tile@2x.png"
 		}
 
 		valueTile("energy", "device.energy", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
@@ -125,13 +123,13 @@ metadata {
             state("default", label: '${currentValue}', backgroundColor:"#ffffff")
         } 
         standardTile("reset", "device.energy", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
-			state "default", label:'Reset ALL', action:"reset", icon:"st.secondary.refresh-icon"
+			state "default", label:'Reset Saved Maximum Usage Value', action:"reset", icon:"st.secondary.refresh-icon"
 		}
 		standardTile("configure", "device.power", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "configure", label:'', action:"configuration.configure", icon:"st.secondary.configure"
 		}
 		standardTile("refresh", "device.power", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
-			state "default", label:'', action:"refresh.refresh", icon:"st.secondary.refresh"
+			state "default", label:'Refresh', action:"refresh.refresh", icon:"st.secondary.refresh-icon"
 		}
         valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
@@ -156,9 +154,14 @@ def parse(String description) {
 	}
         
     def statusTextmsg = ""
-    statusTextmsg = "Currently using ${device.currentState('powerDisp')?.value}\nMaximum of ${device.currentState('powerTwo')?.value}"
+    statusTextmsg = "Maximum of ${device.currentState('powerTwo')?.value}"
     sendEvent("name":"statusText", "value":statusTextmsg)
     if (state.debug) log.debug statusTextmsg
+    
+    def secondaryTextmsg = ""
+    secondaryTextmsg = "Currently using ${device.currentState('powerDisp')?.value}"
+    sendEvent("name":"secondaryText", "value":secondaryTextmsg)
+    if (state.debug) log.debug secondaryTextmsg    
 
 	return result
 }

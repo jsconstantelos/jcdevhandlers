@@ -10,9 +10,7 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
- *  Aeon Home Energy Meter v1 (US)
- *
- *  Version: v3.1
+ *  Aeon Home Energy Meter gen1 (US)
  *
  *  Updates:
  *  -------
@@ -30,6 +28,7 @@
  *  07-07-2016 : Check for wildly large watts value coming from the HEM and do not process them.  Firmware updates should have resolved this.
  *  08-10-2016 : Check for 0 or negative watts value coming from the HEM and do not process them.  Firmware updates should have resolved this.
  *  08-21-2016 : Created separate tiles to reset min and max instead of having a single tile for both values.  Changed many tiles to different sizes.
+ *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel. 
  *
  */
 metadata {
@@ -84,7 +83,7 @@ metadata {
         }
 
     	standardTile("refresh", "device.power", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
-        	state "default", label:'', action:"refresh.refresh", icon:"st.secondary.refresh"
+        	state "default", label:'Refresh', action:"refresh.refresh", icon:"st.secondary.refresh-icon"
     	}
     	standardTile("configure", "device.power", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
         	state "configure", label:'', action:"configure", icon:"st.secondary.configure"
@@ -94,8 +93,8 @@ metadata {
             state "battery", label:'${currentValue}%\nbattery', unit:""
         }
         
-        standardTile("blankTile", "statusText", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
-			state "default", label:'', icon:"st.secondary.activity"
+        standardTile("blankTile", "statusText", inactiveLabel: false, decoration: "flat", width: 1, height: 2) {
+			state "default", label:'', icon:"http://cdn.device-icons.smartthings.com/secondary/device-activity-tile@2x.png"
 		}    
         valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
@@ -120,7 +119,7 @@ metadata {
 		}
           
         main (["powerDisp"])
-        details(["powerDisp", "blankTile", "statusText", "blankTile", "energyOne", "battery", "energyDisp", "energyTwo", "resetmin", "resetmax", "resetenergy", "reset", "refresh", "configure"])
+        details(["powerDisp", "blankTile", "statusText", "energyOne", "battery", "energyDisp", "energyTwo", "resetmin", "resetmax", "resetenergy", "reset", "refresh", "configure"])
         }
 
         preferences {

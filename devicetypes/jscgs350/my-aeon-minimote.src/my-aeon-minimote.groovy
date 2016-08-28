@@ -1,6 +1,5 @@
 /*
  *
- *  Modified by: Jared Fisher (Kyse@kyse.us)
  *  Modified and extended from SmartThings Aeon Minimote Device Handler Template.
  *
  *  Copyright 2015 SmartThings
@@ -13,6 +12,13 @@
  *  Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
+ *
+  *  Contributors: Jared Fisher, jscgs350
+ *
+ *  Updates:
+ *  -------
+ *  04-17-2016 : jscgs350: Original commit.
+ *  08-27-2016 : jscgs350: Modified the device handler for my liking, primarly for looks and feel.
  *
  */
 
@@ -66,28 +72,67 @@ metadata {
     }
  
 	tiles (scale: 2) {
-    	def tileList = []
-    	(1..4).each { btn ->
-        	def index = btn * 3 - 3
-            tileList << "vButton${btn}Label".toString()
-        	tileList << "vButton${btn}Push".toString()
-            tileList << "vButton${btn}Hold".toString()
-            standardTile(tileList[index], "device.button", width: 2, height: 2) {
-            	state("default", label: "Ready", defaultState: true, backgroundColor: "#ffffff", icon: "st.unknown.zwave.remote-controller", decoration: "flat", canChangeIcon: true, canChangeBackground: true)
-            }
-        	valueTile(tileList[index + 1], "device.lblPush${btn}", width: 2, height: 2) {
-				state("default", label: '${currentValue}', action: "push${btn}", defaultState: true, backgroundColor: "#33cc33", canChangeIcon: true, canChangeBackground: true)
-            }
-            valueTile(tileList[index + 2], "device.lblHold${btn}", width: 2, height: 2) {
-            	state("default", label: '${currentValue}', action: "hold${btn}", defaultState: true, backgroundColor: "#3399ff", canChangeIcon: true, canChangeBackground: true) 
-            }
-		}
-        tileList << "configure"
+    	standardTile("buttonRemote", "device.button", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
+      		state "default", label: 'Remote', action:"", icon:"st.unknown.zwave.remote-controller"
+        }
+    	standardTile("buttonHead", "device.button", width: 2, height: 1, inactiveLabel: false, decoration: "flat") {
+      		state "default", label: '', action:"", icon:"st.unknown.zwave.remote-controller"
+    	}
+    	standardTile("pushHead", "device.button", width: 2, height: 1, inactiveLabel: false, decoration: "flat") {
+      		state "default", label: 'Push', action:"", icon:""
+    	}
+    	standardTile("holdHead", "device.button", width: 2, height: 1, inactiveLabel: false, decoration: "flat") {
+      		state "default", label: 'Hold', action:"", icon:""
+    	}
+        
+		standardTile("buttonNum1", "device.button", width: 2, height: 2) {
+        	state("default", label: "Button 1", defaultState: true, backgroundColor: "#ffffff", icon: "st.unknown.thing.thing-circle", decoration: "flat")
+        }        
+        valueTile("pushNum1", "device.lblPush1", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
+			state("default", label: '${currentValue}', action: "push1", defaultState: true)
+        }
+        valueTile("holdNum1", "device.lblHold1", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
+           	state("default", label: '${currentValue}', action: "hold1", defaultState: true) 
+        }
+		standardTile("buttonNum2", "device.button", width: 2, height: 2) {
+        	state("default", label: "Button 2", defaultState: true, backgroundColor: "#ffffff", icon: "st.unknown.thing.thing-circle", decoration: "flat")
+        }        
+        valueTile("pushNum2", "device.lblPush2", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
+			state("default", label: '${currentValue}', action: "push2", defaultState: true)
+        }
+        valueTile("holdNum2", "device.lblHold2", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
+           	state("default", label: '${currentValue}', action: "hold2", defaultState: true) 
+        }
+		standardTile("buttonNum3", "device.button", width: 2, height: 2) {
+        	state("default", label: "Button 3", defaultState: true, backgroundColor: "#ffffff", icon: "st.unknown.thing.thing-circle", decoration: "flat")
+        }        
+        valueTile("pushNum3", "device.lblPush3", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
+			state("default", label: '${currentValue}', action: "push3", defaultState: true)
+        }
+        valueTile("holdNum3", "device.lblHold3", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
+           	state("default", label: '${currentValue}', action: "hold3", defaultState: true) 
+        }
+		standardTile("buttonNum4", "device.button", width: 2, height: 2) {
+        	state("default", label: "Button 4", defaultState: true, backgroundColor: "#ffffff", icon: "st.unknown.thing.thing-circle", decoration: "flat")
+        }        
+        valueTile("pushNum4", "device.lblPush4", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
+			state("default", label: '${currentValue}', action: "push4", defaultState: true)
+        }
+        valueTile("holdNum4", "device.lblHold4", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
+           	state("default", label: '${currentValue}', action: "hold4", defaultState: true) 
+        }
+
     	standardTile("configure", "device.configure", width: 6, height: 2, inactiveLabel: false, decoration: "flat") {
       		state "configure", label: '', action:"configuration.configure", icon:"st.secondary.configure"
     	}
-        main(tileList.take(1))
-		details(tileList)
+        
+        main("buttonRemote")
+		details("buttonHead", "pushHead", "holdHead",
+        		"buttonNum1", "pushNum1", "holdNum1",
+                "buttonNum2", "pushNum2", "holdNum2",
+                "buttonNum3", "pushNum3", "holdNum3",
+                "buttonNum4", "pushNum4", "holdNum4",
+                "configure")
 	}
 }
 

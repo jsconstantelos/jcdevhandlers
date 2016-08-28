@@ -28,6 +28,7 @@
  *  08-20-2016 : jscgs350: Merged bridaus's changes, changed how parameters are handled (via Updated section now) and removed unneeded code due to that change.
  *  08-21-2016 : bridaus : Fixed log.trace issue with "Current Measurement Value".
  *  08-21-2016 : jscgs350: Removed the Updated section because ST would execute Configure twice for some reason.  User needs to tap on the Config tile after parameters are changed.
+ *  08-27-2016 : jscgs350: Modified the device handler for my liking, primarly for looks and feel. 
  *
  */
 metadata {
@@ -90,10 +91,10 @@ metadata {
 			state "gpm", label:'${currentValue}', unit:""
 		}        
         valueTile("gpmHigh", "device.gpmHigh", inactiveLabel: false, width: 2, height: 2, decoration: "flat") {
-			state "default", label:'Highest recorded flow\n${currentValue}', action: 'resetgpmHigh'
+			state "default", label:'Highest flow:\n${currentValue}', action: 'resetgpmHigh'
 		}
         valueTile("gallonHigh", "device.gallonHigh", inactiveLabel: false, width: 2, height: 2, decoration: "flat") {
-			state "default", label:'Highest recorded usage\n${currentValue}', action: 'resetgallonHigh'
+			state "default", label:'Highest usage:\n${currentValue}', action: 'resetgallonHigh'
 		}
 		standardTile("powerState", "device.powerState", width: 2, height: 2) { 
 			state "reconnected", label: "Power On", icon: "st.switches.switch.on", backgroundColor: "#79b821"
@@ -323,7 +324,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
         sendAlarm("")
     	prevCumulative = cmd.scaledMeterValue - state.lastCumulative  //record gallons used during this flow event that just stopped
 //      log.trace "prevCumulative: ${prevCumulative}"
-    	map.value = "Cumulative Usage\n"+cmd.scaledMeterValue+" gallons"+"\n(last used "+prevCumulative+" gallons)"
+    	map.value = "Cumulative:\n"+cmd.scaledMeterValue+" gallons"+"\n(last used "+prevCumulative+" gallons)"
         state.lastCumulative = cmd.scaledMeterValue
         if (prevCumulative > state.lastGallon) {
             dispGallon = prevCumulative+" gallons on"+"\n"+timeString

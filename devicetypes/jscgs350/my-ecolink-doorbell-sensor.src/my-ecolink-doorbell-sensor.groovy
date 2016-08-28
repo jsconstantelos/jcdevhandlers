@@ -16,6 +16,7 @@
  *  -------
  *  02-18-2016 : Initial commit
  *  03-11-2016 : Due to ST's v2.1.0 app totally hosing up SECONDARY_CONTROL, implemented a workaround to display that info in a separate tile.
+ *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.
  *
  */
 
