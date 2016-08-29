@@ -30,6 +30,7 @@
  *  08-21-2016 : jscgs350: Removed the Updated section because ST would execute Configure twice for some reason.  User needs to tap on the Config tile after parameters are changed.
  *  08-27-2016 : jscgs350: Modified the device handler for my liking, primarly for looks and feel for some of the tiles.
  *  08-28-2016 : jscgs350: Reverted back to original gpm flow calculation instead of using weighted average due to large flow rate calculations (under review)
+ *  08-29-2016 : jscgs350: Updated the resetMeter() section to get it working, and to update a status tile with the date a reset was last performed.
  *
  */
 metadata {
@@ -52,6 +53,7 @@ metadata {
         attribute "alarmState", "string"
         attribute "chartMode", "string"
         attribute "lastThreshhold", "number"
+        attribute "lastReset", "string"
 
         command "chartMode"
         command "resetgpmHigh"
@@ -127,8 +129,16 @@ metadata {
 		standardTile("configure", "device.configure", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "configure", label: "Configure\nDevice", action: "configuration.configure", icon: "st.secondary.tools"
 		}
+        
+        standardTile("blankTile", "statusText", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
+			state "default", label:'', icon:"http://cdn.device-icons.smartthings.com/secondary/device-activity-tile@2x.png"
+		}    
+        valueTile("lastReset", "lastReset", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
+			state "lastReset", label:'${currentValue}'
+		}        
+        
 		main (["waterState"])
-		details(["flowHistory", "waterState", "temperature", "gpm", "gallonHigh", "gpmHigh", "chartMode", "take1", "battery", "powerState", "zeroTile", "configure"])
+		details(["flowHistory", "waterState", "temperature", "blankTile", "lastReset", "gpm", "gallonHigh", "gpmHigh", "chartMode", "take1", "battery", "powerState", "zeroTile", "configure"])
 	}
 }
 
@@ -232,19 +242,19 @@ def take28() {
 }
 
 def resetMeter() {
-//	This isn't working yet...
 	log.debug "Resetting water meter..."
+    def dispValue
+    def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
     def cmds = delayBetween([
-        zwave.configurationV2.configurationSet(configurationValue: [0], parameterNumber: 3, size: 2).format()
-//      zwave.meterV3.meterReset().format()
-    ],200)
-    log.debug "ConfigurationReport for meter reset: '${cmds}'"
-    cmds
-    log.debug "...done resetting water meter"
+	    zwave.meterV3.meterReset().format()
+    ])
     sendEvent(name: "gpm", value: "Water Meter Was Just Reset" as String, displayed: false)
     state.lastCumulative = 0
     resetgpmHigh()
     resetgallonHigh()
+    dispValue = "Flow meter last reset: "+timeString
+    sendEvent(name: "lastReset", value: dispValue as String, displayed: false)
+    return cmds
 }
 
 def resetgpmHigh() {
