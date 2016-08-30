@@ -16,7 +16,8 @@
  *  -------
  *  03-20-2016 : v9.0 initial release.  Starts to use the multiAttributeTile type: "thermostat", and the controls/features it brings.
  *             : NOTE: range values for sliders are only in F, so be sure to adjust for C if needed.
- *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel. 
+ *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.
+ *  08-30-2016 : Added 1x1 Activity tile next to the statusText tile, and changed that to 5x1.  Removed heat and cool level sliders.
  *
 */
 metadata {
@@ -164,13 +165,17 @@ metadata {
 		standardTile("configure", "device.configure", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "configure", label:'', action:"configuration.configure", icon:"st.secondary.configure"
 		}
-
-        valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 6, height: 2) {
+        
+        standardTile("blankTile", "statusText", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
+			state "default", label:'', icon:"http://cdn.device-icons.smartthings.com/secondary/device-activity-tile@2x.png"
+		}
+        valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}
 
 		main (["temperature"])
-		details(["temperature", "statusText", "heatingSetpoint", "heatLevelUp", "coolLevelUp", "coolingSetpoint", "heatLevelDown", "coolLevelDown", "heatSliderControl", "coolSliderControl", "fanon", "fanauto", "fancir", "modeoff", "modeheat", "modecool", "modeauto", "refresh", "configure"])
+		details(["temperature", "blankTile", "statusText", "heatingSetpoint", "heatLevelUp", "coolLevelUp", "coolingSetpoint", "heatLevelDown", "coolLevelDown", "fanon", "fanauto", "fancir", "modeoff", "modeheat", "modecool", "modeauto", "refresh", "configure"])
+//		details(["temperature", "blankTile", "statusText", "heatingSetpoint", "heatLevelUp", "coolLevelUp", "coolingSetpoint", "heatLevelDown", "coolLevelDown", "heatSliderControl", "coolSliderControl", "fanon", "fanauto", "fancir", "modeoff", "modeheat", "modecool", "modeauto", "refresh", "configure"])
 	}
 }
 
