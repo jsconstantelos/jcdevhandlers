@@ -31,6 +31,7 @@
  *  08-27-2016 : jscgs350: Modified the device handler for my liking, primarly for looks and feel for some of the tiles.
  *  08-28-2016 : jscgs350: Reverted back to original gpm flow calculation instead of using weighted average due to large flow rate calculations (under review)
  *  08-29-2016 : jscgs350: Updated the resetMeter() section to get it working, and to update a status tile with the date a reset was last performed.
+ *  08-31-2016 : jscgs350: Cleaned up unused code.  Used carouselTile for showing charts.
  *
  */
 metadata {
@@ -60,7 +61,6 @@ metadata {
         command "resetgallonHigh"
         command "resetMeter"
         command "fixChart"
-        command "setHighFlowLevel", ["number"]
 
 	    fingerprint deviceId: "0x2101", inClusters: "0x5E, 0x86, 0x72, 0x5A, 0x73, 0x71, 0x85, 0x59, 0x32, 0x31, 0x70, 0x80, 0x7A"
 	}
@@ -115,6 +115,7 @@ metadata {
 			state "freezing", label:'Freezing', icon:"st.alarm.temperature.freeze", backgroundColor:"#2eb82e"
 			state "overheated", label:'Overheated', icon:"st.alarm.temperature.overheat", backgroundColor:"#F80000"
 		}
+        carouselTile("chartCycle", "device.image", width: 6, height: 3) { }
         standardTile("take1", "device.image", width: 2, height: 2, canChangeIcon: false, inactiveLabel: true, canChangeBackground: false, decoration: "flat") {
             state "take", label: "Refresh Chart", action: "Image Capture.take", icon:"st.secondary.refresh-icon"
         }
@@ -138,7 +139,7 @@ metadata {
 		}        
         
 		main (["waterState"])
-		details(["flowHistory", "waterState", "temperature", "blankTile", "lastReset", "gpm", "gallonHigh", "gpmHigh", "chartMode", "take1", "battery", "powerState", "zeroTile", "configure"])
+		details(["chartCycle", "waterState", "temperature", "blankTile", "lastReset", "gpm", "gallonHigh", "gpmHigh", "chartMode", "take1", "battery", "powerState", "zeroTile", "configure"])
 	}
 }
 
@@ -161,10 +162,6 @@ def parse(String description) {
 	}
 //    log.debug "Data parsed to : ${results.inspect()}"
 	return results
-}
-
-def setHighFlowLevel(level) {
-	setThreshhold(level)
 }
 
 def take() {
@@ -419,7 +416,6 @@ def getTemperature(value) {
 }
 
 private getPictureName(category) {
-  //def pictureUuid = device.id.toString().replaceAll('-', '')
   def pictureUuid = java.util.UUID.randomUUID().toString().replaceAll('-', '')
   def name = "image" + "_$pictureUuid" + "_" + category + ".png"
   return name
@@ -427,7 +423,6 @@ private getPictureName(category) {
 
 def api(method, args = [], success = {}) {
   def methods = [
-    //"snapshot":        [uri: "http://${ip}:${port}/snapshot.cgi${login()}&${args}",        type: "post"],
     "24hrs":      [uri: "https://iot.swiftlet.technology/fortrezz/chart.php?uuid=${device.id}&tz=${location.timeZone.ID}&type=1", type: "get"],
     "7days":      [uri: "https://iot.swiftlet.technology/fortrezz/chart.php?uuid=${device.id}&tz=${location.timeZone.ID}&type=2", type: "get"],
     "4weeks":     [uri: "https://iot.swiftlet.technology/fortrezz/chart.php?uuid=${device.id}&tz=${location.timeZone.ID}&type=3", type: "get"],
