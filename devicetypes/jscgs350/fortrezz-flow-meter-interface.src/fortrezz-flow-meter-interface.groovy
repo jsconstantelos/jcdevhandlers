@@ -31,7 +31,10 @@
  *  08-27-2016 : jscgs350: Modified the device handler for my liking, primarly for looks and feel for some of the tiles.
  *  08-28-2016 : jscgs350: Reverted back to original gpm flow calculation instead of using weighted average due to large flow rate calculations (under review)
  *  08-29-2016 : jscgs350: Updated the resetMeter() section to get it working, and to update a status tile with the date a reset was last performed.
- *  08-31-2016 : jscgs350: Cleaned up unused code.  Used carouselTile for showing charts.
+ *  08-31-2016 : jscgs350: Cleaned up unused code.  Used carouselTile for showing charts.  This is helpful after resetting the meter and user wanted to see previous charts.
+ *  09-01-2016 : jscgs350: Added a few new attributes (ending in LastReset) to capture high values prior to being reset in case user needs to know or forgot to save.
+ *  09-01-2016 : jscgs350: Created another user preference for a custom device ID that can be added to device.id that causes a new set of charts to be created.
+ *  09-01-2016 : jscgs350: Moved where data is sent to the cloud to address data issues when reporting threshold is not 60 seconds.
  *
  */
 metadata {
@@ -49,8 +52,11 @@ metadata {
         
         attribute "gpm", "number"
 		attribute "gpmHigh", "number"
+		attribute "gpmHighLastReset", "number"
         attribute "cumulative", "number"
+        attribute "cumulativeLastReset", "number"
         attribute "gallonHigh", "number"
+        attribute "gallonHighLastReset", "number"
         attribute "alarmState", "string"
         attribute "chartMode", "string"
         attribute "lastThreshhold", "number"
@@ -66,9 +72,10 @@ metadata {
 	}
     
     preferences {
-       input "reportThreshhold", "decimal", title: "Reporting Rate Threshhold", description: "The time interval between meter reports\nwhile water is flowing. 6 = 60 seconds, 1 = 10 seconds.\nOptions are 1, 2, 3, 4, 5, or 6.", defaultValue: 1, required: false, displayDuringSetup: true
+       input "reportThreshhold", "decimal", title: "Reporting Rate Threshhold", description: "The time interval between meter reports while water is flowing. 6 = 60 seconds, 1 = 10 seconds. Options are 1, 2, 3, 4, 5, or 6.", defaultValue: 1, required: false, displayDuringSetup: true
        input "gallonThreshhold", "decimal", title: "High Flow Rate Threshhold", description: "Flow rate (in gpm) that will trigger a notification.", defaultValue: 5, required: false, displayDuringSetup: true
        input("registerEmail", type: "email", required: false, title: "Email Address", description: "Register your device with FortrezZ", displayDuringSetup: true)
+       input("customID", required: false, title: "Custom ID (CAUTION: ADVANCED USERS ONLY. Causes ALL charts to reset.  Leave empty for default.)", description: "Default is empty. This will reset ALL charts!", defaultValue: "", displayDuringSetup: false)
     }
 
 	tiles(scale: 2) {
@@ -242,6 +249,7 @@ def resetMeter() {
 	log.debug "Resetting water meter..."
     def dispValue
     def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
+    sendEvent(name: "cumulativeLastReset", value: state.lastCumulative+" gal "+"\n"+timeString, displayed: false)
     def cmds = delayBetween([
 	    zwave.meterV3.meterReset().format()
     ])
@@ -256,12 +264,16 @@ def resetMeter() {
 
 def resetgpmHigh() {
 	log.debug "Resetting high value for GPM..."
+    def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
+    sendEvent(name: "gpmHighLastReset", value: state.deltaHigh+" gpm on"+"\n"+timeString, displayed: false)
     state.deltaHigh = 0
     sendEvent(name: "gpmHigh", value: "(resently reset)")
 }
 
 def resetgallonHigh() {
 	log.debug "Resetting high value for gallons used..."
+    def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
+    sendEvent(name: "gallonHighLastReset", value: state.lastGallon+" gpm on"+"\n"+timeString, displayed: false)
     state.lastGallon = 0
     sendEvent(name: "gallonHigh", value: "(resently reset)")
 }
@@ -296,6 +308,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
         sendEvent(name: "water", value: "dry")
         sendAlarm("")
     	prevCumulative = cmd.scaledMeterValue - state.lastCumulative
+        sendDataToCloud(prevCumulative)
     	map.value = "Cumulative:\n"+cmd.scaledMeterValue+" gallons"+"\n(last used "+prevCumulative+" gallons)"
         state.lastCumulative = cmd.scaledMeterValue
         if (prevCumulative > state.lastGallon) {
@@ -315,7 +328,6 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
             sendAlarm("")
 		}
     }
-    sendDataToCloud(delta)
     sendEvent(name: "cumulative", value: cmd.scaledMeterValue, displayed: false, unit: "gal")
 	if (delta > state.deltaHigh) {
 		dispValue = delta+" gpm on"+"\n"+timeString
@@ -384,11 +396,19 @@ def zwaveEvent(physicalgraph.zwave.Command cmd) {
 }
 
 def sendDataToCloud(double data) {
+	log.debug "Sending data to the cloud..."
+	def meterID
+	def uniqueID = device.id
+    if (customID != null) {
+    	meterID = device.id+customID
+    } else {
+    	meterID = device.id
+    }
     def params = [
         uri: "https://iot.swiftlet.technology",
         path: "/fortrezz/post.php",
         body: [
-            id: device.id,
+            id: meterID,
             value: data,
             email: registerEmail
         ]
@@ -422,13 +442,20 @@ private getPictureName(category) {
 }
 
 def api(method, args = [], success = {}) {
-  def methods = [
-    "24hrs":      [uri: "https://iot.swiftlet.technology/fortrezz/chart.php?uuid=${device.id}&tz=${location.timeZone.ID}&type=1", type: "get"],
-    "7days":      [uri: "https://iot.swiftlet.technology/fortrezz/chart.php?uuid=${device.id}&tz=${location.timeZone.ID}&type=2", type: "get"],
-    "4weeks":     [uri: "https://iot.swiftlet.technology/fortrezz/chart.php?uuid=${device.id}&tz=${location.timeZone.ID}&type=3", type: "get"],
-  ]
-  def request = methods.getAt(method)
-  return doRequest(request.uri, request.type, success)
+	def meterID
+	def uniqueID = device.id
+    if (customID != null) {
+    	meterID = device.id+customID
+    } else {
+    	meterID = device.id
+    }
+    def methods = [
+      "24hrs":      [uri: "https://iot.swiftlet.technology/fortrezz/chart.php?uuid=${meterID}&tz=${location.timeZone.ID}&type=1", type: "get"],
+      "7days":      [uri: "https://iot.swiftlet.technology/fortrezz/chart.php?uuid=${meterID}&tz=${location.timeZone.ID}&type=2", type: "get"],
+      "4weeks":     [uri: "https://iot.swiftlet.technology/fortrezz/chart.php?uuid=${meterID}&tz=${location.timeZone.ID}&type=3", type: "get"],
+    ]
+    def request = methods.getAt(method)
+    return doRequest(request.uri, request.type, success)
 }
 
 private doRequest(uri, type, success) {
