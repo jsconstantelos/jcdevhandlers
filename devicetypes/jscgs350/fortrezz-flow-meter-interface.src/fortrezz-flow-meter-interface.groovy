@@ -33,7 +33,7 @@
  *  08-29-2016 : jscgs350: Updated the resetMeter() section to get it working, and to update a status tile with the date a reset was last performed.
  *  08-31-2016 : jscgs350: Cleaned up unused code.  Used carouselTile for showing charts.  This is helpful after resetting the meter and user wanted to see previous charts.
  *  09-01-2016 : jscgs350: Added a few new attributes (ending in LastReset) to capture high values prior to being reset in case user needs to know or forgot to save.
- *  09-01-2016 : jscgs350: TESTING: Created another user preference for a custom device ID that can be added to device.id that causes a new set of charts to be created.
+ *  09-01-2016 : jscgs350: Created another user preference for a custom device ID that causes a new set of charts to be created.
  *  09-01-2016 : jscgs350: Moved where data is sent to the cloud to address data issues when reporting threshold is not 60 seconds.
  *
  */
@@ -398,12 +398,12 @@ def zwaveEvent(physicalgraph.zwave.Command cmd) {
 def sendDataToCloud(double data) {
 	log.debug "Sending data to the cloud..."
 	def meterID
-	def uniqueID = device.id
     if (customID != null) {
-    	meterID = device.id+customID
+    	meterID = customID
     } else {
     	meterID = device.id
     }
+    log.debug meterID
     def params = [
         uri: "https://iot.swiftlet.technology",
         path: "/fortrezz/post.php",
@@ -443,9 +443,8 @@ private getPictureName(category) {
 
 def api(method, args = [], success = {}) {
 	def meterID
-	def uniqueID = device.id
     if (customID != null) {
-    	meterID = device.id+customID
+    	meterID = customID
     } else {
     	meterID = device.id
     }
