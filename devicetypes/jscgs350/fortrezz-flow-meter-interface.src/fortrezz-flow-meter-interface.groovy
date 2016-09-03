@@ -35,7 +35,7 @@
  *  09-01-2016 : jscgs350: Added a few new attributes (ending in LastReset) to capture high values prior to being reset in case user needs to know or forgot to save.
  *  09-01-2016 : jscgs350: Created another user preference for a custom device ID that causes a new set of charts to be created.
  *  09-01-2016 : jscgs350: Moved where data is sent to the cloud to address data issues when reporting threshold is not 60 seconds.
- *  09-02-2016 : jscgs350: Moved and resized tiles around fr a cleaner look (moved stats row up and resized to 2wx1h)
+ *  09-02-2016 : jscgs350: Moved and resized tiles around for a cleaner look (moved stats row up and resized to 2wx1h)
  *
  */
 metadata {
@@ -82,7 +82,7 @@ metadata {
 	tiles(scale: 2) {
     	carouselTile("flowHistory", "device.image", width: 6, height: 3) { }
 
-		standardTile("battery", "device.battery", inactiveLabel: false, width: 2, height: 2) {
+		standardTile("battery", "device.battery", inactiveLabel: false, width: 3, height: 2) {
 			state "battery", label:'${currentValue}%\n Battery', unit:"", icon: "st.secondary.tools"
 		}
 		valueTile("temperature", "device.temperature", width: 3, height: 2) {
@@ -107,7 +107,7 @@ metadata {
         valueTile("gallonHigh", "device.gallonHigh", inactiveLabel: false, width: 2, height: 1, decoration: "flat") {
 			state "default", label:'Highest usage:\n${currentValue}', action: 'resetgallonHigh'
 		}
-		standardTile("powerState", "device.powerState", width: 2, height: 2) { 
+		standardTile("powerState", "device.powerState", width: 3, height: 2) { 
 			state "reconnected", label: "Power On", icon: "st.switches.switch.on", backgroundColor: "#79b821"
 			state "disconnected", label: "Power Off", icon: "st.switches.switch.off", backgroundColor: "#ffa81e"
 			state "batteryReplaced", icon:"http://swiftlet.technology/wp-content/uploads/2016/04/Full-Battery-96.png", backgroundColor:"#cccccc"
@@ -123,19 +123,21 @@ metadata {
 			state "freezing", label:'Freezing', icon:"st.alarm.temperature.freeze", backgroundColor:"#2eb82e"
 			state "overheated", label:'Overheated', icon:"st.alarm.temperature.overheat", backgroundColor:"#F80000"
 		}
+        
         carouselTile("chartCycle", "device.image", width: 6, height: 3) { }
-        standardTile("take1", "device.image", width: 2, height: 2, canChangeIcon: false, inactiveLabel: true, canChangeBackground: false, decoration: "flat") {
+        
+        standardTile("take1", "device.image", width: 3, height: 2, canChangeIcon: false, inactiveLabel: true, canChangeBackground: false, decoration: "flat") {
             state "take", label: "Refresh Chart", action: "Image Capture.take", icon:"st.secondary.refresh-icon"
         }
-		standardTile("chartMode", "device.chartMode", width: 2, height: 2, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
+		standardTile("chartMode", "device.chartMode", width: 3, height: 2, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
 			state "day", label:'24 Hour\nChart Format', nextState: "week", action: 'chartMode', icon: "st.secondary.tools"
 			state "week", label:'7 Day\nChart Format', nextState: "month", action: 'chartMode', icon: "st.secondary.tools"
 			state "month", label:'4 Week\nChart Format', nextState: "day", action: 'chartMode', icon: "st.secondary.tools"
 		}
-        standardTile("zeroTile", "device.zero", width: 2, height: 2, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
+        standardTile("zeroTile", "device.zero", width: 3, height: 2, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
 			state "zero", label:'Reset Meter', action: 'resetMeter', icon: "st.secondary.refresh-icon"
 		}
-		standardTile("configure", "device.configure", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
+		standardTile("configure", "device.configure", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "configure", label: "Configure\nDevice", action: "configuration.configure", icon: "st.secondary.tools"
 		}
         
@@ -147,7 +149,7 @@ metadata {
 		}        
         
 		main (["waterState"])
-		details(["chartCycle", "waterState", "temperature", "gpm", "gallonHigh", "gpmHigh", "blankTile", "lastReset", "chartMode", "take1", "battery", "powerState", "zeroTile", "configure"])
+		details(["chartCycle", "waterState", "temperature", "gpm", "gallonHigh", "gpmHigh", "blankTile", "lastReset", "chartMode", "take1", "powerState", "battery", "zeroTile", "configure"])
 	}
 }
 
@@ -258,7 +260,7 @@ def resetMeter() {
     state.lastCumulative = 0
     resetgpmHigh()
     resetgallonHigh()
-    dispValue = "Flow meter last reset: "+timeString
+    dispValue = "Meter was last reset: "+timeString
     sendEvent(name: "lastReset", value: dispValue as String, displayed: false)
     return cmds
 }
@@ -299,7 +301,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
     def dispValue
     def dispGallon
     def prevCumulative
-    def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
+    def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
 	def map = [:]
     map.name = "gpm"
     def delta = Math.round((((cmd.scaledMeterValue - cmd.scaledPreviousMeterValue) / (reportThreshhold*10)) * 60)*100)/100 //rounds to 2 decimal positions
