@@ -35,6 +35,7 @@
  *  09-01-2016 : jscgs350: Added a few new attributes (ending in LastReset) to capture high values prior to being reset in case user needs to know or forgot to save.
  *  09-01-2016 : jscgs350: Created another user preference for a custom device ID that causes a new set of charts to be created.
  *  09-01-2016 : jscgs350: Moved where data is sent to the cloud to address data issues when reporting threshold is not 60 seconds.
+ *  09-02-2016 : jscgs350: Moved and resized tiles around fr a cleaner look (moved stats row up and resized to 2wx1h)
  *
  */
 metadata {
@@ -97,13 +98,13 @@ metadata {
                 ]
             )
         }
-        valueTile("gpm", "device.gpm", inactiveLabel: false, width: 2, height: 2) {
+        valueTile("gpm", "device.gpm", inactiveLabel: false, width: 2, height: 1) {
 			state "gpm", label:'${currentValue}', unit:""
 		}        
-        valueTile("gpmHigh", "device.gpmHigh", inactiveLabel: false, width: 2, height: 2, decoration: "flat") {
+        valueTile("gpmHigh", "device.gpmHigh", inactiveLabel: false, width: 2, height: 1, decoration: "flat") {
 			state "default", label:'Highest flow:\n${currentValue}', action: 'resetgpmHigh'
 		}
-        valueTile("gallonHigh", "device.gallonHigh", inactiveLabel: false, width: 2, height: 2, decoration: "flat") {
+        valueTile("gallonHigh", "device.gallonHigh", inactiveLabel: false, width: 2, height: 1, decoration: "flat") {
 			state "default", label:'Highest usage:\n${currentValue}', action: 'resetgallonHigh'
 		}
 		standardTile("powerState", "device.powerState", width: 2, height: 2) { 
@@ -146,7 +147,7 @@ metadata {
 		}        
         
 		main (["waterState"])
-		details(["chartCycle", "waterState", "temperature", "blankTile", "lastReset", "gpm", "gallonHigh", "gpmHigh", "chartMode", "take1", "battery", "powerState", "zeroTile", "configure"])
+		details(["chartCycle", "waterState", "temperature", "gpm", "gallonHigh", "gpmHigh", "blankTile", "lastReset", "chartMode", "take1", "battery", "powerState", "zeroTile", "configure"])
 	}
 }
 
@@ -309,7 +310,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
         sendAlarm("")
     	prevCumulative = cmd.scaledMeterValue - state.lastCumulative
         sendDataToCloud(prevCumulative)
-    	map.value = "Cumulative:\n"+cmd.scaledMeterValue+" gallons"+"\n(last used "+prevCumulative+" gallons)"
+    	map.value = "Cumulative:\n"+cmd.scaledMeterValue+" gallons"+"\n(last used "+prevCumulative+")"
         state.lastCumulative = cmd.scaledMeterValue
         if (prevCumulative > state.lastGallon) {
             dispGallon = prevCumulative+" gallons on"+"\n"+timeString
@@ -317,7 +318,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
             state.lastGallon = prevCumulative
         }        
     } else {
-    	map.value = "Flow detected\n"+delta+" gpm"+"\nat "+timeString
+    	map.value = "Flow detected\n"+delta+" gpm"
         if (delta > gallonThreshhold) {
             sendEvent(name: "waterState", value: "overflow")
             sendEvent(name: "water", value: "wet")
