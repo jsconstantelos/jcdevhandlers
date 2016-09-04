@@ -175,7 +175,7 @@ private createPressEvent(button) {
 
 private createButtonPushedEvent(button) {
 	log.debug "Button ${button} pushed"
-    def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
+    def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
     def statusTextmsg = ""
     statusTextmsg = "Last activity (push) at "+timeString
 	sendEvent("name":"statusText", "value":statusTextmsg)
@@ -190,7 +190,7 @@ private createButtonPushedEvent(button) {
 
 private createButtonHeldEvent(button) {
 	log.debug "Button ${button} held"
-    def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
+    def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
     def statusTextmsg = ""
     statusTextmsg = "Last activity (held) at "+timeString
 	sendEvent("name":"statusText", "value":statusTextmsg)

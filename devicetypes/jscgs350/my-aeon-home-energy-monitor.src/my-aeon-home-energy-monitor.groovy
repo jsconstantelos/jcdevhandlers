@@ -185,7 +185,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
     //log.debug "zwaveEvent received ${cmd}"
     def dispValue
     def newValue
-    def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
+    def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
     if (cmd.meterType == 33) {
         if (cmd.scale == 0) {
             newValue = cmd.scaledMeterValue
@@ -268,7 +268,7 @@ def poll() {
 def reset() {
     log.debug "${device.name} reset kWh/Cost values"
 
-	def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
+	def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
     sendEvent(name: "energyOne", value: "Energy Data (kWh/Cost) Reset On:\n"+timeString, unit: "")       
     sendEvent(name: "energyDisp", value: "", unit: "")
     sendEvent(name: "energyTwo", value: "Cost\n--", unit: "")
@@ -286,7 +286,7 @@ def resetmin() {
     log.debug "${device.name} reset minimum watt value"
     state.powerLow = 99999
     
-	def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
+	def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
     sendEvent(name: "energyOne", value: "Watts Data Minimum Value Reset On:\n"+timeString, unit: "")
     sendEvent(name: "powerOne", value: "", unit: "")    
 
@@ -302,7 +302,7 @@ def resetmax() {
     log.debug "${device.name} reset maximum watt value"
     state.powerHigh = 0
     
-	def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
+	def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
     sendEvent(name: "energyOne", value: "Watts Data Maximum Value Reset On:\n"+timeString, unit: "")    
     sendEvent(name: "powerTwo", value: "", unit: "")    
 

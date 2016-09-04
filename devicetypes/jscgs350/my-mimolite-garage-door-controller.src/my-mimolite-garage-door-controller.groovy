@@ -104,7 +104,7 @@ def parse(String description) {
 	log.debug "Parse returned ${result?.descriptionText}"
     
     def statusTextmsg = ""
-    def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
+    def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
     statusTextmsg = "${device.currentState('contactState').value}\nLast updated: "+timeString
     sendEvent("name":"statusText", "value":statusTextmsg)
     

@@ -170,7 +170,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
     if (state.debug) log.debug "zwaveEvent received ${cmd}"
     def dispValue
     def newValue
-    def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
+    def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
 	if (cmd.scale == 0) {
 		[name: "energy", value: cmd.scaledMeterValue, unit: "kWh", displayed: false]
 	} else if (cmd.scale == 1) {
@@ -271,7 +271,7 @@ def reset() {
     state.powerHigh = 0
     state.powerLow = 99999
     
-	def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
+	def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
     sendEvent(name: "energyOne", value: "Last Reset On:\n"+timeString, unit: "")
     sendEvent(name: "powerOne", value: "", unit: "")    
     sendEvent(name: "powerDisp", value: "", unit: "")    

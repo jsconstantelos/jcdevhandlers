@@ -251,7 +251,7 @@ def take28() {
 def resetMeter() {
 	log.debug "Resetting water meter..."
     def dispValue
-    def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
+    def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
     sendEvent(name: "cumulativeLastReset", value: state.lastCumulative+" gal "+"\n"+timeString, displayed: false)
     def cmds = delayBetween([
 	    zwave.meterV3.meterReset().format()
@@ -267,7 +267,7 @@ def resetMeter() {
 
 def resetgpmHigh() {
 	log.debug "Resetting high value for GPM..."
-    def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
+    def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
     sendEvent(name: "gpmHighLastReset", value: state.deltaHigh+" gpm on"+"\n"+timeString, displayed: false)
     state.deltaHigh = 0
     sendEvent(name: "gpmHigh", value: "(resently reset)")
@@ -275,7 +275,7 @@ def resetgpmHigh() {
 
 def resetgallonHigh() {
 	log.debug "Resetting high value for gallons used..."
-    def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
+    def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
     sendEvent(name: "gallonHighLastReset", value: state.lastGallon+" gpm on"+"\n"+timeString, displayed: false)
     state.lastGallon = 0
     sendEvent(name: "gallonHigh", value: "(resently reset)")

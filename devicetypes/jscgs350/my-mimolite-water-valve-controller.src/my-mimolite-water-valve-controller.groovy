@@ -92,7 +92,7 @@ def parse(String description) {
     }
     
     def statusTextmsg = ""
-    def timeString = new Date().format("MM-dd-yyyy h:mm a", location.timeZone)
+    def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
     statusTextmsg = "Valve is ${device.currentState('valveState').value}.\nLast refreshed at "+timeString+"."
     sendEvent(name:"statusText", value:statusTextmsg)
     log.debug statusTextmsg

@@ -106,7 +106,7 @@ def sensorValueEvent(value) {
 	if (value) {
     	log.debug "Front doorbell activity!"
 		def statusTextmsg = ""
-    	def timeString = new Date().format("h:mma MM-dd-yyyy", location.timeZone)
+    	def timeString = new Date().format("h:mma MM-dd-yy", location.timeZone)
     	statusTextmsg = "Doorbell last rang at "+timeString
     	sendEvent("name":"statusText", "value":statusTextmsg)
         createEvent(name: "contact", value: "closed", descriptionText: "$device.displayName activity!")  
@@ -114,7 +114,7 @@ def sensorValueEvent(value) {
     } else {
     	log.debug "Front doorbell activity!"
         def statusTextmsg = ""
-    	def timeString = new Date().format("h:mma MM-dd-yyyy", location.timeZone)
+    	def timeString = new Date().format("h:mma MM-dd-yy", location.timeZone)
     	statusTextmsg = "Doorbell last rang at "+timeString
     	sendEvent("name":"statusText", "value":statusTextmsg)
         createEvent(name: "contact", value: "open", descriptionText: "$device.displayName activity!")
