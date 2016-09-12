@@ -36,6 +36,7 @@
  *  09-01-2016 : jscgs350: Created another user preference for a custom device ID that causes a new set of charts to be created.
  *  09-01-2016 : jscgs350: Moved where data is sent to the cloud to address data issues when reporting threshold is not 60 seconds.
  *  09-02-2016 : jscgs350: Moved and resized tiles around for a cleaner look (moved stats row up and resized to 2wx1h)
+ *  09-12-2016 : jscgs350: Ever so often a crazy high delta would be sent, so added a check for a not so realistic value and set delta to 0 if that happens.
  *
  */
 metadata {
@@ -305,7 +306,8 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
 	def map = [:]
     map.name = "gpm"
     def delta = Math.round((((cmd.scaledMeterValue - cmd.scaledPreviousMeterValue) / (reportThreshhold*10)) * 60)*100)/100 //rounds to 2 decimal positions
-	if (delta < 0) {delta = 0}
+	if (delta < 0) {delta = 0} //There should never be any negative values
+    if (delta > 60) {delta = 0} //There should never be any crazy high gallons as a delta, even at 1 minute reporting intervals.  It's not possible unless you're a firetruck.
     if (delta == 0) {
     	sendEvent(name: "waterState", value: "none")
         sendEvent(name: "water", value: "dry")
