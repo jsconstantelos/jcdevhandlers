@@ -65,7 +65,7 @@ def resetTheMeter() {
     def currentDayOfMonth = localCalendar.get(Calendar.DAY_OF_MONTH);
     log.debug "Check for 1st day of month..."
     log.debug "...day of the month today is ${currentDayOfMonth}"
-    if (currentDayOfMonth == 13) {
+    if (currentDayOfMonth == 1) {
         log.debug "...Resetting flow meter because it's the first day of the month."
         meter.resetMeter()
     } else {
