@@ -12,29 +12,24 @@
  *
  *  Updates:
  *  -------
- *  02-18-2016 : Initial commit
- *  03-11-2016 : Due to ST's v2.1.0 app totally hosing up SECONDARY_CONTROL, implemented a workaround to display that info in a separate tile.
- *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.
+ *  09-15-2016 : Initial commit
  *
  */
 
-// for the UI
 metadata {
-	// Automatically generated. Make future change here.
-	definition (name: "My Ecolink Doorbell Sensor", namespace: "jscgs350", author: "SmartThings") {
+
+	definition (name: "My Ecolink Mailbox Door Sensor", namespace: "jscgs350", author: "SmartThings") {
 		capability "Contact Sensor"
 		capability "Sensor"
 		capability "Battery"
 		capability "Configuration"
 	}
 
-	// UI tile definitions
-
 	tiles(scale: 2) {
-		multiAttributeTile(name:"contact", type: "lighting", width: 6, height: 4, canChangeIcon: true){
+		multiAttributeTile(name:"contact", type: "lighting", width: 6, height: 4, canChangeIcon: true, canChangeBackground: true){
 			tileAttribute ("device.contact", key: "PRIMARY_CONTROL") {
-				attributeState "closed", label: "Ding Dong", icon: "st.Home.home30", backgroundColor: "#53a7c0"
-				attributeState "open", label: "Ding Dong", icon: "st.Home.home30", backgroundColor: "#53a7c0"
+				attributeState "closed", label: "Closed", icon: "st.contact.contact.closed", backgroundColor: "#79b821"
+				attributeState "open", label: "Open", icon: "st.contact.contact.open", backgroundColor: "#ffa81e"
 			}
             tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
 //           		attributeState "statusText", label:'${currentValue}'
@@ -106,16 +101,16 @@ def sensorValueEvent(value) {
 	def statusTextmsg = ""
     def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
 	if (value) {
-    	log.debug "Front doorbell activity!"
-    	statusTextmsg = "Doorbell last rang: "+timeString
+    	log.debug "Mailbox door open!"
+    	statusTextmsg = "Mailbox activity: "+timeString
     	sendEvent("name":"statusText", "value":statusTextmsg)
-        createEvent(name: "contact", value: "closed", descriptionText: "$device.displayName activity!")  
+        createEvent(name: "contact", value: "open", descriptionText: "$device.displayName activity!")  
         
     } else {
-    	log.debug "Front doorbell activity!"
-    	statusTextmsg = "Doorbell last rang: "+timeString
+    	log.debug "Mailbox door closed!"
+    	statusTextmsg = "Mailbox activity: "+timeString
     	sendEvent("name":"statusText", "value":statusTextmsg)
-        createEvent(name: "contact", value: "open", descriptionText: "$device.displayName activity!")
+        createEvent(name: "contact", value: "closed", descriptionText: "$device.displayName activity!")
 	}
 }
 
