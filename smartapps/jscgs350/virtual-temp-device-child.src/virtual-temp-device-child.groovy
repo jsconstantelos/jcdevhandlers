@@ -16,7 +16,7 @@ definition(
     author: "jscgs350",
     description: "Virtual Temp Device Child",
     category: "My Apps",
-    parent: "jscgs350:Virtual Temp Device Parent",
+    parent: "jscgs350:Virtual Temp Device",
     iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
     iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png")
 

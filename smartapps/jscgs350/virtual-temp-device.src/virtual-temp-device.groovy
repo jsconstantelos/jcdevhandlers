@@ -1,17 +1,17 @@
 definition(
-    name: "My Button Controller",
+    name: "Virtual Temp Device",
     singleInstance: true,
     namespace: "jscgs350",
-    author: "SmartThings",
-    description: "My Button Controller",
+    author: "jscgs350",
+    description: "Virtual Temp Device",
     category: "My Apps",
     iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
     iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png")
 
 preferences {
-    page(name: "mainPage", title: "My Button Controller", install: true, uninstall: true,submitOnChange: true) {
+    page(name: "mainPage", title: "Virtual Temp Devices", install: true, uninstall: true,submitOnChange: true) {
             section {
-                    app(name: "childRules", appName: "My Button Controller Child", namespace: "jscgs350", title: "Create a button controller...", multiple: true)
+                    app(name: "childRules", appName: "Virtual Temp Device Child", namespace: "jscgs350", title: "Create Virtual Temp Device...", multiple: true)
             }
     }
 }
@@ -27,6 +27,6 @@ def updated() {
 
 def initialize() {
     childApps.each {child ->
-            log.info "Installed My Button Controller Child: ${child.label}"
+            log.info "Installed Virtual Devices: ${child.label}"
     }
 }

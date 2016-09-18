@@ -21,7 +21,7 @@ definition(
     author: "SmartThings",
     description: "Control devices with buttons like the Aeon Labs Minimote",
     category: "My Apps",
-    parent: "jscgs350:My Button Controller Parent",
+    parent: "jscgs350:My Button Controller",
     iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
     iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png")
 
