@@ -37,6 +37,7 @@
  *  09-01-2016 : jscgs350: Moved where data is sent to the cloud to address data issues when reporting threshold is not 60 seconds.
  *  09-02-2016 : jscgs350: Moved and resized tiles around for a cleaner look (moved stats row up and resized to 2wx1h)
  *  09-12-2016 : jscgs350: Every so often a crazy high delta would be sent, so added a check for a not so realistic value.
+ *  09-18-2016 : jscgs350: So with ST's release of v2.2.0 that screws up text alignment, changed 3 tiles to be 2x2 instead of 2x1.  Will revert back once ST fixes this issue.
  *
  */
 metadata {
@@ -99,13 +100,13 @@ metadata {
                 ]
             )
         }
-        valueTile("gpm", "device.gpm", inactiveLabel: false, width: 2, height: 1) {
+        valueTile("gpm", "device.gpm", inactiveLabel: false, width: 2, height: 2) {
 			state "gpm", label:'${currentValue}', unit:""
 		}        
-        valueTile("gpmHigh", "device.gpmHigh", inactiveLabel: false, width: 2, height: 1, decoration: "flat") {
+        valueTile("gpmHigh", "device.gpmHigh", inactiveLabel: false, width: 2, height: 2, decoration: "flat") {
 			state "default", label:'Highest flow:\n${currentValue}', action: 'resetgpmHigh'
 		}
-        valueTile("gallonHigh", "device.gallonHigh", inactiveLabel: false, width: 2, height: 1, decoration: "flat") {
+        valueTile("gallonHigh", "device.gallonHigh", inactiveLabel: false, width: 2, height: 2, decoration: "flat") {
 			state "default", label:'Highest usage:\n${currentValue}', action: 'resetgallonHigh'
 		}
 		standardTile("powerState", "device.powerState", width: 3, height: 2) { 
