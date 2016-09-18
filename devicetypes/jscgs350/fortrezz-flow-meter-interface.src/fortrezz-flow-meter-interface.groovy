@@ -308,7 +308,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
     map.name = "gpm"
     def delta = Math.round((((cmd.scaledMeterValue - cmd.scaledPreviousMeterValue) / (reportThreshhold*10)) * 60)*100)/100 //rounds to 2 decimal positions
 	if (delta < 0) {delta = 0} //There should never be any negative values
-    if (delta > 60) {delta = state.lastCumulative} //There should never be any crazy high gallons as a delta, even at 1 minute reporting intervals.  It's not possible unless you're a firetruck.
+    if (delta > 60) {delta = 0} //There should never be any crazy high gallons as a delta, even at 1 minute reporting intervals.  It's not possible unless you're a firetruck.
     if (delta == 0) {
     	sendEvent(name: "waterState", value: "none")
         sendEvent(name: "water", value: "dry")
