@@ -10,6 +10,10 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
+ *  Updates:
+ *  -------
+ *  09-19-2016 : Updated to use ST's latest dimmer switch code and added preferences for the ramp rates.
+ *
  */
 metadata {
 	definition (name: "My Enhanced GE Dimmer", namespace: "jscgs350", author: "SmartThings") {
@@ -48,6 +52,10 @@ metadata {
 
 	preferences {
 		input "ledIndicator", "enum", title: "LED Indicator", description: "Turn LED indicator... ", required: false, options:["on": "When On", "off": "When Off", "never": "Never"], defaultValue: "off"
+        input "parameterSeven", "number", title: "When Receiving a Z-Wave Dim Command: Parameter 7 (number of steps or levels) : Valid values (default = 1) 1-99",  defaultValue: 1, required: false, displayDuringSetup: true
+        input "parameterEight", "number", title: "When Receiving a Z-Wave Dim Command: Parameter 8 (timing of the steps) : Valid values (default = 3) 1-255",  defaultValue: 3, required: false, displayDuringSetup: true
+        input "parameterNine", "number", title: "When pressing the Dimmer’s rocker: Parameter 9 (number of steps or levels) : Valid values (default = 1) 1-99",  defaultValue: 1, required: false, displayDuringSetup: true
+        input "parameterTen", "number", title: "When pressing the Dimmer’s rocker: Parameter 10 (timing of the steps) : Valid values (default = 3) 1-255",  defaultValue: 3, required: false, displayDuringSetup: true
 	}
 
 	tiles(scale: 2) {
@@ -70,7 +78,7 @@ metadata {
 		}
 
         standardTile("rampRate", "device.switch", height: 2, width: 2, inactiveLabel: false, decoration: "flat") {
-        	state "default", label:"Fix Ramp Rate", action:"fixRampRate"
+        	state "default", label:"Fix Ramp Rate", action:"fixRampRate", icon:"st.secondary.refresh-icon"
         }
 
 		standardTile("refresh", "device.switch", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
@@ -249,10 +257,10 @@ void indicatorNever() {
 def fixRampRate() {
 	log.debug("Adjusting ramp rate")
     delayBetween([
-        zwave.configurationV1.configurationSet(configurationValue: [1], parameterNumber: 7, size: 1).format(), // default = 1
-        zwave.configurationV1.configurationSet(configurationValue: [1], parameterNumber: 8, size: 1).format(), // default = 3
-        zwave.configurationV1.configurationSet(configurationValue: [1], parameterNumber: 9, size: 1).format(), // default = 1
-        zwave.configurationV1.configurationSet(configurationValue: [1], parameterNumber: 10, size: 1).format() // default = 3
+        zwave.configurationV1.configurationSet(configurationValue: [parameterSeven], parameterNumber: 7, size: 1).format(), // default = 1
+        zwave.configurationV1.configurationSet(configurationValue: [parameterEight], parameterNumber: 8, size: 1).format(), // default = 3
+        zwave.configurationV1.configurationSet(configurationValue: [parameterNine], parameterNumber: 9, size: 1).format(), // default = 1
+        zwave.configurationV1.configurationSet(configurationValue: [parameterTen], parameterNumber: 10, size: 1).format() // default = 3
     ], 500)
 }
 
