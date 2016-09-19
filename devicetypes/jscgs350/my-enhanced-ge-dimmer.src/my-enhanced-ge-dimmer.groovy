@@ -96,7 +96,7 @@ metadata {
 }
 
 def updated(){
-  switch (ledIndicator) {
+  	switch (ledIndicator) {
         case "on":
             indicatorWhenOn()
             break
