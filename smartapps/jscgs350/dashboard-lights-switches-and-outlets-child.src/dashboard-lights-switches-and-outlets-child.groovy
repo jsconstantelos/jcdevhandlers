@@ -14,7 +14,7 @@
  *
  *  Revision History
  *  ----------------
- *  09-17-2016 : v1.0.0  Initial release
+ *  09-17-2016 : v1.0.0  Initial release (parent/child app)
  *
  */
 
