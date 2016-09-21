@@ -60,14 +60,14 @@ metadata {
     
     preferences {
     	section ("Labels") {
-            input("lblPush1", "text", title: "Label for Button 1 Push?", required: false, displayDuringSetup: false, defaultValue: "Push 1", description: "Label for the first push button.")  
-            input("lblHold1", "text", title: "Label for Button 1 Hold?", required: false, displayDuringSetup: false, defaultValue: "Hold 1", description: "Label for the second hold button.")  
-            input("lblPush2", "text", title: "Label for Button 2 Push?", required: false, displayDuringSetup: false, defaultValue: "Push 2", description: "Label for the third push button.")  
-            input("lblHold2", "text", title: "Label for Button 2 Hold?", required: false, displayDuringSetup: false, defaultValue: "Hold 2", description: "Label for the fourth hold button.")  
-            input("lblPush3", "text", title: "Label for Button 3 Push?", required: false, displayDuringSetup: false, defaultValue: "Push 3", description: "Label for the first push button.")  
-            input("lblHold3", "text", title: "Label for Button 3 Hold?", required: false, displayDuringSetup: false, defaultValue: "Hold 3", description: "Label for the second hold button.")  
-            input("lblPush4", "text", title: "Label for Button 4 Push?", required: false, displayDuringSetup: false, defaultValue: "Push 4", description: "Label for the third push button.")  
-            input("lblHold4", "text", title: "Label for Button 4 Hold?", required: false, displayDuringSetup: false, defaultValue: "Hold 4", description: "Label for the fourth hold button.")  
+            input("lblPush1", "text", title: "Label for Button 1 Push?", required: false, displayDuringSetup: false, defaultValue: "Push 1", description: "Label for the push button.")  
+            input("lblHold1", "text", title: "Label for Button 1 Hold?", required: false, displayDuringSetup: false, defaultValue: "Hold 1", description: "Label for the hold button.")  
+            input("lblPush2", "text", title: "Label for Button 2 Push?", required: false, displayDuringSetup: false, defaultValue: "Push 2", description: "Label for the push button.")  
+            input("lblHold2", "text", title: "Label for Button 2 Hold?", required: false, displayDuringSetup: false, defaultValue: "Hold 2", description: "Label for the hold button.")  
+            input("lblPush3", "text", title: "Label for Button 3 Push?", required: false, displayDuringSetup: false, defaultValue: "Push 3", description: "Label for the push button.")  
+            input("lblHold3", "text", title: "Label for Button 3 Hold?", required: false, displayDuringSetup: false, defaultValue: "Hold 3", description: "Label for the hold button.")  
+            input("lblPush4", "text", title: "Label for Button 4 Push?", required: false, displayDuringSetup: false, defaultValue: "Push 4", description: "Label for the push button.")  
+            input("lblHold4", "text", title: "Label for Button 4 Hold?", required: false, displayDuringSetup: false, defaultValue: "Hold 4", description: "Label for the hold button.")  
         }
     }
  
