@@ -147,6 +147,7 @@ def updated() {
 }
 
 def parse(String description) {
+	if (state.debug) log.debug "Incoming to parse: ${description}"
 	def result = null
 	def cmd = zwave.parse(description, [0x20: 1, 0x32: 1])
 	if (cmd) {
