@@ -79,10 +79,10 @@ metadata {
       		state "default", label: '', action:"", icon:"st.unknown.zwave.remote-controller"
     	}
     	standardTile("pushHead", "device.button", width: 2, height: 1, inactiveLabel: false, decoration: "flat") {
-      		state "default", label: 'Push', action:"", icon:""
+      		state "default", label: 'Push', action:"", icon:"st.illuminance.illuminance.dark"
     	}
     	standardTile("holdHead", "device.button", width: 2, height: 1, inactiveLabel: false, decoration: "flat") {
-      		state "default", label: 'Hold', action:"", icon:""
+      		state "default", label: 'Hold', action:"", icon:"st.illuminance.illuminance.dark"
     	}
         
 		standardTile("buttonNum1", "device.button", width: 2, height: 2) {
