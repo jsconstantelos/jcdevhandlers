@@ -161,9 +161,9 @@ def getButtonSections(buttonNumber) {
 			input "phone_${buttonNumber}_pushed","phone" ,title: "Pushed", required: false
 			input "phone_${buttonNumber}_held", "phone", title: "Held", required: false
 		}
-        section("Associate a Momentary Button"){
-        	input "virtB_${buttonNumber}_pushed","capability.momentary",title: "Pushed", required: false
-            input "virtB_${buttonNumber}_held","capability.momentary",title: "Held", required: false
+        section("Momentary Button"){
+        	input "moment_${buttonNumber}_pushed","capability.momentary",title: "Pushed", required: false
+            input "moment_${buttonNumber}_held","capability.momentary",title: "Held", required: false
         }
 	}
 }
@@ -179,14 +179,6 @@ def updated() {
 
 def initialize() {
 	subscribe(buttonDevice, "button", buttonEvent)
-    subscribe(virtB_1_pushed,"momentary.pushed",fakebutton1Event)
-    subscribe(virtB_2_pushed,"momentary.pushed",fakebutton2Event)
-    subscribe(virtB_3_pushed,"momentary.pushed",fakebutton3Event)
-    subscribe(virtB_4_pushed,"momentary.pushed",fakebutton4Event)
-    subscribe(virtB_1_held,"momentary.pushed",fakebutton1hEvent)
-    subscribe(virtB_2_held,"momentary.pushed",fakebutton2hEvent)
-    subscribe(virtB_3_held,"momentary.pushed",fakebutton3hEvent)
-    subscribe(virtB_4_held,"momentary.pushed",fakebutton4hEvent)
     state.lastshadesUp = true
 }
 
@@ -212,39 +204,8 @@ def buttonConfigured(idx) {
         settings["notifications_$idx_pushed"] ||
         settings["sirens_$idx_pushed"] ||
         settings["notifications_$idx_pushed"]   ||
-        settings["phone_$idx_pushed"]
-}
-
-def fakebutton1Event(evt) {
-    executeHandlers(1, "pushed")
-}
-
-def fakebutton2Event(evt) {
-    executeHandlers(2, "pushed")
-}
-
-def fakebutton3Event(evt) {
-    executeHandlers(3, "pushed")
-}
-
-def fakebutton4Event(evt) {
-    executeHandlers(4, "pushed")
-}
-
-def fakebutton1hEvent(evt) {
-    executeHandlers(1, "held")
-}
-
-def fakebutton2hEvent(evt) {
-    executeHandlers(2, "held")
-}
-
-def fakebutton3hEvent(evt) {
-    executeHandlers(3, "held")
-}
-
-def fakebutton4hEvent(evt) {
-    executeHandlers(4, "held")
+        settings["phone_$idx_pushed"]	||
+        settings["moment_$idx_pushed"]
 }
 
 def buttonEvent(evt){
@@ -330,6 +291,9 @@ def executeHandlers(buttonNumber, value) {
 
 	def sirens = find('sirens', buttonNumber, value)
 	if (sirens) toggle(sirens)
+
+	def moment = find('moment', buttonNumber, value)
+	if (moment) momentPush(moment)    
 }
 
 def find(type, buttonNumber, value) {
@@ -415,8 +379,13 @@ def toggle(devices) {
 	}
 }
 
+def momentPush(devices) {
+	log.debug "momentary: $devices = ${devices*.currentValue('momentary')}"
+	devices.push()
+}
+
 def dimToggle(devices, dimLevel) {
-	log.debug "dimToggle: $devices = ${devices*.currentValue('switch')}"
+	log.debug "dimToggle: $devices"
 
 	if (devices*.currentValue('switch').contains('on')) devices.off()
 	else devices.setLevel(dimLevel)
