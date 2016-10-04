@@ -33,11 +33,12 @@
  *  08-29-2016 : jscgs350: Updated the resetMeter() section to get it working, and to update a status tile with the date a reset was last performed.
  *  08-31-2016 : jscgs350: Cleaned up unused code.  Used carouselTile for showing charts.  This is helpful after resetting the meter and user wanted to see previous charts.
  *  09-01-2016 : jscgs350: Added a few new attributes (ending in LastReset) to capture high values prior to being reset in case user needs to know or forgot to save.
- *  09-01-2016 : jscgs350: Created another user preference for a custom device ID that causes a new set of charts to be created.
+ *  09-01-2016 : jscgs350: Created another user preference for a custom device ID that causes a new set of charts to be created as soon as the preference is defined.
  *  09-01-2016 : jscgs350: Moved where data is sent to the cloud to address data issues when reporting threshold is not 60 seconds.
  *  09-02-2016 : jscgs350: Moved and resized tiles around for a cleaner look (moved stats row up and resized to 2wx1h)
  *  09-12-2016 : jscgs350: Every so often a crazy high delta would be sent, so added a check for a not so realistic value.
  *  09-18-2016 : jscgs350: So with ST's release of v2.2.0 that screws up text alignment, changed 3 tiles to be 2x2 instead of 2x1.  Will revert back once ST fixes this issue.
+ *  10-03-2016 : jscgs350: When the meter is reset, and if a custom ID is defined by the user, new charts will be created.
  *
  */
 metadata {
@@ -159,6 +160,7 @@ def installed() {
 	state.deltaHigh = 0
     state.lastCumulative = 0
     state.lastGallon = 0
+    state.meterResetDate = ""
 }
 
 // parse events into attributes
@@ -253,7 +255,12 @@ def take28() {
 def resetMeter() {
 	log.debug "Resetting water meter..."
     def dispValue
-    def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
+    def timeString = new Date().format("MM-dd-yy h:mm:ss a", location.timeZone)
+    if (customID != null) {
+    	state.meterResetDate = new Date().format("MMddyyhmmssa", location.timeZone)
+    } else {
+    	state.meterResetDate = ""
+    }
     sendEvent(name: "cumulativeLastReset", value: state.lastCumulative+" gal "+"\n"+timeString, displayed: false)
     def cmds = delayBetween([
 	    zwave.meterV3.meterReset().format()
@@ -262,7 +269,7 @@ def resetMeter() {
     state.lastCumulative = 0
     resetgpmHigh()
     resetgallonHigh()
-    dispValue = "Meter was last reset: "+timeString
+    dispValue = "Meter was reset on "+timeString
     sendEvent(name: "lastReset", value: dispValue as String, displayed: false)
     return cmds
 }
@@ -308,7 +315,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
     map.name = "gpm"
     def delta = Math.round((((cmd.scaledMeterValue - cmd.scaledPreviousMeterValue) / (reportThreshhold*10)) * 60)*100)/100 //rounds to 2 decimal positions
 	if (delta < 0) {delta = 0} //There should never be any negative values
-    if (delta > 60) {delta = 0} //There should never be any crazy high gallons as a delta, even at 1 minute reporting intervals.  It's not possible unless you're a firetruck.
+    if (delta > 60) {delta = 1} //There should never be any crazy high gallons as a delta, even at 1 minute reporting intervals.  It's not possible unless you're a firetruck.
     if (delta == 0) {
     	sendEvent(name: "waterState", value: "none")
         sendEvent(name: "water", value: "dry")
@@ -405,9 +412,9 @@ def sendDataToCloud(double data) {
 	log.debug "Sending data to the cloud..."
 	def meterID
     if (customID != null) {
-    	meterID = customID
+    	meterID = customID+state.meterResetDate
     } else {
-    	meterID = device.id
+    	meterID = device.id+state.meterResetDate
     }
     log.debug meterID
     def params = [
@@ -450,9 +457,9 @@ private getPictureName(category) {
 def api(method, args = [], success = {}) {
 	def meterID
     if (customID != null) {
-    	meterID = customID
+    	meterID = customID+state.meterResetDate
     } else {
-    	meterID = device.id
+    	meterID = device.id+state.meterResetDate
     }
     def methods = [
       "24hrs":      [uri: "https://iot.swiftlet.technology/fortrezz/chart.php?uuid=${meterID}&tz=${location.timeZone.ID}&type=1", type: "get"],
