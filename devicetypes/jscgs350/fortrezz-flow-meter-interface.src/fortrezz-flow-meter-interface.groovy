@@ -39,6 +39,7 @@
  *  09-12-2016 : jscgs350: Every so often a crazy high delta would be sent, so added a check for a not so realistic value.
  *  09-18-2016 : jscgs350: So with ST's release of v2.2.0 that screws up text alignment, changed 3 tiles to be 2x2 instead of 2x1.  Will revert back once ST fixes this issue.
  *  10-03-2016 : jscgs350: When the meter is reset, and if a custom ID is defined by the user, new charts will be created.
+ *  10-05-2016 : jscgs350: Changed the chart selection process from toggling through each via a single tile, to a tile for each chart mode/type. Taping on the same tile refreshes the chart.
  *
  */
 metadata {
@@ -67,6 +68,9 @@ metadata {
         attribute "lastReset", "string"
 
         command "chartMode"
+        command "take1"
+        command "take7"
+        command "take28"
         command "resetgpmHigh"
         command "resetgallonHigh"
         command "resetMeter"
@@ -83,10 +87,25 @@ metadata {
     }
 
 	tiles(scale: 2) {
-    	carouselTile("flowHistory", "device.image", width: 6, height: 3) { }
+		// Tile Row 1
+        carouselTile("chartCycle", "device.image", width: 6, height: 3) { }
 
-		standardTile("battery", "device.battery", inactiveLabel: false, width: 3, height: 2) {
-			state "battery", label:'${currentValue}%\n Battery', unit:"", icon: "st.secondary.tools"
+		// Tile Row 2
+		standardTile("dayChart", "device.chartMode", width: 2, height: 1, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
+			state "day", label:'', action: 'take1', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/24-hour-clockv2.png"
+		}
+		standardTile("weekChart", "device.chartMode", width: 2, height: 1, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
+			state "week", label:'', action: 'take7', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/7day.png"
+		}
+		standardTile("monthChart", "device.chartMode", width: 2, height: 1, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
+			state "month", label:'', action: 'take28', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/monthv2.png"
+		}
+        
+		// Tile Row 3
+		standardTile("waterState", "device.waterState", width: 3, height: 2, canChangeIcon: true, canChangeBackground: true, decoration: "flat") {
+			state "none", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#cccccc", label: "None"
+			state "flow", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#01AAE8", label: "Flow"
+			state "overflow", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#ff0000", label: "High"
 		}
 		valueTile("temperature", "device.temperature", width: 3, height: 2) {
             state("temperature", label:'${currentValue}°',
@@ -100,43 +119,39 @@ metadata {
                     [value: 96, color: "#bc2323"]
                 ]
             )
-        }
-        valueTile("gpm", "device.gpm", inactiveLabel: false, width: 2, height: 2) {
+        }       
+
+		// Tile Row 4
+        valueTile("gpm", "device.gpm", inactiveLabel: false, width: 2, height: 1) {
 			state "gpm", label:'${currentValue}', unit:""
 		}        
-        valueTile("gpmHigh", "device.gpmHigh", inactiveLabel: false, width: 2, height: 2, decoration: "flat") {
+        valueTile("gpmHigh", "device.gpmHigh", inactiveLabel: false, width: 2, height: 1, decoration: "flat") {
 			state "default", label:'Highest flow:\n${currentValue}', action: 'resetgpmHigh'
 		}
-        valueTile("gallonHigh", "device.gallonHigh", inactiveLabel: false, width: 2, height: 2, decoration: "flat") {
+        valueTile("gallonHigh", "device.gallonHigh", inactiveLabel: false, width: 2, height: 1, decoration: "flat") {
 			state "default", label:'Highest usage:\n${currentValue}', action: 'resetgallonHigh'
+		} 
+
+		// Tile Row 5
+        standardTile("blankTile", "statusText", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
+			state "default", label:'', icon:"http://cdn.device-icons.smartthings.com/secondary/device-activity-tile@2x.png"
+		}    
+        valueTile("lastReset", "lastReset", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
+			state "lastReset", label:'${currentValue}'
 		}
+
+		// Tile Row 6
 		standardTile("powerState", "device.powerState", width: 3, height: 2) { 
 			state "reconnected", label: "Power On", icon: "st.switches.switch.on", backgroundColor: "#79b821"
 			state "disconnected", label: "Power Off", icon: "st.switches.switch.off", backgroundColor: "#ffa81e"
 			state "batteryReplaced", icon:"http://swiftlet.technology/wp-content/uploads/2016/04/Full-Battery-96.png", backgroundColor:"#cccccc"
 			state "noBattery", icon:"http://swiftlet.technology/wp-content/uploads/2016/04/No-Battery-96.png", backgroundColor:"#cc0000"
 		}
-		standardTile("waterState", "device.waterState", width: 3, height: 2, canChangeIcon: true, canChangeBackground: true, decoration: "flat") {
-			state "none", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#cccccc", label: "None"
-			state "flow", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#01AAE8", label: "Flow"
-			state "overflow", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#ff0000", label: "High"
-		}
-		standardTile("heatState", "device.heatState", width: 2, height: 2) {
-			state "normal", label:'Normal', icon:"st.alarm.temperature.normal", backgroundColor:"#ffffff"
-			state "freezing", label:'Freezing', icon:"st.alarm.temperature.freeze", backgroundColor:"#2eb82e"
-			state "overheated", label:'Overheated', icon:"st.alarm.temperature.overheat", backgroundColor:"#F80000"
+		standardTile("battery", "device.battery", inactiveLabel: false, width: 3, height: 2) {
+			state "battery", label:'${currentValue}%\n Battery', unit:"", icon: "st.secondary.tools"
 		}
         
-        carouselTile("chartCycle", "device.image", width: 6, height: 3) { }
-        
-        standardTile("take1", "device.image", width: 3, height: 2, canChangeIcon: false, inactiveLabel: true, canChangeBackground: false, decoration: "flat") {
-            state "take", label: "Refresh Chart", action: "Image Capture.take", icon:"st.secondary.refresh-icon"
-        }
-		standardTile("chartMode", "device.chartMode", width: 3, height: 2, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
-			state "day", label:'24 Hour\nChart Format', nextState: "week", action: 'chartMode', icon: "st.secondary.tools"
-			state "week", label:'7 Day\nChart Format', nextState: "month", action: 'chartMode', icon: "st.secondary.tools"
-			state "month", label:'4 Week\nChart Format', nextState: "day", action: 'chartMode', icon: "st.secondary.tools"
-		}
+		// Tile Row 7
         standardTile("zeroTile", "device.zero", width: 3, height: 2, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
 			state "zero", label:'Reset Meter', action: 'resetMeter', icon: "st.secondary.refresh-icon"
 		}
@@ -144,15 +159,8 @@ metadata {
 			state "configure", label: "Configure\nDevice", action: "configuration.configure", icon: "st.secondary.tools"
 		}
         
-        standardTile("blankTile", "statusText", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
-			state "default", label:'', icon:"http://cdn.device-icons.smartthings.com/secondary/device-activity-tile@2x.png"
-		}    
-        valueTile("lastReset", "lastReset", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
-			state "lastReset", label:'${currentValue}'
-		}        
-        
 		main (["waterState"])
-		details(["chartCycle", "waterState", "temperature", "gpm", "gallonHigh", "gpmHigh", "blankTile", "lastReset", "chartMode", "take1", "powerState", "battery", "zeroTile", "configure"])
+		details(["chartCycle", "dayChart", "weekChart", "monthChart", "waterState", "temperature", "gpm", "gallonHigh", "gpmHigh", "blankTile", "lastReset", "powerState", "battery", "zeroTile", "configure"])
 	}
 }
 
@@ -176,44 +184,6 @@ def parse(String description) {
 	}
 //    log.debug "Data parsed to : ${results.inspect()}"
 	return results
-}
-
-def take() {
-	def mode = device.currentValue("chartMode")
-    if(mode == "day")
-    {
-    	take1()
-    }
-    else if(mode == "week")
-    {
-    	take7()
-    }
-    else if(mode == "month")
-    {
-    	take28()
-    }
-}
-
-def chartMode(string) {
-	def state = device.currentValue("chartMode")
-    def tempValue = ""
-	switch(state)
-    {
-    	case "day":
-        	tempValue = "week"
-            break
-        case "week":
-        	tempValue = "month"
-            break
-        case "month":
-        	tempValue = "day"
-            break
-        default:
-        	tempValue = "day"
-            break
-    }
-	sendEvent(name: "chartMode", value: tempValue)
-    take()
 }
 
 def take1() {
