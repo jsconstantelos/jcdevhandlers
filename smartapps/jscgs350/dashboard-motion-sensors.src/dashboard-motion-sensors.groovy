@@ -24,6 +24,7 @@
  *  ----------------
  *  02-14-2016 : v1.0.0  Initial release
  *  02-29-2016 : Faormatting and variable name changes
+ *  10-11-2016 : Changed the app to show motion and inactive in separate lists vs. being all in one.
  *
  */
 
@@ -31,11 +32,10 @@ definition(
     name: "Dashboard - Motion Sensors",
     namespace: "jscgs350",
     author: "jscgs350",
-    description: "SmartApp to report motion sensor status in a single view.",
+    description: "SmartApp to report motion sensor statuses in a single view.",
     category: "My Apps",
     iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
     iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png")
-
 
 preferences {
     page name:"pageStatus"
@@ -48,7 +48,7 @@ preferences {
 def pageStatus() {
 	def pageProperties = [
 		name:       "pageStatus",
-		title:      "Motion Sensor Dashboard",
+		title:      "Devices Dashboard",
 		nextPage:   null,
 		install:    true,
 		uninstall:  true
@@ -58,20 +58,21 @@ def pageStatus() {
 			return pageConfigure()
 	}
     
-	def goodlist = ""
-	def badlist = ""
+	def motionlist = ""
+	def nomotionlist = ""
+    def badlist = ""
 	def errorlist = ""
 	    
 	return dynamicPage(pageProperties) {
     	def rightNow = new Date()
 		settings.motiondevices.each() {
-			def lastMotion = it.currentValue('motion')
+			def lastmotion = it.currentValue('motion')
 			try {
-				if (lastMotion) {
-                	if (lastMotion == 'active') {
-						goodlist += "$lastMotion    : $it.displayName\n"}
-                    if (lastMotion == 'inactive') {
-						goodlist += "$lastMotion : $it.displayName\n"}
+				if (lastmotion) {
+                	if (lastmotion == "active") {
+						motionlist += "$it.displayName\n"}
+                    if (lastmotion == "inactive") {
+						nomotionlist += "$it.displayName\n"}
 				} else {
 					badlist += "$it.displayName\n"	
 				}
@@ -83,14 +84,20 @@ def pageStatus() {
 			}
 		}
 
-		if (goodlist) {
-			section("Devices and Motion State") {
-				paragraph goodlist.trim()
+		if (motionlist) {
+			section("ACTIVE - Motion Sensors") {
+				paragraph motionlist.trim()
 			}
 		}
-
+        
+		if (nomotionlist) {
+			section("INACTIVE - Motion Sensors") {
+				paragraph nomotionlist.trim()
+			}
+		}
+        
 		if (badlist) {
-			section("Devices NOT Reporting Motion") {
+			section("Devices NOT Reporting States") {
 				paragraph badlist.trim()
 			}
 		}
@@ -114,7 +121,7 @@ def pageStatus() {
 def pageConfigure() {
 	def helpPage = "Select devices that you wish to check when you open this SmartApp."
 
-	def inputMotionDevices = [name:"motiondevices",type:"capability.motionSensor",title:"Which motion sensor devices?",multiple:true,required:true]
+	def inputMotionDevices = [name:"motiondevices",type:"capability.motionSensor",title:"Which motion sensors?",multiple:true,required:true]
 
 	def pageProperties = [name:"pageConfigure",
 		title:          "Dashboard Configurator",
@@ -146,5 +153,5 @@ def updated() {
 }
 
 def initialize() {
-	log.trace "Launching Motion Sensor Dashboard"
+	log.trace "Devices Dashboard"
 }
