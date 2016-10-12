@@ -18,6 +18,7 @@
  *             : NOTE: range values for sliders are only in F, so be sure to adjust for C if needed.
  *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.
  *  08-30-2016 : Added 1x1 Activity tile next to the statusText tile, and changed that to 5x1.  Removed heat and cool level sliders.
+ *  10-12-2016 : Added the capability Thermostat Fan Mode so CoRE and other SmartApps can find the thermostat needing that capability
  *
 */
 metadata {
@@ -28,6 +29,7 @@ metadata {
 		capability "Actuator"
 		capability "Temperature Measurement"
 		capability "Relative Humidity Measurement"
+        capability "Thermostat Fan Mode"
 		capability "Thermostat"
 		capability "Configuration"
 		capability "Polling"
