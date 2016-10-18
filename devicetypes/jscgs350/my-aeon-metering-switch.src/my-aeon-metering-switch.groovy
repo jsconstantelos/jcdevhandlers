@@ -156,12 +156,12 @@ def parse(String description) {
         
     def statusTextmsg = ""
     statusTextmsg = "Maximum of ${device.currentState('powerTwo')?.value}"
-    sendEvent("name":"statusText", "value":statusTextmsg)
+    sendEvent(name: "statusText", value: statusTextmsg)
     if (state.debug) log.debug statusTextmsg
     
     def secondaryTextmsg = ""
     secondaryTextmsg = "Currently using ${device.currentState('powerDisp')?.value}"
-    sendEvent("name":"secondaryText", "value":secondaryTextmsg)
+    sendEvent(name: "secondaryText", value: secondaryTextmsg)
     if (state.debug) log.debug secondaryTextmsg    
 
 	return result
