@@ -30,6 +30,7 @@
  *  08-21-2016 : Created separate tiles to reset min and max instead of having a single tile for both values.  Changed many tiles to different sizes.
  *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.
  *  09-16-2016 : During the check for 0 or negative values, use the last power value (state.powerValue) instead of just a hard coded value.
+ *  10-17-2016 : Cleaned up code.
  *
  */
 metadata {
@@ -72,43 +73,30 @@ metadata {
            		attributeState "statusText", label:''                
             }
 		}    
-
-        valueTile("energyDisp", "device.energyDisp", width: 2, height: 1, inactiveLabel: false, decoration: "flat") {
+        standardTile("energyDisp", "device.energyDisp", width: 2, height: 1, inactiveLabel: false, decoration: "flat") {
             state("default", label: '${currentValue}', backgroundColor:"#ffffff")
         }
-        valueTile("energyOne", "device.energyOne", width: 5, height: 1, inactiveLabel: false, decoration: "flat") {
+        standardTile("energyOne", "device.energyOne", width: 5, height: 1, inactiveLabel: false, decoration: "flat") {
             state("default", label: '${currentValue}', backgroundColor:"#ffffff")
         }        
-        valueTile("energyTwo", "device.energyTwo", width: 2, height: 1, inactiveLabel: false, decoration: "flat") {
+        standardTile("energyTwo", "device.energyTwo", width: 2, height: 1, inactiveLabel: false, decoration: "flat") {
             state("default", label: '${currentValue}', backgroundColor:"#ffffff")
         }
-
     	standardTile("refresh", "device.power", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
         	state "default", label:'Refresh', action:"refresh.refresh", icon:"st.secondary.refresh-icon"
     	}
     	standardTile("configure", "device.power", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
         	state "configure", label:'', action:"configure", icon:"st.secondary.configure"
     	}
-    
-        valueTile("battery", "device.battery", width: 2, height: 1, inactiveLabel: false, decoration: "flat") {
+        standardTile("battery", "device.battery", width: 2, height: 1, inactiveLabel: false, decoration: "flat") {
             state "battery", label:'${currentValue}%\nbattery', unit:""
         }
-        
         standardTile("blankTile", "statusText", inactiveLabel: false, decoration: "flat", width: 1, height: 2) {
 			state "default", label:'', icon:"http://cdn.device-icons.smartthings.com/secondary/device-activity-tile@2x.png"
 		}    
-        valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
+        standardTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}
-
-        valueTile("min", "powerOne", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
-            state "default", label:'Min:\n${currentValue}', backgroundColor:"#ffffff"
-        }
-
-        valueTile("max", "powerTwo", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
-            state "default", label:'Max:\n${currentValue}', backgroundColor:"#ffffff"
-        }
-
         standardTile("resetmin", "device.energy", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
             state "default", label:'Reset Minimum', action:"resetmin", icon:"st.secondary.refresh-icon"
         }
@@ -118,7 +106,7 @@ metadata {
         standardTile("reset", "device.energy", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "default", label:'Reset Energy', action:"reset", icon:"st.secondary.refresh-icon"
 		}
-          
+
         main (["powerDisp"])
         details(["powerDisp", "blankTile", "statusText", "energyOne", "battery", "energyDisp", "energyTwo", "resetmin", "resetmax", "resetenergy", "reset", "refresh", "configure"])
         }
