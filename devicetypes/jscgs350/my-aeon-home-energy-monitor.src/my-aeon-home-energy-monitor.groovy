@@ -31,7 +31,7 @@
  *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.
  *  09-16-2016 : During the check for 0 or negative values, use the last power value (state.powerValue) instead of just a hard coded value.
  *  10-17-2016 : Cleaned up code.
- *  10-19-2016 : Provided code for iOS users to tweak so that the rendering of text for certain tiles to work right.  Changed default icon.
+ *  10-19-2016 : Provided comments in the code for iOS users to edit so that the rendering of text for certain tiles to work right.  Changed default icon.
  *  10-19-2016 : Added a new parameter in Preferences so that a user can specify the high limit for a watts value instead of hard coding a value.  Related to the change on 7-7-2016.
  *
  */
@@ -78,14 +78,11 @@ metadata {
         valueTile("energyDisp", "device.energyDisp", width: 2, height: 1, inactiveLabel: false, decoration: "flat") {
             state("default", label: '${currentValue}', backgroundColor:"#ffffff")
         }
-
+        
+// for iOS users, change standardTile to value Tile.
         standardTile("energyOne", "device.energyOne", width: 5, height: 1, inactiveLabel: false, decoration: "flat") {
             state("default", label: '${currentValue}', backgroundColor:"#ffffff")
         }
-// for iOS users, remove the comments from the following 3 lines, and comment out the 3 lines above.
-//        valueTile("energyOne", "device.energyOne", width: 5, height: 1, inactiveLabel: false, decoration: "flat") {
-//            state("default", label: '${currentValue}', backgroundColor:"#ffffff")
-//        }
 
         valueTile("energyTwo", "device.energyTwo", width: 2, height: 1, inactiveLabel: false, decoration: "flat") {
             state("default", label: '${currentValue}', backgroundColor:"#ffffff")
@@ -102,14 +99,11 @@ metadata {
         standardTile("blankTile", "statusText", inactiveLabel: false, decoration: "flat", width: 1, height: 2) {
 			state "default", label:'', icon:"http://cdn.device-icons.smartthings.com/secondary/device-activity-tile@2x.png"
 		}
-                
+
+// for iOS users, change standardTile to value Tile.
         standardTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}
-// for iOS users, remove the comments from the following 3 lines, and comment out the 3 lines above.
-//      valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
-//			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
-//		}
 
         standardTile("resetmin", "device.energy", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
             state "default", label:'Reset Minimum', action:"resetmin", icon:"st.secondary.refresh-icon"
