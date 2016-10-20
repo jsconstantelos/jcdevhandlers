@@ -24,13 +24,15 @@
  *  03-11-2016 : Due to ST's v2.1.0 app totally hosing up SECONDARY_CONTROL, implemented a workaround to display that info in a separate tile.
  *  03-19-2016 : Added clarity for preferences.
  *  03-21-2016 : Fixed issue when resetting energy would also reset watts.
- *  03-25-2016 : Removed the \n from the two tiles for resetting watta and energy due to rendering issues on iOS
+ *  03-25-2016 : Removed the \n from the two tiles for resetting watts and energy due to rendering issues on iOS
  *  07-07-2016 : Check for wildly large watts value coming from the HEM and do not process them.  Firmware updates should have resolved this.
  *  08-10-2016 : Check for 0 or negative watts value coming from the HEM and do not process them.  Firmware updates should have resolved this.
  *  08-21-2016 : Created separate tiles to reset min and max instead of having a single tile for both values.  Changed many tiles to different sizes.
  *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.
  *  09-16-2016 : During the check for 0 or negative values, use the last power value (state.powerValue) instead of just a hard coded value.
  *  10-17-2016 : Cleaned up code.
+ *  10-19-2016 : Provided code for iOS users to tweak so that the rendering of text for certain tiles to work right.  Changed default icon.
+ *  10-19-2016 : Added a new parameter in Preferences so that a user can specify the high limit for a watts value instead of hard coding a value.  Related to the change on 7-7-2016.
  *
  */
 metadata {
@@ -64,22 +66,28 @@ metadata {
 }
 // tile definitions
 	tiles(scale: 2) {
-		multiAttributeTile(name:"powerDisp", type: "lighting", width: 6, height: 4, decoration: "flat", canChangeIcon: true, canChangeBackground: true){
+		multiAttributeTile(name:"powerDisp", type: "generic", width: 6, height: 4, decoration: "flat", canChangeIcon: true, canChangeBackground: true){
 			tileAttribute ("device.powerDisp", key: "PRIMARY_CONTROL") {
-				attributeState "default", action: "refresh", label: '${currentValue}', icon: "st.switches.light.on", backgroundColor: "#79b821"
+				attributeState "default", action: "refresh", label: '${currentValue}', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/device-activity-tile@2x.png", backgroundColor: "#79b821"
 			}
             tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
 //           		attributeState "statusText", label:'${currentValue}'
            		attributeState "statusText", label:''                
             }
 		}    
-        standardTile("energyDisp", "device.energyDisp", width: 2, height: 1, inactiveLabel: false, decoration: "flat") {
+        valueTile("energyDisp", "device.energyDisp", width: 2, height: 1, inactiveLabel: false, decoration: "flat") {
             state("default", label: '${currentValue}', backgroundColor:"#ffffff")
         }
+
         standardTile("energyOne", "device.energyOne", width: 5, height: 1, inactiveLabel: false, decoration: "flat") {
             state("default", label: '${currentValue}', backgroundColor:"#ffffff")
-        }        
-        standardTile("energyTwo", "device.energyTwo", width: 2, height: 1, inactiveLabel: false, decoration: "flat") {
+        }
+// for iOS users, remove the comments from the following 3 lines, and comment out the 3 lines above.
+//        valueTile("energyOne", "device.energyOne", width: 5, height: 1, inactiveLabel: false, decoration: "flat") {
+//            state("default", label: '${currentValue}', backgroundColor:"#ffffff")
+//        }
+
+        valueTile("energyTwo", "device.energyTwo", width: 2, height: 1, inactiveLabel: false, decoration: "flat") {
             state("default", label: '${currentValue}', backgroundColor:"#ffffff")
         }
     	standardTile("refresh", "device.power", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
@@ -88,15 +96,21 @@ metadata {
     	standardTile("configure", "device.power", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
         	state "configure", label:'', action:"configure", icon:"st.secondary.configure"
     	}
-        standardTile("battery", "device.battery", width: 2, height: 1, inactiveLabel: false, decoration: "flat") {
+        valueTile("battery", "device.battery", width: 2, height: 1, inactiveLabel: false, decoration: "flat") {
             state "battery", label:'${currentValue}%\nbattery', unit:""
         }
         standardTile("blankTile", "statusText", inactiveLabel: false, decoration: "flat", width: 1, height: 2) {
 			state "default", label:'', icon:"http://cdn.device-icons.smartthings.com/secondary/device-activity-tile@2x.png"
-		}    
+		}
+                
         standardTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}
+// for iOS users, remove the comments from the following 3 lines, and comment out the 3 lines above.
+//      valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
+//			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
+//		}
+
         standardTile("resetmin", "device.energy", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
             state "default", label:'Reset Minimum', action:"resetmin", icon:"st.secondary.refresh-icon"
         }
@@ -117,6 +131,11 @@ metadata {
             	defaultValue: 0.16,
                 required: false,                
             	displayDuringSetup: true
+            input "wattsLimit", "number",
+            	title: "Sometimes the HEM will send a wildly large watts value.  What limit should be in place so that it's not processed? (in watts)",
+            	defaultValue: 20000,
+                required: false,                
+            	displayDuringSetup: true                
             input "reportType", "number", 
                 title: "ReportType: Send watt/kWh data on a time interval (0), or on a change in wattage (1)? Enter a 0 or 1:",  
                 defaultValue: 1, 
@@ -151,7 +170,7 @@ metadata {
 }
 
 def updated() {
-    log.debug "updated (kWhCost: ${kWhCost}, reportType: ${reportType}, wattsChanged: ${wattsChanged}, wattsPercent: ${wattsPercent}, secondsWatts: ${secondsWatts}, secondsKwh: ${secondsKwh}, secondsBattery: ${secondsBattery})"
+    log.debug "updated (kWhCost: ${kWhCost}, wattsLimit: ${wattsLimit}, reportType: ${reportType}, wattsChanged: ${wattsChanged}, wattsPercent: ${wattsPercent}, secondsWatts: ${secondsWatts}, secondsKwh: ${secondsKwh}, secondsBattery: ${secondsBattery})"
     response(configure())
 }
 
@@ -164,7 +183,7 @@ def parse(String description) {
     }
 //    if (result) log.debug "Parse returned ${result}"
     def statusTextmsg = ""
-	statusTextmsg = "Min was ${device.currentState('powerOne')?.value}\nMax was ${device.currentState('powerTwo')?.value}"
+	statusTextmsg = "Min was ${device.currentState('powerOne')?.value}\nMax was ${device.currentState('powerTwo')?.value}\n"
     sendEvent("name":"statusText", "value":statusTextmsg)
     return result
 }
@@ -198,7 +217,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
         else if (cmd.scale==2) {                
             newValue = Math.round(cmd.scaledMeterValue*100)/100
             if (newValue <= 0) {newValue = state.powerValue}	// Don't want to see 0w or negative numbers as a valid minimum value (something isn't right with the meter)
-			if (newValue < 10000) {								// don't handle any wildly large readings due to firmware issues	
+			if (newValue < wattsLimit) {								// don't handle any wildly large readings due to firmware issues	
 	            if (newValue != state.powerValue) {
 	                dispValue = newValue+"w"
 	                sendEvent(name: "powerDisp", value: dispValue as String, unit: "", displayed: false)
