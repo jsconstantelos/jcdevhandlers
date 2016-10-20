@@ -79,7 +79,7 @@ metadata {
             state("default", label: '${currentValue}', backgroundColor:"#ffffff")
         }
         
-// for iOS users, change standardTile to value Tile.
+// for iOS users, change standardTile to valueTile.
         standardTile("energyOne", "device.energyOne", width: 5, height: 1, inactiveLabel: false, decoration: "flat") {
             state("default", label: '${currentValue}', backgroundColor:"#ffffff")
         }
@@ -100,7 +100,7 @@ metadata {
 			state "default", label:'', icon:"http://cdn.device-icons.smartthings.com/secondary/device-activity-tile@2x.png"
 		}
 
-// for iOS users, change standardTile to value Tile.
+// for iOS users, change standardTile to valueTile.
         standardTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}
