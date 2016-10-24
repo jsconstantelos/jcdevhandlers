@@ -12,14 +12,13 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
- *  Version: v8.1
- *
  *  Updates:
  *  -------
- *  02-16-2016 : Removed limiting units to just "F", and adjusted slider range to account for "C" or "F".
- *  02-17-2016 : Removed any reference to ranges for sliders or the up/down arrow limits.
- *  02-18-2016 : Initial commit for github integration.
- *  03-11-2016 : Due to ST's v2.1.0 app totally hosing up SECONDARY_CONTROL, implemented a workaround to disply that info in a separate tile.
+ *  03-20-2016 : v9.0 initial release.  Starts to use the multiAttributeTile type: "thermostat", and the controls/features it brings.
+ *             : NOTE: range values for sliders are only in F, so be sure to adjust for C if needed.
+ *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.
+ *  08-30-2016 : Added 1x1 Activity tile next to the statusText tile, and changed that to 5x1.  Removed heat and cool level sliders.
+ *  10-12-2016 : Added the capability Thermostat Fan Mode so CoRE and other SmartApps can find the thermostat needing that capability
  *
 */
 metadata {
@@ -30,22 +29,30 @@ metadata {
 		capability "Actuator"
 		capability "Temperature Measurement"
 		capability "Relative Humidity Measurement"
+        capability "Thermostat Fan Mode"
 		capability "Thermostat"
 		capability "Configuration"
 		capability "Polling"
 		capability "Sensor"
         capability "Switch"
-
+       
+		command "setLevelUp"
+		command "setLevelDown"
+        command "quickSetPoint"
+        
 		command "heatLevelUp"
 		command "heatLevelDown"
+        command "quickSetHeat"
+        
 		command "coolLevelUp"
 		command "coolLevelDown"
         command "quickSetCool"
-        command "quickSetHeat"
+        
         command "modeoff"
         command "modeheat"
         command "modecool"
         command "modeauto"
+        
         command "fanauto"
         command "fanon"
         command "fancir"
@@ -54,35 +61,48 @@ metadata {
         attribute "currentState", "string"
         attribute "currentMode", "string"
         attribute "currentfanMode", "string"
+
 	}
 
 //Thermostat Temp and State
 	tiles(scale: 2) {
-		multiAttributeTile(name:"temperature", type: "lighting", width: 6, height: 4, canChangeIcon: true, decoration: "flat"){
+		multiAttributeTile(name:"temperature", type: "thermostat", width: 6, height: 4, canChangeIcon: true, decoration: "flat"){
 			tileAttribute ("device.temperature", key: "PRIMARY_CONTROL") {
 				attributeState("temperature", label:'${currentValue}°',
-                backgroundColors:[
-                    [value: 31, color: "#153591"],
-                    [value: 44, color: "#1e9cbb"],
-                    [value: 59, color: "#90d2a7"],
-                    [value: 74, color: "#44b621"],
-                    [value: 84, color: "#f1d801"],
-                    [value: 95, color: "#d04e00"],
-                    [value: 96, color: "#bc2323"]
-                ]
-            )
+                	backgroundColors:[
+							// Celsius
+							[value: 0, color: "#153591"],
+							[value: 7, color: "#1e9cbb"],
+							[value: 15, color: "#90d2a7"],
+							[value: 23, color: "#44b621"],
+							[value: 28, color: "#f1d801"],
+							[value: 35, color: "#d04e00"],
+							[value: 37, color: "#bc2323"],
+							// Fahrenheit
+							[value: 40, color: "#153591"],
+							[value: 44, color: "#1e9cbb"],
+							[value: 59, color: "#90d2a7"],
+							[value: 74, color: "#44b621"],
+							[value: 84, color: "#f1d801"],
+							[value: 95, color: "#d04e00"],
+							[value: 96, color: "#bc2323"]
+					]
+                )
 			}
-//            tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
-//           		attributeState "statusText", label:'${currentValue}'       		
-//            }
-		}
-        standardTile("thermostatOperatingState", "device.currentState", canChangeIcon: false, inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
-            state ("default", label:'${currentValue}', icon:"st.tesla.tesla-hvac")
-        }
-		standardTile("thermostatFanState", "device.thermostatFanState", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
-            state "running", label:'Fan is On', icon:"st.Appliances.appliances11"
-            state "idle", label:'Fan is Off', icon:"st.Appliances.appliances11"
-        }        
+			tileAttribute("device.temperature", key: "VALUE_CONTROL") {
+				attributeState("VALUE_UP", action: "setLevelUp")
+				attributeState("VALUE_DOWN", action: "setLevelDown")
+			}
+			tileAttribute("device.thermostatOperatingState", key: "OPERATING_STATE") {
+				attributeState("idle", backgroundColor:"#69C44D")
+				attributeState("heating", backgroundColor:"#ea5462")
+				attributeState("cooling", backgroundColor:"#269bd2")
+			}
+            tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
+//           		attributeState "statusText", label:'${currentValue}'
+                attributeState "statusText", label:''
+            }
+		}       
 
 //Thermostat Mode Control
         standardTile("modeoff", "device.thermostatMode", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
@@ -106,10 +126,10 @@ metadata {
             state "heatLevelDown", label:'', action:"heatLevelDown", icon:"st.thermostat.thermostat-down"
         }
         valueTile("heatingSetpoint", "device.heatingSetpoint", width: 2, height: 2, inactiveLabel: false) {
-			state "heat", label:'${currentValue}°', backgroundColor:"#d04e00"
+			state "heat", label:'${currentValue}°', backgroundColor:"#ea5462"
 		}
-		controlTile("heatSliderControl", "device.heatingSetpoint", "slider", height: 1, width: 3, inactiveLabel: false) {
-			state "setHeatingSetpoint", action:"quickSetHeat", backgroundColor:"#d04e00"
+		controlTile("heatSliderControl", "device.heatingSetpoint", "slider", height: 1, width: 3, inactiveLabel: false, range:"(60..80)") {
+			state "setHeatingSetpoint", action:"quickSetHeat", backgroundColor:"#ea5462"
 		}
 
 //Cooling Set Point Controls
@@ -120,10 +140,10 @@ metadata {
             state "coolLevelDown", label:'', action:"coolLevelDown", icon:"st.thermostat.thermostat-down"
         }
 		valueTile("coolingSetpoint", "device.coolingSetpoint", width: 2, height: 2, inactiveLabel: false) {
-			state "cool", label:'${currentValue}°', backgroundColor: "#53a7c0"
+			state "cool", label:'${currentValue}°', backgroundColor: "#269bd2"
 		}
-		controlTile("coolSliderControl", "device.coolingSetpoint", "slider", height: 1, width: 3, inactiveLabel: false) {
-			state "setCoolingSetpoint", action:"quickSetCool", backgroundColor: "#53a7c0"
+		controlTile("coolSliderControl", "device.coolingSetpoint", "slider", height: 1, width: 3, inactiveLabel: false, range:"(60..80)") {
+			state "setCoolingSetpoint", action:"quickSetCool", backgroundColor: "#269bd2"
 		}
 
 //Fan Mode Control        
@@ -147,13 +167,17 @@ metadata {
 		standardTile("configure", "device.configure", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "configure", label:'', action:"configuration.configure", icon:"st.secondary.configure"
 		}
-
-        valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 6, height: 2) {
+        
+        standardTile("blankTile", "statusText", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
+			state "default", label:'', icon:"http://cdn.device-icons.smartthings.com/secondary/device-activity-tile@2x.png"
+		}
+        valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}
 
 		main (["temperature"])
-        details(["temperature", "statusText", "heatingSetpoint", "heatLevelUp", "coolLevelUp", "coolingSetpoint", "heatLevelDown", "coolLevelDown", "heatSliderControl", "coolSliderControl", "fanon", "fanauto", "fancir", "modeoff", "modeheat", "modecool", "modeauto", "refresh", "configure"])
+		details(["temperature", "blankTile", "statusText", "heatingSetpoint", "heatLevelUp", "coolLevelUp", "coolingSetpoint", "heatLevelDown", "coolLevelDown", "fanon", "fanauto", "fancir", "modeoff", "modeheat", "modecool", "modeauto", "refresh", "configure"])
+//		details(["temperature", "blankTile", "statusText", "heatingSetpoint", "heatLevelUp", "coolLevelUp", "coolingSetpoint", "heatLevelDown", "coolLevelDown", "heatSliderControl", "coolSliderControl", "fanon", "fanauto", "fancir", "modeoff", "modeheat", "modecool", "modeauto", "refresh", "configure"])
 	}
 }
 
@@ -187,23 +211,19 @@ def parse(String description)
 			state.lastTriedMode = map.value
 			if (map.value == "cool") {
 				map2.value = device.latestValue("coolingSetpoint")
-				log.info "THERMOSTAT, latest cooling setpoint = ${map2.value}"
 			}
 			else {
 				map2.value = device.latestValue("heatingSetpoint")
-				log.info "THERMOSTAT, latest heating setpoint = ${map2.value}"
 			}
 		}
 		else {
 			def mode = device.latestValue("thermostatMode")
-			log.info "THERMOSTAT, latest mode = ${mode}"
 			if ((map.name == "heatingSetpoint" && mode == "heat") || (map.name == "coolingSetpoint" && mode == "cool")) {
 				map2.value = map.value
 				map2.unit = map.unit
 			}
 		}
 		if (map2.value != null) {
-			log.debug "THERMOSTAT, adding setpoint event: $map"
 			result << createEvent(map2)
 		}
 	} else if (map.name == "thermostatFanMode" && map.isStateChange) {
@@ -213,7 +233,6 @@ def parse(String description)
 	def statusTextmsg = ""
     statusTextmsg = "Unit is ${device.currentState('currentState').value}.\nFan is in ${device.currentState('currentfanMode').value} and is ${device.currentState('thermostatFanState').value}."
     sendEvent("name":"statusText", "value":statusTextmsg)
-    log.debug statusTextmsg
     
 	log.debug "Parse returned $result"
 	result
@@ -280,7 +299,7 @@ def zwaveEvent(physicalgraph.zwave.commands.thermostatoperatingstatev1.Thermosta
 				sendEvent(name: "currentState", value: "in Heat Mode and is idle" as String)
 			}
             if (mode == "cool") {
-				sendEvent(name: "currentState", value: "in A/C Mode and is idle" as String)
+				sendEvent(name: "currentState", value: "in Cooling Mode and is idle" as String)
 			}
             if (mode == "auto") {
 				sendEvent(name: "currentState", value: "in Auto Mode and is idle" as String)
@@ -413,28 +432,61 @@ def zwaveEvent(physicalgraph.zwave.Command cmd) {
 //Send commands to the thermostat
 //
 
+def setLevelUp(){
+    int nextLevel = device.currentValue("thermostatSetpoint") + 1
+    setThermoSetpoint(nextLevel)
+}
+def setLevelDown(){
+    int nextLevel = device.currentValue("thermostatSetpoint") - 1
+    setThermoSetpoint(nextLevel)
+}
+def quickSetPoint(degrees) {
+	setThermoSetpoint(degrees, 1000)
+}
+def setThermoSetpoint(degrees, delay = 30000) {
+	setThermoSetpoint(degrees.toDouble(), delay)
+}
+def setThermoSetpoint(Double degrees, Integer delay = 30000) {
+	def deviceScale = state.scale ?: 1
+	def deviceScaleString = deviceScale == 2 ? "C" : "F"
+    def locationScale = getTemperatureScale()
+	def p = (state.precision == null) ? 1 : state.precision
+    def convertedDegrees
+    if (locationScale == "C" && deviceScaleString == "F") {
+    	convertedDegrees = celsiusToFahrenheit(degrees)
+    } else if (locationScale == "F" && deviceScaleString == "C") {
+    	convertedDegrees = fahrenheitToCelsius(degrees)
+    } else {
+    	convertedDegrees = degrees
+    }
+    if (device.latestValue("thermostatMode") == "heat") {
+        delayBetween([
+            zwave.thermostatSetpointV1.thermostatSetpointSet(setpointType: 1, scale: deviceScale, precision: p, scaledValue: convertedDegrees).format(),
+            zwave.thermostatSetpointV1.thermostatSetpointGet(setpointType: 1).format()
+        ], delay)
+	} else {
+        delayBetween([
+            zwave.thermostatSetpointV1.thermostatSetpointSet(setpointType: 2, scale: deviceScale, precision: p, scaledValue: convertedDegrees).format(),
+            zwave.thermostatSetpointV1.thermostatSetpointGet(setpointType: 2).format()
+        ], delay)
+    }
+}
+
 def heatLevelUp(){
     int nextLevel = device.currentValue("heatingSetpoint") + 1
-    log.debug "Setting heat set point up to: ${nextLevel}"
     setHeatingSetpoint(nextLevel)
 }
-
 def heatLevelDown(){
     int nextLevel = device.currentValue("heatingSetpoint") - 1
-    log.debug "Setting heat set point down to: ${nextLevel}"
     setHeatingSetpoint(nextLevel)
 }
-
 def quickSetHeat(degrees) {
 	setHeatingSetpoint(degrees, 1000)
 }
-
 def setHeatingSetpoint(degrees, delay = 30000) {
 	setHeatingSetpoint(degrees.toDouble(), delay)
 }
-
 def setHeatingSetpoint(Double degrees, Integer delay = 30000) {
-	log.trace "setHeatingSetpoint($degrees, $delay)"
 	def deviceScale = state.scale ?: 1
 	def deviceScaleString = deviceScale == 2 ? "C" : "F"
     def locationScale = getTemperatureScale()
@@ -451,31 +503,23 @@ def setHeatingSetpoint(Double degrees, Integer delay = 30000) {
 		zwave.thermostatSetpointV1.thermostatSetpointSet(setpointType: 1, scale: deviceScale, precision: p, scaledValue: convertedDegrees).format(),
 		zwave.thermostatSetpointV1.thermostatSetpointGet(setpointType: 1).format()
 	], delay)
-//    poll()
 }
 
 def coolLevelUp(){
     int nextLevel = device.currentValue("coolingSetpoint") + 1
-    log.debug "Setting cool set point up to: ${nextLevel}"
     setCoolingSetpoint(nextLevel)
 }
-
 def coolLevelDown(){
     int nextLevel = device.currentValue("coolingSetpoint") - 1
-    log.debug "Setting cool set point down to: ${nextLevel}"
     setCoolingSetpoint(nextLevel)
 }
-
 def quickSetCool(degrees) {
 	setCoolingSetpoint(degrees, 1000)
 }
-
 def setCoolingSetpoint(degrees, delay = 30000) {
 	setCoolingSetpoint(degrees.toDouble(), delay)
 }
-
 def setCoolingSetpoint(Double degrees, Integer delay = 30000) {
-    log.trace "setCoolingSetpoint($degrees, $delay)"
 	def deviceScale = state.scale ?: 1
 	def deviceScaleString = deviceScale == 2 ? "C" : "F"
     def locationScale = getTemperatureScale()
@@ -492,91 +536,70 @@ def setCoolingSetpoint(Double degrees, Integer delay = 30000) {
 		zwave.thermostatSetpointV1.thermostatSetpointSet(setpointType: 2, scale: deviceScale, precision: p,  scaledValue: convertedDegrees).format(),
 		zwave.thermostatSetpointV1.thermostatSetpointGet(setpointType: 2).format()
 	], delay)
-//    poll()
 }
 
 def modeoff() {
-	log.debug "Setting thermostat mode to OFF."
 	delayBetween([
 		zwave.thermostatModeV2.thermostatModeSet(mode: 0).format(),
 		zwave.thermostatModeV2.thermostatModeGet().format()
-	], 1000)
-//    poll()
+	], 3000)
 }
 
 def modeheat() {
-	log.debug "Setting thermostat mode to HEAT."
 	delayBetween([
 		zwave.thermostatModeV2.thermostatModeSet(mode: 1).format(),
 		zwave.thermostatModeV2.thermostatModeGet().format()
-	], 1000)
-//    poll()
+	], 3000)
 }
 
 def modecool() {
-	log.debug "Setting thermostat mode to COOL."
 	delayBetween([
 		zwave.thermostatModeV2.thermostatModeSet(mode: 2).format(),
 		zwave.thermostatModeV2.thermostatModeGet().format()
-	], 1000)
-//    poll()
+	], 3000)
 }
 
 def modeauto() {
-	log.debug "Setting thermostat mode to AUTO."
 	delayBetween([
 		zwave.thermostatModeV2.thermostatModeSet(mode: 3).format(),
 		zwave.thermostatModeV2.thermostatModeGet().format()
-	], 1000)
-//    poll()
+	], 3000)
 }
 
 def modeemgcyheat() {
 	delayBetween([
 		zwave.thermostatModeV2.thermostatModeSet(mode: 4).format(),
 		zwave.thermostatModeV2.thermostatModeGet().format()
-	], standardDelay)
-//    poll()
+	], 3000)
 }
 
 def fanon() {
 	delayBetween([
 		zwave.thermostatFanModeV3.thermostatFanModeSet(fanMode: 1).format(),
 		zwave.thermostatFanModeV3.thermostatFanModeGet().format()
-	], standardDelay)
-//    poll()
+	], 3000)
 }
 
 def fanauto() {
 	delayBetween([
 		zwave.thermostatFanModeV3.thermostatFanModeSet(fanMode: 0).format(),
 		zwave.thermostatFanModeV3.thermostatFanModeGet().format()
-	], standardDelay)
-//    poll()
+	], 3000)
 }
 
 def fancir() {
 	delayBetween([
 		zwave.thermostatFanModeV3.thermostatFanModeSet(fanMode: 6).format(),
 		zwave.thermostatFanModeV3.thermostatFanModeGet().format()
-	], standardDelay)
-//    poll()
+	], 3000)
 }
 
 def on() {
-	delayBetween([
-		zwave.thermostatFanModeV3.thermostatFanModeSet(fanMode: 1).format(),
-		zwave.thermostatFanModeV3.thermostatFanModeGet().format()
-	], standardDelay)
-//    poll()
+	fancir()
 }
 
 def off() {
-	delayBetween([
-		zwave.thermostatFanModeV3.thermostatFanModeSet(fanMode: 0).format(),
-		zwave.thermostatFanModeV3.thermostatFanModeGet().format()
-	], standardDelay)
-//    poll()
+	fanauto()
 }
 
 def poll() {
@@ -588,7 +611,7 @@ def poll() {
 		zwave.thermostatFanStateV1.thermostatFanStateGet().format(),
 		zwave.thermostatFanModeV3.thermostatFanModeGet().format(),
 		zwave.thermostatOperatingStateV1.thermostatOperatingStateGet().format()
-	], 2300)
+	], 3000)
 }
 
 def configure() {
@@ -600,5 +623,5 @@ def configure() {
 }
 
 private getStandardDelay() {
-	1000
+	3000
 }
