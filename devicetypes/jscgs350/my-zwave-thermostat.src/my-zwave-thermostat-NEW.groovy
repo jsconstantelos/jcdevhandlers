@@ -19,7 +19,7 @@
  *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.
  *  08-30-2016 : Added 1x1 Activity tile next to the statusText tile, and changed that to 5x1.  Removed heat and cool level sliders.
  *  10-12-2016 : Added the capability Thermostat Fan Mode so CoRE and other SmartApps can find the thermostat needing that capability
- *  10-25-2016 : Completely changed layout to use more of the multiAttributeTile type: "thermostat" format instead of individual tiles.
+ *  10-25-2016 : Completely changed layout to use all of the multiAttributeTile type: "thermostat" format instead of individual tiles, as well as to reflect unit/fan modes better, and added the e-heat mode tile.
  *
 */
 metadata {
@@ -200,7 +200,11 @@ def parse(String description)
 	def statusL1Textmsg = ""
     def statusL2Textmsg = ""
 
-    statusL1Textmsg = "Unit is ${device.currentState('currentState').value}"
+	if (device.currentState('currentMode').value == "Off") {
+    	statusL1Textmsg = "Unit is Off"
+    } else {
+    	statusL1Textmsg = "Unit is in ${device.currentState('currentMode').value} mode and is ${device.currentState('currentState').value}"
+    }
     sendEvent("name":"statusL1Text", "value":statusL1Textmsg)
 
     statusL2Textmsg = "Fan is in ${device.currentState('currentfanMode').value} and is ${device.currentState('thermostatFanState').value}"
@@ -260,46 +264,30 @@ def zwaveEvent(physicalgraph.zwave.commands.thermostatoperatingstatev1.Thermosta
 		case physicalgraph.zwave.commands.thermostatoperatingstatev1.ThermostatOperatingStateReport.OPERATING_STATE_IDLE:
 			map.value = "idle"
             sendEvent(name: "currentState", value: "Idle" as String)
-			def mode = device.latestValue("thermostatMode")
-            if (mode == "off") {
-				sendEvent(name: "currentState", value: "Off" as String)
-			}
-            if (mode == "emergencyHeat") {
-				sendEvent(name: "currentState", value: "in E-Heat Mode and is idle" as String)
-			}
-            if (mode == "heat") {
-				sendEvent(name: "currentState", value: "in Heat Mode and is idle" as String)
-			}
-            if (mode == "cool") {
-				sendEvent(name: "currentState", value: "in Cooling Mode and is idle" as String)
-			}
-            if (mode == "auto") {
-				sendEvent(name: "currentState", value: "in Auto Mode and is idle" as String)
-			}
 			break
 		case physicalgraph.zwave.commands.thermostatoperatingstatev1.ThermostatOperatingStateReport.OPERATING_STATE_HEATING:
 			map.value = "heating"
-            sendEvent(name: "currentState", value: "Heating and is running" as String)
+            sendEvent(name: "currentState", value: "running" as String)
 			break
 		case physicalgraph.zwave.commands.thermostatoperatingstatev1.ThermostatOperatingStateReport.OPERATING_STATE_COOLING:
 			map.value = "cooling"
-            sendEvent(name: "currentState", value: "Cooling and is running" as String)
+            sendEvent(name: "currentState", value: "running" as String)
 			break
 		case physicalgraph.zwave.commands.thermostatoperatingstatev1.ThermostatOperatingStateReport.OPERATING_STATE_FAN_ONLY:
 			map.value = "fan only"
-            sendEvent(name: "currentState", value: "Fan Only Mode" as String)
+            sendEvent(name: "currentState", value: "fan only" as String)
 			break
 		case physicalgraph.zwave.commands.thermostatoperatingstatev1.ThermostatOperatingStateReport.OPERATING_STATE_PENDING_HEAT:
 			map.value = "pending heat"
-            sendEvent(name: "currentState", value: "Pending Heat Mode" as String)
+            sendEvent(name: "currentState", value: "pending heat" as String)
 			break
 		case physicalgraph.zwave.commands.thermostatoperatingstatev1.ThermostatOperatingStateReport.OPERATING_STATE_PENDING_COOL:
 			map.value = "pending cool"
-            sendEvent(name: "currentState", value: "Pending A/C Mode" as String)
+            sendEvent(name: "currentState", value: "pending A/C" as String)
 			break
 		case physicalgraph.zwave.commands.thermostatoperatingstatev1.ThermostatOperatingStateReport.OPERATING_STATE_VENT_ECONOMIZER:
 			map.value = "vent economizer"
-            sendEvent(name: "currentState", value: "Vent Eco Mode" as String)
+            sendEvent(name: "currentState", value: "vent economizer" as String)
 			break
 	}
 	map.name = "thermostatOperatingState"
@@ -327,24 +315,24 @@ def zwaveEvent(physicalgraph.zwave.commands.thermostatmodev2.ThermostatModeRepor
 	switch (cmd.mode) {
 		case physicalgraph.zwave.commands.thermostatmodev2.ThermostatModeReport.MODE_OFF:
 			map.value = "off"
-            sendEvent(name: "currentMode", value: "off" as String)
+            sendEvent(name: "currentMode", value: "Off" as String)
             break
 		case physicalgraph.zwave.commands.thermostatmodev2.ThermostatModeReport.MODE_HEAT:
 			map.value = "heat"
-            sendEvent(name: "currentMode", value: "heat" as String)
+            sendEvent(name: "currentMode", value: "Heat" as String)
             break
 		case physicalgraph.zwave.commands.thermostatmodev2.ThermostatModeReport.MODE_AUXILIARY_HEAT:
 			map.value = "emergencyHeat"
-            sendEvent(name: "currentMode", value: "eheat" as String)
+            sendEvent(name: "currentMode", value: "E-Heat" as String)
             break
 		case physicalgraph.zwave.commands.thermostatmodev2.ThermostatModeReport.MODE_COOL:
 			map.value = "cool"
-            sendEvent(name: "currentMode", value: "cool" as String)
+            sendEvent(name: "currentMode", value: "Cool" as String)
             def displayMode = map.value
             break
 		case physicalgraph.zwave.commands.thermostatmodev2.ThermostatModeReport.MODE_AUTO:
 			map.value = "auto"
-            sendEvent(name: "currentMode", value: "auto" as String)
+            sendEvent(name: "currentMode", value: "Auto" as String)
             break
 	}
 	map.name = "thermostatMode"
@@ -405,10 +393,12 @@ def zwaveEvent(physicalgraph.zwave.Command cmd) {
 //
 
 def setLevelUp(){
+	log.debug "Setting the setpoint UP a degree..."
     int nextLevel = device.currentValue("thermostatSetpoint") + 1
     setThermoSetpoint(nextLevel)
 }
 def setLevelDown(){
+	log.debug "Setting the setpoint DOWN a degree..."
     int nextLevel = device.currentValue("thermostatSetpoint") - 1
     setThermoSetpoint(nextLevel)
 }
