@@ -81,7 +81,6 @@ metadata {
                 attributeState("default", label:'${currentValue}%', unit:"%")
             }            
             tileAttribute("device.thermostatOperatingState", key: "OPERATING_STATE") {
-            	attributeState("off", backgroundColor:"#ffffff")
                 attributeState("idle", backgroundColor:"#44b621")
                 attributeState("heating", backgroundColor:"#ea5462")
                 attributeState("cooling", backgroundColor:"#269bd2")
@@ -120,7 +119,7 @@ metadata {
         
 //Slider Set Point Controls
 		controlTile("thermoSliderControl", "device.thermostatSetpoint", "slider", height: 1, width: 6, inactiveLabel: false, range:"(60..80)") {
-			state "thermostatSetpoint", action:"setThermoSetpoint", backgroundColor: "#44b621"
+			state "thermostatSetpoint", action:"setThermoSetpoint", backgroundColor: "#a94d00"
 		}
 
 //Fan Mode Control        
