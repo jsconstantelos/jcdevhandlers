@@ -39,7 +39,6 @@ metadata {
        
 		command "setLevelUp"
 		command "setLevelDown"
-        command "quickSetPoint"
         command "setThermoSetpoint"
         
 		command "heatLevelUp"
@@ -443,37 +442,11 @@ def setLevelDown(){
 	}    
 }
 
-def quickSetPoint(degrees) {
-	setThermoSetpoint(degrees, 1000)
-}
-
-def setThermoSetpoint(degrees, delay = 10000) {
-	setThermoSetpoint(degrees.toDouble(), delay)
-}
-
-def setThermoSetpoint(Double degrees, Integer delay = 10000) {
-	def deviceScale = state.scale ?: 1
-	def deviceScaleString = deviceScale == 2 ? "C" : "F"
-    def locationScale = getTemperatureScale()
-	def p = (state.precision == null) ? 1 : state.precision
-    def convertedDegrees
-    if (locationScale == "C" && deviceScaleString == "F") {
-    	convertedDegrees = celsiusToFahrenheit(degrees)
-    } else if (locationScale == "F" && deviceScaleString == "C") {
-    	convertedDegrees = fahrenheitToCelsius(degrees)
-    } else {
-    	convertedDegrees = degrees
-    }
+def setThermoSetpoint(degrees) {
     if (device.latestValue("thermostatMode") == "heat") {
-        delayBetween([
-            zwave.thermostatSetpointV1.thermostatSetpointSet(setpointType: 1, scale: deviceScale, precision: p, scaledValue: convertedDegrees).format(),
-            zwave.thermostatSetpointV1.thermostatSetpointGet(setpointType: 1).format()
-        ], delay)
-	} else if (device.latestValue("thermostatMode") == "cool") {
-        delayBetween([
-            zwave.thermostatSetpointV1.thermostatSetpointSet(setpointType: 2, scale: deviceScale, precision: p, scaledValue: convertedDegrees).format(),
-            zwave.thermostatSetpointV1.thermostatSetpointGet(setpointType: 2).format()
-        ], delay)
+    	setHeatingSetpoint(degrees)
+	} else if (device.latestValue("thermostatMode") == "cool") {    
+        setCoolingSetpoint(degrees)
 	}
 }
 
