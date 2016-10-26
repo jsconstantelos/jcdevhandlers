@@ -19,7 +19,7 @@
  *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.
  *  08-30-2016 : Added 1x1 Activity tile next to the statusText tile, and changed that to 5x1.  Removed heat and cool level sliders.
  *  10-12-2016 : Added the capability Thermostat Fan Mode so CoRE and other SmartApps can find the thermostat needing that capability
- *  10-25-2016 : Completely changed layout to use all of the multiAttributeTile type: "thermostat" format instead of individual tiles, as well as to reflect unit/fan modes better, and added the e-heat mode tile.
+ *  10-26-2016 : Completely changed layout to use all of the multiAttributeTile type: "thermostat" format instead of individual tiles, as well as to reflect unit/fan modes better, and added the e-heat mode tile.
  *
 */
 metadata {
@@ -118,8 +118,30 @@ metadata {
         
 //Slider Set Point Controls
 		controlTile("thermoSliderControl", "device.thermostatSetpoint", "slider", height: 1, width: 6, inactiveLabel: false, range:"(60..80)") {
-			state "thermostatSetpoint", action:"setThermoSetpoint", backgroundColor: "#a94d00"
+			state "thermostatSetpoint", action:"setThermoSetpoint", backgroundColor: "#44b621"
 		}
+
+//Heating Set Point Controls
+        standardTile("heatLevelUp", "device.heatingSetpoint", width: 1, height: 1, inactiveLabel: false, decoration: "flat") {
+            state "heatLevelUp", label:'', action:"heatLevelUp", icon:"https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/redup.png"
+        }
+        standardTile("heatTile", "device.heatingSetpoint", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
+			state "default", label:'', action:"modeheat", icon:"st.thermostat.heat"
+		}
+		standardTile("heatLevelDown", "device.heatingSetpoint", width: 1, height: 1, inactiveLabel: false, decoration: "flat") {
+            state "heatLevelDown", label:'', action:"heatLevelDown", icon:"https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/reddown.png"
+        }
+
+//Cooling Set Point Controls
+        standardTile("coolLevelUp", "device.coolingSetpoint", width: 1, height: 1, inactiveLabel: false, decoration: "flat") {
+            state "coolLevelUp", label:'', action:"coolLevelUp", icon:"https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/blueup.png"
+        }
+        standardTile("coolTile", "device.coolingSetpoint", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
+			state "default", label:'', action:"modecool", icon:"st.thermostat.cool"
+		}
+		standardTile("coolLevelDown", "device.coolingSetpoint", width: 1, height: 1, inactiveLabel: false, decoration: "flat") {
+            state "coolLevelDown", label:'', action:"coolLevelDown", icon:"https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/bluedown.png"
+        }
 
 //Fan Mode Control        
         standardTile("fanauto", "device.thermostatFanMode", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
@@ -140,6 +162,7 @@ metadata {
 			state "configure", label:'', action:"configuration.configure", icon:"st.secondary.configure"
 		}
 
+//Miscellaneous tiles used in this DH
         standardTile("statusL1Text", "statusL1Text", inactiveLabel: false, decoration: "flat", width: 3, height: 2) {
 			state "default", label:'${currentValue}', icon:"st.Home.home1"
 		}
@@ -148,7 +171,7 @@ metadata {
 		}
 
 		main (["temperature"])
-		details(["temperature", "thermoSliderControl", "statusL1Text", "statusL2Text", "fanon", "fanauto", "fancir", "modeheat", "modecool", "modeauto", "modeheatemrgcy", "modeoff", "refresh", "configure"])
+		details(["temperature", "heatLevelUp", "heatTile", "heatLevelDown", "coolLevelUp", "coolTile", "coolLevelDown", "thermoSliderControl", "statusL1Text", "statusL2Text", "fanon", "fanauto", "fancir", "modeheat", "modecool", "modeauto", "modeheatemrgcy", "modeoff", "refresh", "configure"])
 	}
 }
 
@@ -464,11 +487,11 @@ def quickSetHeat(degrees) {
 	setHeatingSetpoint(degrees, 1000)
 }
 
-def setHeatingSetpoint(degrees, delay = 10000) {
+def setHeatingSetpoint(degrees, delay = 5000) {
 	setHeatingSetpoint(degrees.toDouble(), delay)
 }
 
-def setHeatingSetpoint(Double degrees, Integer delay = 10000) {
+def setHeatingSetpoint(Double degrees, Integer delay = 5000) {
 	def deviceScale = state.scale ?: 1
 	def deviceScaleString = deviceScale == 2 ? "C" : "F"
     def locationScale = getTemperatureScale()
@@ -501,11 +524,11 @@ def quickSetCool(degrees) {
 	setCoolingSetpoint(degrees, 1000)
 }
 
-def setCoolingSetpoint(degrees, delay = 10000) {
+def setCoolingSetpoint(degrees, delay = 5000) {
 	setCoolingSetpoint(degrees.toDouble(), delay)
 }
 
-def setCoolingSetpoint(Double degrees, Integer delay = 10000) {
+def setCoolingSetpoint(Double degrees, Integer delay = 5000) {
 	def deviceScale = state.scale ?: 1
 	def deviceScaleString = deviceScale == 2 ? "C" : "F"
     def locationScale = getTemperatureScale()
@@ -624,5 +647,5 @@ def configure() {
 }
 
 private getStandardDelay() {
-	10000
+	5000
 }
