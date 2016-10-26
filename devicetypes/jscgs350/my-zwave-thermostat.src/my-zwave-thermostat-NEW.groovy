@@ -93,10 +93,10 @@ metadata {
                 attributeState("auto", label:'${name}')
             }
             tileAttribute("device.heatingSetpoint", key: "HEATING_SETPOINT") {
-                attributeState("default", label:'${currentValue}', unit:"dF")
+                attributeState("default", label:'${currentValue}°', unit:"dF")
             }
             tileAttribute("device.coolingSetpoint", key: "COOLING_SETPOINT") {
-                attributeState("default", label:'${currentValue}', unit:"dF")
+                attributeState("default", label:'${currentValue}°', unit:"dF")
             }            
 		}       
 
@@ -135,7 +135,7 @@ metadata {
 
 //Refresh and Config Controls
 		standardTile("refresh", "device.refresh", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
-			state "default", action:"polling.poll", icon:"st.secondary.refresh"
+			state "default", label:'Refresh', action:"polling.poll", icon:"st.secondary.refresh-icon"
 		}
 		standardTile("configure", "device.configure", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "configure", label:'', action:"configuration.configure", icon:"st.secondary.configure"
@@ -393,21 +393,65 @@ def zwaveEvent(physicalgraph.zwave.Command cmd) {
 
 def setLevelUp(){
 	log.debug "Setting the setpoint UP a degree..."
-    int nextLevel = device.currentValue("thermostatSetpoint") + 1
-    setThermoSetpoint(nextLevel)
+    if (device.latestValue("thermostatMode") == "heat") {
+    	log.debug "...for heat..."
+    	int nextLevel = device.currentValue("heatingSetpoint") + 1
+    	setHeatingSetpoint(nextLevel)
+	} else if (device.latestValue("thermostatMode") == "cool") {
+    	log.debug "...for cool..."    
+        int nextLevel = device.currentValue("coolingSetpoint") + 1
+        setCoolingSetpoint(nextLevel)
+	} else if (device.latestValue("thermostatMode") == "auto") {
+        int nextHeatLevel = device.currentValue("heatingSetpoint") + 1
+        int nextCoolLevel = device.currentValue("coolingSetpoint") + 1
+        if (device.latestValue("thermostatOperatingState") == "heating") {
+        	log.debug "...for auto heat..."
+        	setHeatingSetpoint(nextHeatLevel)
+        } else if (device.latestValue("thermostatOperatingState") == "cooling") {
+        	log.debug "...for auto cool..."
+        	setCoolingSetpoint(nextCoolLevel)
+        } else {
+            log.debug "...for auto heat AND cool..."
+	    	delayBetween([setHeatingSetpoint(nextHeatLevel), setCoolingSetpoint(nextCoolLevel)], 5000)
+        }
+	}    
 }
+
 def setLevelDown(){
 	log.debug "Setting the setpoint DOWN a degree..."
-    int nextLevel = device.currentValue("thermostatSetpoint") - 1
-    setThermoSetpoint(nextLevel)
+    if (device.latestValue("thermostatMode") == "heat") {
+    	log.debug "...for heat..."
+    	int nextLevel = device.currentValue("heatingSetpoint") - 1
+    	setHeatingSetpoint(nextLevel)
+	} else if (device.latestValue("thermostatMode") == "cool") {
+    	log.debug "...for cool..."    
+        int nextLevel = device.currentValue("coolingSetpoint") - 1
+        setCoolingSetpoint(nextLevel)
+	} else if (device.latestValue("thermostatMode") == "auto") {
+        int nextHeatLevel = device.currentValue("heatingSetpoint") - 1
+        int nextCoolLevel = device.currentValue("coolingSetpoint") - 1
+        if (device.latestValue("thermostatOperatingState") == "heating") {
+        	log.debug "...for auto heat..."
+        	setHeatingSetpoint(nextHeatLevel)
+        } else if (device.latestValue("thermostatOperatingState") == "cooling") {
+        	log.debug "...for auto cool..."
+        	setCoolingSetpoint(nextCoolLevel)
+        } else {
+            log.debug "...for auto heat AND cool..."
+	    	delayBetween([setHeatingSetpoint(nextHeatLevel), setCoolingSetpoint(nextCoolLevel)], 5000)
+        }
+	}    
 }
+
 def quickSetPoint(degrees) {
 	setThermoSetpoint(degrees, 1000)
 }
-def setThermoSetpoint(degrees, delay = 30000) {
+
+def setThermoSetpoint(degrees, delay = 10000) {
 	setThermoSetpoint(degrees.toDouble(), delay)
 }
-def setThermoSetpoint(Double degrees, Integer delay = 30000) {
+
+def setThermoSetpoint(Double degrees, Integer delay = 10000) {
 	def deviceScale = state.scale ?: 1
 	def deviceScaleString = deviceScale == 2 ? "C" : "F"
     def locationScale = getTemperatureScale()
@@ -425,29 +469,33 @@ def setThermoSetpoint(Double degrees, Integer delay = 30000) {
             zwave.thermostatSetpointV1.thermostatSetpointSet(setpointType: 1, scale: deviceScale, precision: p, scaledValue: convertedDegrees).format(),
             zwave.thermostatSetpointV1.thermostatSetpointGet(setpointType: 1).format()
         ], delay)
-	} else {
+	} else if (device.latestValue("thermostatMode") == "cool") {
         delayBetween([
             zwave.thermostatSetpointV1.thermostatSetpointSet(setpointType: 2, scale: deviceScale, precision: p, scaledValue: convertedDegrees).format(),
             zwave.thermostatSetpointV1.thermostatSetpointGet(setpointType: 2).format()
         ], delay)
-    }
+	}
 }
 
 def heatLevelUp(){
     int nextLevel = device.currentValue("heatingSetpoint") + 1
     setHeatingSetpoint(nextLevel)
 }
+
 def heatLevelDown(){
     int nextLevel = device.currentValue("heatingSetpoint") - 1
     setHeatingSetpoint(nextLevel)
 }
+
 def quickSetHeat(degrees) {
 	setHeatingSetpoint(degrees, 1000)
 }
-def setHeatingSetpoint(degrees, delay = 30000) {
+
+def setHeatingSetpoint(degrees, delay = 10000) {
 	setHeatingSetpoint(degrees.toDouble(), delay)
 }
-def setHeatingSetpoint(Double degrees, Integer delay = 30000) {
+
+def setHeatingSetpoint(Double degrees, Integer delay = 10000) {
 	def deviceScale = state.scale ?: 1
 	def deviceScaleString = deviceScale == 2 ? "C" : "F"
     def locationScale = getTemperatureScale()
@@ -470,17 +518,21 @@ def coolLevelUp(){
     int nextLevel = device.currentValue("coolingSetpoint") + 1
     setCoolingSetpoint(nextLevel)
 }
+
 def coolLevelDown(){
     int nextLevel = device.currentValue("coolingSetpoint") - 1
     setCoolingSetpoint(nextLevel)
 }
+
 def quickSetCool(degrees) {
 	setCoolingSetpoint(degrees, 1000)
 }
-def setCoolingSetpoint(degrees, delay = 30000) {
+
+def setCoolingSetpoint(degrees, delay = 10000) {
 	setCoolingSetpoint(degrees.toDouble(), delay)
 }
-def setCoolingSetpoint(Double degrees, Integer delay = 30000) {
+
+def setCoolingSetpoint(Double degrees, Integer delay = 10000) {
 	def deviceScale = state.scale ?: 1
 	def deviceScaleString = deviceScale == 2 ? "C" : "F"
     def locationScale = getTemperatureScale()
@@ -599,5 +651,5 @@ def configure() {
 }
 
 private getStandardDelay() {
-	3000
+	10000
 }
