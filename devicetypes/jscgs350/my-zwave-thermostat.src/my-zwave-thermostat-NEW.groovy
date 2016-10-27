@@ -104,7 +104,7 @@ metadata {
         
 //Slider Set Point Controls
 		controlTile("thermoSliderControl", "device.thermostatSetpoint", "slider", height: 1, width: 6, inactiveLabel: false, range:"(60..80)") {
-			state "thermostatSetpoint", action:"setThermoSetpoint", backgroundColor: "#44b621"
+			state "thermostatSetpoint", label:'${currentValue}', action:"setThermoSetpoint", backgroundColor: "#44b621"
 		}
 
 //Heating Set Point Controls
@@ -270,52 +270,31 @@ def zwaveEvent(physicalgraph.zwave.commands.thermostatoperatingstatev1.Thermosta
 	switch (cmd.operatingState) {
 		case physicalgraph.zwave.commands.thermostatoperatingstatev1.ThermostatOperatingStateReport.OPERATING_STATE_IDLE:
 			map.value = "idle"
-            delayBetween([
-            	sendEvent(name: "currentState", value: "Idle" as String),
-                sendEvent(name: "thermostatOperatingState", value: "Idle")
-            ], 3000)
+            sendEvent(name: "currentState", value: "Idle" as String)
 			break
 		case physicalgraph.zwave.commands.thermostatoperatingstatev1.ThermostatOperatingStateReport.OPERATING_STATE_HEATING:
 			map.value = "heating"
-            delayBetween([
-            	sendEvent(name: "currentState", value: "running" as String),
-                sendEvent(name: "thermostatOperatingState", value: "heating")
-            ], 3000)
+           	sendEvent(name: "currentState", value: "running" as String)
 			break
 		case physicalgraph.zwave.commands.thermostatoperatingstatev1.ThermostatOperatingStateReport.OPERATING_STATE_COOLING:
 			map.value = "cooling"
-            delayBetween([
-            	sendEvent(name: "currentState", value: "running" as String),
-                sendEvent(name: "thermostatOperatingState", value: "cooling")
-            ], 3000)
+            sendEvent(name: "currentState", value: "running" as String)
 			break
 		case physicalgraph.zwave.commands.thermostatoperatingstatev1.ThermostatOperatingStateReport.OPERATING_STATE_FAN_ONLY:
 			map.value = "fan only"
-            delayBetween([
-            	sendEvent(name: "currentState", value: "fan only" as String),
-                sendEvent(name: "thermostatOperatingState", value: "fan only")
-            ], 3000)
+			sendEvent(name: "currentState", value: "fan only" as String)
 			break
 		case physicalgraph.zwave.commands.thermostatoperatingstatev1.ThermostatOperatingStateReport.OPERATING_STATE_PENDING_HEAT:
 			map.value = "pending heat"
-            delayBetween([
-            	sendEvent(name: "currentState", value: "pending heat" as String),
-                sendEvent(name: "thermostatOperatingState", value: "pending heat")
-            ], 3000)
+            sendEvent(name: "currentState", value: "pending heat" as String)
 			break
 		case physicalgraph.zwave.commands.thermostatoperatingstatev1.ThermostatOperatingStateReport.OPERATING_STATE_PENDING_COOL:
 			map.value = "pending cool"
-            delayBetween([
-            	sendEvent(name: "currentState", value: "pending cool" as String),
-                sendEvent(name: "thermostatOperatingState", value: "pending cool")
-            ], 3000)
+            sendEvent(name: "currentState", value: "pending cool" as String)
 			break
 		case physicalgraph.zwave.commands.thermostatoperatingstatev1.ThermostatOperatingStateReport.OPERATING_STATE_VENT_ECONOMIZER:
 			map.value = "vent economizer"
-            delayBetween([
-            	sendEvent(name: "currentState", value: "vent economizer" as String),
-                sendEvent(name: "thermostatOperatingState", value: "vent economizer")
-            ], 3000)
+            sendEvent(name: "currentState", value: "vent economizer" as String)
 			break
 	}
 	map.name = "thermostatOperatingState"
@@ -323,16 +302,20 @@ def zwaveEvent(physicalgraph.zwave.commands.thermostatoperatingstatev1.Thermosta
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.thermostatfanstatev1.ThermostatFanStateReport cmd) {
+	log.debug "I'm here checking fan state..."
 	def map = [name: "thermostatFanState", unit: ""]
 	switch (cmd.fanOperatingState) {
 		case 0:
 			map.value = "idle"
+            sendEvent(name: "thermostatFanState", value: "idle")
 			break
 		case 1:
 			map.value = "running"
+            sendEvent(name: "thermostatFanState", value: "running")
 			break
 		case 2:
 			map.value = "running high"
+            sendEvent(name: "thermostatFanState", value: "running high")
 			break
 	}
 	map
@@ -343,39 +326,23 @@ def zwaveEvent(physicalgraph.zwave.commands.thermostatmodev2.ThermostatModeRepor
 	switch (cmd.mode) {
 		case physicalgraph.zwave.commands.thermostatmodev2.ThermostatModeReport.MODE_OFF:
 			map.value = "off"
-            delayBetween([
-            	sendEvent(name: "currentMode", value: "Off" as String),
-                sendEvent(name: "thermostatMode", value: "off")
-            ], 3000)
+            sendEvent(name: "currentMode", value: "Off" as String)
             break
 		case physicalgraph.zwave.commands.thermostatmodev2.ThermostatModeReport.MODE_HEAT:
 			map.value = "heat"
-            delayBetween([
-            	sendEvent(name: "currentMode", value: "Heat" as String),
-                sendEvent(name: "thermostatMode", value: "heat")
-            ], 3000)
+            sendEvent(name: "currentMode", value: "Heat" as String)
             break
 		case physicalgraph.zwave.commands.thermostatmodev2.ThermostatModeReport.MODE_AUXILIARY_HEAT:
 			map.value = "emergencyHeat"
-            delayBetween([
-            	sendEvent(name: "currentMode", value: "E-Heat" as String),
-                sendEvent(name: "thermostatMode", value: "emergency heat")
-            ], 3000)
+            sendEvent(name: "currentMode", value: "E-Heat" as String)
             break
 		case physicalgraph.zwave.commands.thermostatmodev2.ThermostatModeReport.MODE_COOL:
 			map.value = "cool"
-            delayBetween([
-            	sendEvent(name: "currentMode", value: "Cool" as String),
-                sendEvent(name: "thermostatMode", value: "cool")
-            ], 3000)
-            def displayMode = map.value
+            sendEvent(name: "currentMode", value: "Cool" as String)
             break
 		case physicalgraph.zwave.commands.thermostatmodev2.ThermostatModeReport.MODE_AUTO:
 			map.value = "auto"
-            delayBetween([
-            	sendEvent(name: "currentMode", value: "Auto" as String),
-                sendEvent(name: "thermostatMode", value: "auto")
-            ], 3000)
+            sendEvent(name: "currentMode", value: "Auto" as String)
             break
 	}
 	map.name = "thermostatMode"
@@ -388,17 +355,14 @@ def zwaveEvent(physicalgraph.zwave.commands.thermostatfanmodev3.ThermostatFanMod
 		case physicalgraph.zwave.commands.thermostatfanmodev3.ThermostatFanModeReport.FAN_MODE_AUTO_LOW:
 			map.value = "fanAuto"
             sendEvent(name: "currentfanMode", value: "Auto Mode" as String)
-            sendEvent(name: "thermostatFanMode", value: "auto")
 			break
 		case physicalgraph.zwave.commands.thermostatfanmodev3.ThermostatFanModeReport.FAN_MODE_LOW:
 			map.value = "fanOn"
             sendEvent(name: "currentfanMode", value: "On Mode" as String)
-            sendEvent(name: "thermostatFanMode", value: "on")
 			break
 		case physicalgraph.zwave.commands.thermostatfanmodev3.ThermostatFanModeReport.FAN_MODE_CIRCULATION:
 			map.value = "fanCirculate"
             sendEvent(name: "currentfanMode", value: "Cycle Mode" as String)
-            sendEvent(name: "thermostatFanMode", value: "circulate")
 			break
 	}
 	map.name = "thermostatFanMode"
@@ -459,7 +423,7 @@ def setLevelUp(){
         	setCoolingSetpoint(nextCoolLevel)
         } else {
             log.debug "...for auto heat AND cool..."
-	    	delayBetween([setHeatingSetpoint(nextHeatLevel), setCoolingSetpoint(nextCoolLevel)], 5000)
+	    	delayBetween([setHeatingSetpoint(nextHeatLevel), setCoolingSetpoint(nextCoolLevel)], 3000)
         }
 	}    
 }
@@ -485,7 +449,7 @@ def setLevelDown(){
         	setCoolingSetpoint(nextCoolLevel)
         } else {
             log.debug "...for auto heat AND cool..."
-	    	delayBetween([setHeatingSetpoint(nextHeatLevel), setCoolingSetpoint(nextCoolLevel)], 5000)
+	    	delayBetween([setHeatingSetpoint(nextHeatLevel), setCoolingSetpoint(nextCoolLevel)], 3000)
         }
 	}    
 }
@@ -574,67 +538,52 @@ def setCoolingSetpoint(Double degrees, Integer delay = 5000) {
 
 def off() {
 	log.debug "Switching to off mode..."
+    sendEvent(name: "currentMode", value: "Off" as String)
 	delayBetween([
 		zwave.thermostatModeV2.thermostatModeSet(mode: 0).format(),
 		zwave.thermostatModeV2.thermostatModeGet().format(),
         zwave.thermostatOperatingStateV1.thermostatOperatingStateGet().format()
 	], 3000)
-    delayBetween([
-       	sendEvent(name: "currentMode", value: "Off" as String),
-        sendEvent(name: "thermostatMode", value: "off")
-    ], 3000)
 }
 
 def heat() {
 	log.debug "Switching to heat mode..."
+    sendEvent(name: "currentMode", value: "Heat" as String)
 	delayBetween([
 		zwave.thermostatModeV2.thermostatModeSet(mode: 1).format(),
 		zwave.thermostatModeV2.thermostatModeGet().format(),
         zwave.thermostatOperatingStateV1.thermostatOperatingStateGet().format()
-	], 3000)
-    delayBetween([
-       	sendEvent(name: "currentMode", value: "Heat" as String),
-        sendEvent(name: "thermostatMode", value: "heat")
-    ], 3000)    
+	], 3000)   
 }
 
 def cool() {
 	log.debug "Switching to cool mode..."
+    sendEvent(name: "currentMode", value: "Cool" as String)
 	delayBetween([
 		zwave.thermostatModeV2.thermostatModeSet(mode: 2).format(),
 		zwave.thermostatModeV2.thermostatModeGet().format(),
         zwave.thermostatOperatingStateV1.thermostatOperatingStateGet().format()
 	], 3000)
-    delayBetween([
-       	sendEvent(name: "currentMode", value: "Cool" as String),
-        sendEvent(name: "thermostatMode", value: "cool")
-    ], 3000)     
 }
 
 def auto() {
 	log.debug "Switching to auto mode..."
+    sendEvent(name: "currentMode", value: "Auto" as String)
 	delayBetween([
 		zwave.thermostatModeV2.thermostatModeSet(mode: 3).format(),
 		zwave.thermostatModeV2.thermostatModeGet().format(),
         zwave.thermostatOperatingStateV1.thermostatOperatingStateGet().format()
 	], 3000)
-    delayBetween([
-       	sendEvent(name: "currentMode", value: "Auto" as String),
-        sendEvent(name: "thermostatMode", value: "auto")
-    ], 3000)
 }
 
 def emergencyHeat() {
 	log.debug "Switching to emergency heat mode..."
+    sendEvent(name: "currentMode", value: "E-Heat" as String)
 	delayBetween([
 		zwave.thermostatModeV2.thermostatModeSet(mode: 4).format(),
 		zwave.thermostatModeV2.thermostatModeGet().format(),
         zwave.thermostatOperatingStateV1.thermostatOperatingStateGet().format()
 	], 3000)
-    delayBetween([
-       	sendEvent(name: "currentMode", value: "E-Heat" as String),
-        sendEvent(name: "thermostatMode", value: "emergency heat")
-    ], 3000)
 }
 
 def fanOn() {
