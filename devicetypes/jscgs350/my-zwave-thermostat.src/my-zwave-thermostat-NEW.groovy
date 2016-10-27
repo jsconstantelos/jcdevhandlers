@@ -123,24 +123,24 @@ metadata {
 
 //Heating Set Point Controls
         standardTile("heatLevelUp", "device.heatingSetpoint", width: 1, height: 1, inactiveLabel: false, decoration: "flat") {
-            state "heatLevelUp", label:'', action:"heatLevelUp", icon:"st.thermostat.thermostat-up"
+            state "heatLevelUp", label:'heat', action:"heatLevelUp", icon:"st.thermostat.thermostat-up"
         }
         standardTile("heatTile", "device.heatingSetpoint", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
 			state "default", label:'', action:"modeheat", icon:"st.thermostat.heat"
 		}
 		standardTile("heatLevelDown", "device.heatingSetpoint", width: 1, height: 1, inactiveLabel: false, decoration: "flat") {
-            state "heatLevelDown", label:'', action:"heatLevelDown", icon:"st.thermostat.thermostat-down"
+            state "heatLevelDown", label:'heat', action:"heatLevelDown", icon:"st.thermostat.thermostat-down"
         }
 
 //Cooling Set Point Controls
         standardTile("coolLevelUp", "device.coolingSetpoint", width: 1, height: 1, inactiveLabel: false, decoration: "flat") {
-            state "coolLevelUp", label:'', action:"coolLevelUp", icon:"st.thermostat.thermostat-up"
+            state "coolLevelUp", label:'cool', action:"coolLevelUp", icon:"st.thermostat.thermostat-up"
         }
         standardTile("coolTile", "device.coolingSetpoint", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
 			state "default", label:'', action:"modecool", icon:"st.thermostat.cool"
 		}
 		standardTile("coolLevelDown", "device.coolingSetpoint", width: 1, height: 1, inactiveLabel: false, decoration: "flat") {
-            state "coolLevelDown", label:'', action:"coolLevelDown", icon:"st.thermostat.thermostat-down"
+            state "coolLevelDown", label:'cool', action:"coolLevelDown", icon:"st.thermostat.thermostat-down"
         }
 
 //Fan Mode Control        
