@@ -7,7 +7,7 @@
 
 definition(
     name: "Green Thermostat",
-    namespace: "jscgs350",
+    namespace: "xxKeoxx",
     author: "jprosiak@sbcglobal.net",
     description: "Automatically turn off thermostat if a contact sensor is open. Turn it back on when everything is closed up.",
     category: "Green Living",
