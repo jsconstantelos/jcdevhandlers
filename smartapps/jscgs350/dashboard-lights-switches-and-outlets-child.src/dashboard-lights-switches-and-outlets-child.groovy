@@ -70,14 +70,14 @@ def pageStatus() {
 					errorlist += "$it.displayName\n"
 			}
 		}
-		if (offlist) {
-			section("OFF - Lights, Switches, or Outlets") {
-				paragraph offlist.trim()
-			}
-		}
 		if (onlist) {
 			section("ON - Lights, Switches, or Outlets") {
 				paragraph onlist.trim()
+			}
+		}
+		if (offlist) {
+			section("OFF - Lights, Switches, or Outlets") {
+				paragraph offlist.trim()
 			}
 		}
 		if (badlist) {
