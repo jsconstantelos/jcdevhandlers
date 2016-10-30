@@ -44,16 +44,13 @@ def pageStatus() {
 		install:    true,
 		uninstall:  true
 	]
-
 	if (settings.switchdevices == null) {
 			return pageConfigure()
 	}
-    
 	def onlist = ""
 	def offlist = ""
     def badlist = ""
 	def errorlist = ""
-	    
 	return dynamicPage(pageProperties) {
     	def rightNow = new Date()
 		settings.switchdevices.each() {
@@ -67,38 +64,32 @@ def pageStatus() {
 				} else {
 					badlist += "$it.displayName\n"	
 				}
-
 			} catch (e) {
 					log.trace "Caught error checking a device."
 					log.trace e
 					errorlist += "$it.displayName\n"
 			}
 		}
-
-		if (onlist) {
-			section("ON - Lights, Switches, or Outlets") {
-				paragraph onlist.trim()
-			}
-		}
-        
 		if (offlist) {
 			section("OFF - Lights, Switches, or Outlets") {
 				paragraph offlist.trim()
 			}
 		}
-        
+		if (onlist) {
+			section("ON - Lights, Switches, or Outlets") {
+				paragraph onlist.trim()
+			}
+		}
 		if (badlist) {
 			section("Devices NOT Reporting States") {
 				paragraph badlist.trim()
 			}
 		}
-
 		if (errorlist) {
 			section("Devices with Errors") {
 				paragraph errorlist.trim()
 			}
 		}
-
 		section("Menu") {
 			href "pageStatus", title:"Refresh", description:"Tap to refresh the status of devices"
 			href "pageConfigure", title:"Configure", description:"Tap to manage your list of devices"
@@ -119,16 +110,13 @@ def pageConfigure() {
 		nextPage:       "pageStatus",
 		uninstall:      true
 	]
-
 	return dynamicPage(pageProperties) {
 		section("About This App") {
 			paragraph helpPage
 		}
-
 		section("Devices To Check") {
 			input inputSwitchDevices
 		}
-
 		section([title:"Available Options", mobileOnly:true]) {
 			label title:"Assign a name for your app (optional)", required:false
 		}
