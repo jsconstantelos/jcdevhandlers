@@ -37,9 +37,9 @@
  *  09-01-2016 : jscgs350: Moved where data is sent to the cloud to address data issues when reporting threshold is not 60 seconds.
  *  09-02-2016 : jscgs350: Moved and resized tiles around for a cleaner look (moved stats row up and resized to 2wx1h)
  *  09-12-2016 : jscgs350: Every so often a crazy high delta would be sent, so added a check for a not so realistic value.
- *  09-18-2016 : jscgs350: So with ST's release of v2.2.0 that screws up text alignment, changed 3 tiles to be 2x2 instead of 2x1.  Will revert back once ST fixes this issue.
  *  10-03-2016 : jscgs350: When the meter is reset, and if a custom ID is defined by the user, new charts will be created.
  *  10-05-2016 : jscgs350: Changed the chart selection process from toggling through each via a single tile, to a tile for each chart mode/type. Taping on the same tile refreshes the chart.
+ *  11-11-2016 : jscgs350: Cleaned up code where meter values are assessed. (physicalgraph.zwave.commands.meterv3.MeterReport)
  *
  */
 metadata {
@@ -284,42 +284,43 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
 	def map = [:]
     map.name = "gpm"
     def delta = Math.round((((cmd.scaledMeterValue - cmd.scaledPreviousMeterValue) / (reportThreshhold*10)) * 60)*100)/100 //rounds to 2 decimal positions
-	if (delta < 0) {delta = 0} //There should never be any negative values
-    if (delta > 60) { //There should never be any crazy high gallons as a delta, even at 1 minute reporting intervals.  It's not possible unless you're a firetruck.
-    	log.debug "We just detected a crazy high delta value: ${delta}"
-    	delta = 1
-    }
-    if (delta == 0) {
-    	sendEvent(name: "waterState", value: "none")
-        sendEvent(name: "water", value: "dry")
-        sendAlarm("")
-    	prevCumulative = cmd.scaledMeterValue - state.lastCumulative
-        sendDataToCloud(prevCumulative)
-    	map.value = "Cumulative:\n"+cmd.scaledMeterValue+" gallons"+"\n(last used "+prevCumulative+")"
-        state.lastCumulative = cmd.scaledMeterValue
-        if (prevCumulative > state.lastGallon) {
-            dispGallon = prevCumulative+" gallons on"+"\n"+timeString
-            sendEvent(name: "gallonHigh", value: dispGallon as String, displayed: false)
-            state.lastGallon = prevCumulative
-        }        
-    } else {
-    	map.value = "Flow detected\n"+delta+" gpm"
-        if (delta > gallonThreshhold) {
-            sendEvent(name: "waterState", value: "overflow")
-            sendEvent(name: "water", value: "wet")
-            sendAlarm("waterOverflow")
-        } else {
-        	sendEvent(name: "waterState", value: "flow")
-            sendEvent(name: "water", value: "dry")
-            sendAlarm("")
-		}
+    if (delta < 0) { //There should never be any negative values
+			log.debug "We just detected a negative delta value that won't be processed: ${delta}"
+    } else if (delta > 60) { //There should never be any crazy high gallons as a delta, even at 1 minute reporting intervals.  It's not possible unless you're a firetruck.
+    		log.debug "We just detected a crazy high delta value that won't be processed: ${delta}"
+    } else if (delta == 0) {
+    		log.debug "Flow has stopped, so process what the meter collected."
+    		sendEvent(name: "waterState", value: "none")
+        	sendEvent(name: "water", value: "dry")
+        	sendAlarm("")
+    		prevCumulative = cmd.scaledMeterValue - state.lastCumulative
+        	state.lastCumulative = cmd.scaledMeterValue
+        	sendDataToCloud(prevCumulative)
+    		map.value = "Cumulative:\n"+cmd.scaledMeterValue+" gallons"+"\n(last used "+prevCumulative+")"
+        	if (prevCumulative > state.lastGallon) {
+            	dispGallon = prevCumulative+" gallons on"+"\n"+timeString
+            	sendEvent(name: "gallonHigh", value: dispGallon as String, displayed: false)
+            	state.lastGallon = prevCumulative
+        	}        
+    	} else {
+        	log.debug "Flow detected..."
+    		map.value = "Flow detected\n"+delta+" gpm"
+            if (delta > state.deltaHigh) {
+                dispValue = delta+" gpm on"+"\n"+timeString
+                sendEvent(name: "gpmHigh", value: dispValue as String, displayed: false)
+                state.deltaHigh = delta
+            }
+        	if (delta > gallonThreshhold) {
+            	sendEvent(name: "waterState", value: "overflow")
+            	sendEvent(name: "water", value: "wet")
+            	sendAlarm("waterOverflow")
+        	} else {
+        		sendEvent(name: "waterState", value: "flow")
+            	sendEvent(name: "water", value: "dry")
+            	sendAlarm("")
+			}
     }
     sendEvent(name: "cumulative", value: cmd.scaledMeterValue, displayed: false, unit: "gal")
-	if (delta > state.deltaHigh) {
-		dispValue = delta+" gpm on"+"\n"+timeString
-		sendEvent(name: "gpmHigh", value: dispValue as String, displayed: false)
-		state.deltaHigh = delta
-	}
 	return map
 }
 
