@@ -34,6 +34,7 @@
  *  10-19-2016 : Provided comments in the code for iOS users to edit so that the rendering of text for certain tiles to work right.  Changed default icon.
  *  10-19-2016 : Added a new parameter in Preferences so that a user can specify the high limit for a watts value instead of hard coding a value.  Related to the change on 7-7-2016.
  *  11-18-2016 : Removed battery tile just for this version.
+ *  11-19-2016 : Changed a few tiles from standardTile to valueTile now that ST fixed the rendering issues between Android and iOS.
  *
  */
 metadata {
@@ -79,8 +80,7 @@ metadata {
             state("default", label: '${currentValue}', backgroundColor:"#ffffff")
         }
         
-// for iOS users, change standardTile to valueTile.
-        standardTile("energyOne", "device.energyOne", width: 5, height: 1, inactiveLabel: false, decoration: "flat") {
+        valueTile("energyOne", "device.energyOne", width: 5, height: 1, inactiveLabel: false, decoration: "flat") {
             state("default", label: '${currentValue}', backgroundColor:"#ffffff")
         }
 
@@ -97,11 +97,10 @@ metadata {
             state "battery", label:'${currentValue}%\nbattery', unit:""
         }
         standardTile("blankTile", "statusText", inactiveLabel: false, decoration: "flat", width: 1, height: 2) {
-			state "default", label:'', icon:"http://cdn.device-icons.smartthings.com/secondary/device-activity-tile@2x.png"
+			state "default", icon:"st.secondary.device-activity-tile"
 		}
 
-// for iOS users, change standardTile to valueTile.
-        standardTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
+        valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}
 
