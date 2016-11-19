@@ -21,6 +21,7 @@
  *  10-12-2016 : Added the capability Thermostat Fan Mode so CoRE and other SmartApps can find the thermostat needing that capability
  *  10-27-2016 : Completely changed layout to use all of the multiAttributeTile type: "thermostat", reflects unit/fan modes better, added the e-heat mode tile,
  *			   : added a single slider (does not function in auto mode), and added temperature control arrows that are usefull when in auto mode.
+ *  11-19-2016 : Changed color of slider from green to a lighter grey.
  *
 */
 metadata {
@@ -105,7 +106,7 @@ metadata {
         
 //Slider Set Point Controls
 		controlTile("thermoSliderControl", "device.thermostatSetpoint", "slider", height: 1, width: 6, inactiveLabel: false, range:"(60..80)") {
-			state "thermostatSetpoint", label:'${currentValue}', action:"setThermoSetpoint", backgroundColor: "#44b621"
+			state "thermostatSetpoint", label:'${currentValue}', action:"setThermoSetpoint", backgroundColor: "#a6a6a6"
 		}
 
 //Heating Set Point Controls
