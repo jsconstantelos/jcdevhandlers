@@ -94,7 +94,7 @@ def parse(String description) {
                     sendEvent(name: "currentSpeed", value: "LOW" as String)
                     sendEvent(name: "currentState", value: "LOW" as String)
                 }
-                if (cmd.value > lowThreshold && level <= medThreshold) {
+                if (cmd.value > lowThreshold && cmd.value <= medThreshold) {
                     sendEvent(name: "currentSpeed", value: "MEDIUM" as String)
                     sendEvent(name: "currentState", value: "MED" as String)
                 }
