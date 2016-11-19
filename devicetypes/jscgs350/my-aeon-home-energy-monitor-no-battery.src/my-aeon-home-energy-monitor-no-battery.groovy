@@ -45,7 +45,6 @@ metadata {
     capability "Sensor"
     capability "Refresh"
     capability "Polling"
-    capability "Battery"
     
     attribute "energy", "string"
     attribute "energyDisp", "string"
