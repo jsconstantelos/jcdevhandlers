@@ -147,7 +147,7 @@ metadata {
 			state "batteryReplaced", icon:"http://swiftlet.technology/wp-content/uploads/2016/04/Full-Battery-96.png", backgroundColor:"#cccccc"
 			state "noBattery", icon:"http://swiftlet.technology/wp-content/uploads/2016/04/No-Battery-96.png", backgroundColor:"#cc0000"
 		}
-		standardTile("battery", "device.battery", inactiveLabel: false, width: 3, height: 2) {
+		valueTile("battery", "device.battery", inactiveLabel: false, width: 3, height: 2) {
 			state "battery", label:'${currentValue}%\n Battery', unit:"", icon: "st.secondary.tools"
 		}
         
