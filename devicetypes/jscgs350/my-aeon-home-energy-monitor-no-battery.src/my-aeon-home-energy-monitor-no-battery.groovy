@@ -321,6 +321,8 @@ def resetMeter() {
 	reset()
     resetmin()
     resetmax()
+	def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
+    sendEvent(name: "energyOne", value: "Aeon HEM was reset on "+timeString, unit: "")
 }
 
 def configure() {
