@@ -1,5 +1,5 @@
 /**
- *  FortrezZ Flow Meter Reset Manager
+ *  Aeon HEMv1 Reset Manager
  *
  *  Copyright 2016 jscgs350
  *
@@ -14,28 +14,28 @@
  *
  *  Overview
  *  ----------------
- *  This SmartApp resets the FortrezZ Flow Meter Interface at the 1st of every month at a time you specify.
- *  NOTE: This has been tested and works with my DH for the flow meter, which can be found here:
- *  https://raw.githubusercontent.com/constjs/jcdevhandlers/master/devicetypes/jscgs350/fortrezz-flow-meter-interface.src/fortrezz-flow-meter-interface.groovy
+ *  This SmartApp resets the Aeon HEM v1 at the 1st of every month at a time you specify.
+ *  NOTE: This has been tested and only works with my DH for the Aeon HEM v1, which can be found here:
+ *  https://raw.githubusercontent.com/constjs/jcdevhandlers/master/devicetypes/jscgs350/my-aeon-home-energy-monitor-no-battery.src/my-aeon-home-energy-monitor-no-battery.groovy
  *
  *  Revision History
  *  ----------------
- *  09-12-2016 : Initial release
+ *  11-22-2016 : Initial release
  *
  */
 
 definition(
-    name: "FortrezZ Flow Meter Reset Manager",
+    name: "Aeon HEM v1 Reset Manager",
     namespace: "jscgs350",
     author: "jscgs350",
-    description: "Resets meter at the 1st day of every month",
+    description: "Resets the HEM on the 1st day of every month",
     category: "My Apps",
     iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
     iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png")
 
 preferences {
-    section("Choose a FortrezZ water meter to reset monthly:") {
-        input(name: "meter", type: "capability.energyMeter", title: "Water Meter", description: null, required: true, submitOnChange: true)
+    section("Choose an Aeon HEM v1 to reset on the 1st day of every month:") {
+        input(name: "meter", type: "capability.energyMeter", title: "Aeon HEM v1", description: null, required: true, submitOnChange: true)
     }    
     section("Reset Time") {
         input "time", "time", title: "At this time"
@@ -43,7 +43,7 @@ preferences {
 }
 
 def installed() {
-	log.debug "Flow Meter Reset Manager SmartApp installed, check for 1st day of month and schedule another check for the next day"
+	log.debug "Aeon HEM v1 Reset Manager SmartApp installed, check for 1st day of month and schedule another check for the next day"
     resetTheMeter()
 }
 
@@ -66,10 +66,10 @@ def resetTheMeter() {
     log.debug "Check for 1st day of month..."
     log.debug "...day of the month today is ${currentDayOfMonth}"
     if (currentDayOfMonth == 1) {
-        log.debug "...Resetting flow meter because it's the first day of the month."
+        log.debug "...Resetting HEM because it's the first day of the month."
         meter.resetMeter()
     } else {
-        log.debug "...Flow meter reset not scheduled for today because it's not the first day of the month."
+        log.debug "...HEM reset not scheduled for today because it's not the first day of the month."
     }
     log.debug "Check complete, now schedule the SmartApp to check the next day."
     initialize()

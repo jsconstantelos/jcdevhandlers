@@ -35,6 +35,7 @@
  *  10-19-2016 : Added a new parameter in Preferences so that a user can specify the high limit for a watts value instead of hard coding a value.  Related to the change on 7-7-2016.
  *  11-18-2016 : Removed battery tile just for this version.
  *  11-19-2016 : Changed a few tiles from standardTile to valueTile now that ST fixed the rendering issues between Android and iOS.
+ *  11-22-2016 : Added resetMeter section that calls the other resets (min, max, energy/cost).  This is for a SmartApp that resets the meter automatically at the 1st day of month.
  *
  */
 metadata {
@@ -61,6 +62,7 @@ metadata {
     command "configure"
     command "resetmin"
     command "resetmax"
+    command "resetMeter"
     
     fingerprint deviceId: "0x2101", inClusters: " 0x70,0x31,0x72,0x86,0x32,0x80,0x85,0x60"
 
@@ -312,6 +314,15 @@ def resetmax() {
     ])
     
     cmd
+}
+
+def resetMeter() {
+	log.debug "Resetting all home energy meter values..."
+	reset()
+    resetmin()
+    resetmax()
+	def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
+    sendEvent(name: "energyOne", value: "Aeon HEM was reset on "+timeString, unit: "")
 }
 
 def configure() {
