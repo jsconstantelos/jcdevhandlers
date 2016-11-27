@@ -212,7 +212,7 @@ def configure() {
 	log.debug "Configuring...." //setting up to monitor power alarm and actuator duration
 	delayBetween([
 		zwave.associationV1.associationSet(groupingIdentifier:3, nodeId:[zwaveHubNodeId]).format(),
-        zwave.configurationV1.configurationSet(configurationValue: [25], parameterNumber: 11, size: 1).format(),
+        zwave.configurationV1.configurationSet(parameterNumber: 11, configurationValue: [25], size: 1).format(),
         zwave.configurationV1.configurationGet(parameterNumber: 11).format()
-	])
+	],100)
 }

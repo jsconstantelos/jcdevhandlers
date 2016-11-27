@@ -207,8 +207,7 @@ def configure() {
 	log.debug "Executing Configure for Main Water Valve per user request"
 	def cmd = delayBetween([
 		zwave.associationV1.associationSet(groupingIdentifier:3, nodeId:[zwaveHubNodeId]).format(), //subscribe to power alarm
-        zwave.configurationV1.configurationSet(configurationValue: [25], parameterNumber: 11, size: 1).format(),
-        zwave.configurationV1.configurationSet(parameterNumber: 11, size: 1, configurationValue: [0]).format(), // momentary relay disable=0 (default)
+        zwave.configurationV1.configurationSet(parameterNumber: 11, configurationValue: [0], size: 1).format() // momentary relay disable=0 (default)
 	],100)
     log.debug "zwaveEvent ConfigurationReport: '${cmd}'"
 }
