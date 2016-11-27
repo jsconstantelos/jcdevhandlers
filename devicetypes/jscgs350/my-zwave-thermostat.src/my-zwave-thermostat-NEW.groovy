@@ -14,12 +14,14 @@
  *
  *  Updates:
  *  -------
- *  03-20-2016 : v9.0 initial release.  Starts to use the multiAttributeTile type: "thermostat", and the controls/features it brings.
+ *  03-20-2016 : Initial release.  Starts to use the multiAttributeTile type: "thermostat", and the controls/features it brings.
  *             : NOTE: range values for sliders are only in F, so be sure to adjust for C if needed.
  *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.
  *  08-30-2016 : Added 1x1 Activity tile next to the statusText tile, and changed that to 5x1.  Removed heat and cool level sliders.
  *  10-12-2016 : Added the capability Thermostat Fan Mode so CoRE and other SmartApps can find the thermostat needing that capability
- *  10-27-2016 : Completely changed layout to use all of the multiAttributeTile type: "thermostat", reflects unit/fan modes better, added the e-heat mode tile, added a single slider and arrows.
+ *  10-27-2016 : Completely changed layout to use all of the multiAttributeTile type: "thermostat", reflects unit/fan modes better, added the e-heat mode tile,
+ *			   : added a single slider (does not function in auto mode), and added temperature control arrows that are usefull when in auto mode.
+ *  11-19-2016 : Changed color of slider from green to a lighter grey.
  *
 */
 metadata {
@@ -104,7 +106,7 @@ metadata {
         
 //Slider Set Point Controls
 		controlTile("thermoSliderControl", "device.thermostatSetpoint", "slider", height: 1, width: 6, inactiveLabel: false, range:"(60..80)") {
-			state "thermostatSetpoint", label:'${currentValue}', action:"setThermoSetpoint", backgroundColor: "#44b621"
+			state "thermostatSetpoint", label:'${currentValue}', action:"setThermoSetpoint", backgroundColor: "#a6a6a6"
 		}
 
 //Heating Set Point Controls
