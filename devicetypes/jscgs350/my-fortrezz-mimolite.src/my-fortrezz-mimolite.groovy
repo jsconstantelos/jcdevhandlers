@@ -39,8 +39,8 @@ metadata {
 	// UI tile definitions 
 	tiles (scale: 2) {
         standardTile("switch", "device.switch", width: 4, height: 4, canChangeIcon: false, decoration: "flat") {
-            state "on", label: "On", action: "off", icon: "http://swiftlet.technology/wp-content/uploads/2016/06/Switch-On-104-edit.png", backgroundColor: "#53a7c0"
-			state "off", label: 'Off', action: "on", icon: "http://swiftlet.technology/wp-content/uploads/2016/06/Switch-Off-104-edit.png", backgroundColor: "#ffffff"
+            state "on", label: "On", action: "on", icon: "http://swiftlet.technology/wp-content/uploads/2016/06/Switch-On-104-edit.png", backgroundColor: "#53a7c0"
+			state "off", label: 'Off', action: "off", icon: "http://swiftlet.technology/wp-content/uploads/2016/06/Switch-Off-104-edit.png", backgroundColor: "#ffffff"
         }
         standardTile("contact", "device.contact", width: 2, height: 2, inactiveLabel: false) {
 			state "open", label: '${name}', icon: "st.contact.contact.open", backgroundColor: "#ffa81e"
