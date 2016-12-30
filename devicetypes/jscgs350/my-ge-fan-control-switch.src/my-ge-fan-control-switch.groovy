@@ -28,18 +28,19 @@ metadata {
 		capability "Polling"
 		capability "Refresh"
 		capability "Sensor"
+		capability "Health Check"
 
 		command "lowSpeed"
 		command "medSpeed"
 		command "highSpeed"
 
 		attribute "currentState", "string"
-        attribute "currentSpeed", "string"
+	        attribute "currentSpeed", "string"
 	}
 
 	preferences {
 		input "ledIndicator", "enum", title: "LED Indicator", description: "Turn LED indicator... ", required: false, options:["on": "When On", "off": "When Off", "never": "Never"], defaultValue: "off"
-        section("Fan Thresholds") {
+		section("Fan Thresholds") {
 			input "lowThreshold", "number", title: "Low Threshold (typical is 1-33)", range: "1..99", defaultValue: 33
 			input "medThreshold", "number", title: "Medium Threshold (typical is 34-67)", range: "1..99", defaultValue: 67
 			input "highThreshold", "number", title: "High Threshold (typical is 68-99)", range: "1..99", defaultValue: 99
@@ -49,14 +50,14 @@ metadata {
 	tiles(scale: 2) {
 		multiAttributeTile(name:"switch", type: "lighting", width: 6, height: 4, canChangeIcon: true){
 			tileAttribute ("device.switch", key: "PRIMARY_CONTROL") {    
-				attributeState "on", action:"switch.off", label:'ON', icon:"st.Lighting.light24", backgroundColor:"#79b821", nextState:"turningOff"
-				attributeState "off", action:"switch.on", label:'OFF', icon:"st.Lighting.light24", backgroundColor:"#ffffff", nextState:"turningOn"
-				attributeState "turningOn", label:'TURNINGON', icon:"st.Lighting.light24", backgroundColor:"#2179b8", nextState: "turningOn"
-				attributeState "turningOff", label:'TURNINGOFF', icon:"st.Lighting.light24", backgroundColor:"#2179b8", nextState: "turningOff"
+				attributeState "on", action:"switch.off", label:'${name}', icon:"st.Lighting.light24", backgroundColor:"#79b821", nextState:"turningOff"
+				attributeState "off", action:"switch.on", label:'${name}', icon:"st.Lighting.light24", backgroundColor:"#ffffff", nextState:"turningOn"
+				attributeState "turningOn", label:'${name}', icon:"st.Lighting.light24", backgroundColor:"#2179b8", nextState: "turningOn"
+				attributeState "turningOff", label:'${name}', icon:"st.Lighting.light24", backgroundColor:"#2179b8", nextState: "turningOff"
 			}   
-            tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
-           		attributeState "statusText", label:'${currentValue}'
-            }
+			tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
+				attributeState "statusText", label:'${currentValue}'
+            		}
 		}
 		standardTile("lowSpeed", "device.currentState", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
 			state "LOW", label:'LOW', action: "lowSpeed", icon:"st.Home.home30"
@@ -67,19 +68,38 @@ metadata {
 		standardTile("highSpeed", "device.currentState", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
 			state "HIGH", label: 'HIGH', action: "highSpeed", icon:"st.Home.home30"
 		}
-		standardTile("indicator", "device.indicatorStatus", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
+		standardTile("indicator", "device.indicatorStatus", width: 3, height: 3, inactiveLabel: false, decoration: "flat") {
 			state "when off", action:"indicator.indicatorWhenOn", icon:"st.indicators.lit-when-off"
 			state "when on", action:"indicator.indicatorNever", icon:"st.indicators.lit-when-on"
 			state "never", action:"indicator.indicatorWhenOff", icon:"st.indicators.never-lit"
 		}
-		standardTile("refresh", "device.switch", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
+		standardTile("refresh", "device.switch", width: 3, height: 3, inactiveLabel: false, decoration: "flat") {
 			state "default", label:'Refresh', action:"refresh.refresh", icon:"st.secondary.refresh-icon"
 		}
-        valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 6, height: 2) {
+		valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 6, height: 2) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}
 		main(["switch"])
 		details(["switch", "lowSpeed", "medSpeed", "highSpeed", "indicator", "refresh"])
+	}
+}
+
+def updated() {
+	// Device-Watch simply pings if no device events received for 32min(checkInterval)
+	sendEvent(name: "checkInterval", value: 2 * 15 * 60 + 2 * 60, displayed: false, data: [protocol: "zwave", hubHardwareId: device.hub.hardwareID])
+	switch (ledIndicator) {
+		case "on":
+			indicatorWhenOn()
+			break
+		case "off":
+			indicatorWhenOff()
+			break
+		case "never":
+			indicatorNever()
+			break
+		default:
+			indicatorWhenOn()
+			break
 	}
 }
 
@@ -89,20 +109,6 @@ def parse(String description) {
 		log.debug "parse() >> zwave.parse($description)"
 		def cmd = zwave.parse(description, [0x20: 1, 0x26: 1, 0x70: 1])
 		if (cmd) {
-            if (cmd.value > 0) {
-                if (cmd.value <= lowThreshold) {
-                    sendEvent(name: "currentSpeed", value: "LOW" as String)
-                    sendEvent(name: "currentState", value: "LOW" as String)
-                }
-                if (cmd.value > lowThreshold && cmd.value <= medThreshold) {
-                    sendEvent(name: "currentSpeed", value: "MEDIUM" as String)
-                    sendEvent(name: "currentState", value: "MED" as String)
-                }
-                if (cmd.value > medThreshold) {
-                    sendEvent(name: "currentSpeed", value: "HIGH" as String)
-                    sendEvent(name: "currentState", value: "HIGH" as String)
-                }
-            }
 			result = zwaveEvent(cmd)
 		}
 	}
@@ -112,9 +118,6 @@ def parse(String description) {
 	} else {
 		log.debug "Parse returned ${result?.descriptionText}"
 	}
-    def statusTextmsg = ""
-    statusTextmsg = "Fan speed is set to ${device.currentState('currentSpeed').value}"
-    sendEvent("name":"statusText", "value":statusTextmsg)
 	return result
 }
 
@@ -137,9 +140,29 @@ def zwaveEvent(physicalgraph.zwave.commands.switchmultilevelv1.SwitchMultilevelS
 private dimmerEvents(physicalgraph.zwave.Command cmd) {
 	def value = (cmd.value ? "on" : "off")
 	def result = [createEvent(name: "switch", value: value)]
+	def speedVal = "${device.currentState('currentSpeed').value}"
 	if (cmd.value && cmd.value <= 100) {
 		result << createEvent(name: "level", value: cmd.value, unit: "%")
+		if (cmd.value > 0) {
+			if (cmd.value <= lowThreshold) {
+				speedVal = "LOW"
+				result << createEvent(name: "currentSpeed", value: "LOW" as String)
+				result << createEvent(name: "currentState", value: "LOW" as String)
+			}
+			if (cmd.value > lowThreshold && cmd.value <= medThreshold) {
+				speedVal = "MEDIUM"
+				result << createEvent(name: "currentSpeed", value: "MEDIUM" as String)
+				result << createEvent(name: "currentState", value: "MED" as String)
+			}
+			if (cmd.value > medThreshold) {
+				speedVal = "HIGH"
+				result << createEvent(name: "currentSpeed", value: "HIGH" as String)
+				result << createEvent(name: "currentState", value: "HIGH" as String)
+			}
+		}
 	}
+	def statusTextmsg = "Fan speed is set to ${speedVal}"
+	result << createEvent(name: "statusText", value: statusTextmsg)
 	return result
 }
 
@@ -215,34 +238,38 @@ def setLevel(value, duration) {
 
 def lowSpeed() {
 	sendEvent(name: "currentSpeed", value: "LOW" as String)
-    sendEvent(name: "currentState", value: "LOW" as String)
+	sendEvent(name: "currentState", value: "LOW" as String)
 	setLevel(lowThreshold)
 }
 
 def medSpeed() {
 	sendEvent(name: "currentSpeed", value: "MEDIUM" as String)
-    sendEvent(name: "currentState", value: "MED" as String)
+	sendEvent(name: "currentState", value: "MED" as String)
 	setLevel(medThreshold)
 }
 
 def highSpeed() {
 	sendEvent(name: "currentSpeed", value: "HIGH" as String)
-    sendEvent(name: "currentState", value: "HIGH" as String)
+	sendEvent(name: "currentState", value: "HIGH" as String)
 	setLevel(highThreshold)
 }
 
 def poll() {
-	zwave.switchMultilevelV1.switchMultilevelGet().format()
+	delayBetween ([
+		zwave.switchMultilevelV1.switchMultilevelGet().format(),
+		zwave.manufacturerSpecificV1.manufacturerSpecificGet().format()
+	])
+}
+
+def ping() {
+	refresh()
 }
 
 def refresh() {
-	log.debug "refresh() is called"
-	def commands = []
-	commands << zwave.switchMultilevelV1.switchMultilevelGet().format()
-	if (getDataValue("MSR") == null) {
-		commands << zwave.manufacturerSpecificV1.manufacturerSpecificGet().format()
-	}
-	delayBetween(commands,100)
+	delayBetween ([
+		zwave.switchMultilevelV1.switchMultilevelGet().format(),
+		zwave.manufacturerSpecificV1.manufacturerSpecificGet().format()
+	])
 }
 
 void indicatorWhenOn() {
