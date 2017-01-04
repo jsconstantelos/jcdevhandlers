@@ -41,6 +41,8 @@ metadata {
         
 		command "on"
 		command "off"
+        command "open"
+        command "close"
 
 	}
 
