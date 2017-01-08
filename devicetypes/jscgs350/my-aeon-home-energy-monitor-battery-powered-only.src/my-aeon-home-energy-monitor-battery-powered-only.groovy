@@ -1,5 +1,5 @@
 /**
- *  Aeon HEM1 (this DH version is set up for running on only batteries, no mains power)
+ *  Aeon HEM1 (this DH version is set up for running only on batteries, no mains power)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  *  in compliance with the License. You may obtain a copy of the License at:
