@@ -40,6 +40,7 @@
  *  10-03-2016 : jscgs350: When the meter is reset, and if a custom ID is defined by the user, new charts will be created.
  *  10-05-2016 : jscgs350: Changed the chart selection process from toggling through each via a single tile, to a tile for each chart mode/type. Taping on the same tile refreshes the chart.
  *  11-11-2016 : jscgs350: Cleaned up code where meter values are assessed. (physicalgraph.zwave.commands.meterv3.MeterReport)
+ *  01-08/2017 : Added code for Health Check capabilities/functions, and cleaned up code.
  *
  */
 metadata {
@@ -54,6 +55,7 @@ metadata {
         capability "Actuator"        
         capability "Polling"
         capability "Refresh"
+        capability "Health Check"
         
         attribute "gpm", "number"
 		attribute "gpmHigh", "number"
@@ -169,6 +171,11 @@ def installed() {
     state.lastCumulative = 0
     state.lastGallon = 0
     state.meterResetDate = ""
+}
+
+def updated(){
+	// Device-Watch simply pings if no device events received for 32min(checkInterval)
+	sendEvent(name: "checkInterval", value: 2 * 15 * 60 + 2 * 60, displayed: false, data: [protocol: "zwave", hubHardwareId: device.hub.hardwareID])
 }
 
 // parse events into attributes
@@ -456,6 +463,11 @@ private doRequest(uri, type, success) {
 
 def sendAlarm(text) {
 	sendEvent(name: "alarmState", value: text, descriptionText: text, displayed: false)
+}
+
+// PING is used by Device-Watch in attempt to reach the Device
+def ping() {
+	take1()
 }
 
 def configure() {

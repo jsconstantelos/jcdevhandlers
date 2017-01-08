@@ -13,6 +13,7 @@
  *  Updates:
  *  -------
  *  09-19-2016 : Updated to use ST's latest dimmer switch code and added preferences for the ramp rates.
+ *  01-08/2017 : Added code for Health Check capabilities/functions, and cleaned up code.
  *
  */
 metadata {
@@ -24,6 +25,7 @@ metadata {
 		capability "Polling"
 		capability "Refresh"
 		capability "Sensor"
+        capability "Health Check"
         
         command "fixRampRate"
 
@@ -77,12 +79,12 @@ metadata {
 			state "never", action:"indicator.indicatorWhenOff", icon:"st.indicators.never-lit"
 		}
 
-        standardTile("rampRate", "device.switch", height: 2, width: 2, inactiveLabel: false, decoration: "flat") {
+        standardTile("rampRate", "device.switch", height: 2, width: 3, inactiveLabel: false, decoration: "flat") {
         	state "default", label:"Fix Ramp Rate", action:"fixRampRate", icon:"st.secondary.refresh-icon"
         }
 
-		standardTile("refresh", "device.switch", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
-			state "default", label:'', action:"refresh.refresh", icon:"st.secondary.refresh"
+		standardTile("refresh", "device.switch", height: 2, width: 3, inactiveLabel: false, decoration: "flat") {
+			state "default", label:'Refresh', action:"refresh.refresh", icon:"st.secondary.refresh-icon"
 		}
 
 		valueTile("level", "device.level", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
@@ -90,12 +92,14 @@ metadata {
 		}
 
 		main(["switch"])
-		details(["switch", "level", "rampRate", "refresh"])
+		details(["switch", "rampRate", "refresh"])
 
 	}
 }
 
 def updated(){
+	// Device-Watch simply pings if no device events received for 32min(checkInterval)
+	sendEvent(name: "checkInterval", value: 2 * 15 * 60 + 2 * 60, displayed: false, data: [protocol: "zwave", hubHardwareId: device.hub.hardwareID])
   	switch (ledIndicator) {
         case "on":
             indicatorWhenOn()
@@ -154,7 +158,6 @@ private dimmerEvents(physicalgraph.zwave.Command cmd) {
 	}
 	return result
 }
-
 
 def zwaveEvent(physicalgraph.zwave.commands.configurationv1.ConfigurationReport cmd) {
 	log.debug "ConfigurationReport $cmd"
@@ -227,6 +230,11 @@ def setLevel(value, duration) {
 
 def poll() {
 	zwave.switchMultilevelV1.switchMultilevelGet().format()
+}
+
+// PING is used by Device-Watch in attempt to reach the Device
+def ping() {
+	refresh()
 }
 
 def refresh() {

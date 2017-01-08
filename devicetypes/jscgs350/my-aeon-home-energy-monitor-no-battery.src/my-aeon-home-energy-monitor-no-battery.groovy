@@ -36,7 +36,7 @@
  *  11-18-2016 : Removed battery tile just for this version.
  *  11-19-2016 : Changed a few tiles from standardTile to valueTile now that ST fixed the rendering issues between Android and iOS.
  *  11-22-2016 : Added resetMeter section that calls the other resets (min, max, energy/cost).  This is for a SmartApp that resets the meter automatically at the 1st day of month.
- *  01-08-2017 : Cleaned up code in the resetMeter section.
+ *  01-08/2017 : Added code for Health Check capabilities/functions, and cleaned up code in the resetMeter section.
  *
  */
 metadata {
@@ -48,6 +48,7 @@ metadata {
     capability "Sensor"
     capability "Refresh"
     capability "Polling"
+    capability "Health Check"
     
     attribute "energy", "string"
     attribute "energyDisp", "string"
@@ -166,6 +167,8 @@ metadata {
 }
 
 def updated() {
+	// Device-Watch simply pings if no device events received for 32min(checkInterval)
+	sendEvent(name: "checkInterval", value: 2 * 15 * 60 + 2 * 60, displayed: false, data: [protocol: "zwave", hubHardwareId: device.hub.hardwareID])
     log.debug "updated (kWhCost: ${kWhCost}, wattsLimit: ${wattsLimit}, reportType: ${reportType}, wattsChanged: ${wattsChanged}, wattsPercent: ${wattsPercent}, secondsWatts: ${secondsWatts}, secondsKwh: ${secondsKwh}, secondsBattery: ${secondsBattery})"
     response(configure())
 }
@@ -266,6 +269,11 @@ def refresh() {
 
 def poll() {
     refresh()
+}
+
+// PING is used by Device-Watch in attempt to reach the Device
+def ping() {
+	refresh()
 }
 
 def reset() {

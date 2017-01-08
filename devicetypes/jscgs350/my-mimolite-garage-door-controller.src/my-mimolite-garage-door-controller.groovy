@@ -18,7 +18,8 @@
  *  02-18-2016 : Initial commit
  *  03-05-2016 : Changed date format to MM-dd-yyyy h:mm a
  *  03-11-2016 : Due to ST's v2.1.0 app totally hosing up SECONDARY_CONTROL, implemented a workaround to display that info in a separate tile.
- *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.  
+ *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.
+ *  01-08/2017 : Added code for Health Check capabilities/functions.
  *
  */
 metadata {
@@ -35,6 +36,7 @@ metadata {
 		capability "Actuator"
 		capability "Door Control"
 		capability "Garage Door Control"
+        capability "Health Check"
         
 		attribute "powered", "string"
         attribute "contactState", "string"       
@@ -83,6 +85,11 @@ metadata {
 		main (["switch", "contact"])
 		details(["switch", "blankTile", "statusText", "powered", "refresh", "configure"])
     }
+}
+
+def updated(){
+	// Device-Watch simply pings if no device events received for 32min(checkInterval)
+	sendEvent(name: "checkInterval", value: 2 * 15 * 60 + 2 * 60, displayed: false, data: [protocol: "zwave", hubHardwareId: device.hub.hardwareID])
 }
 
 def parse(String description) {
@@ -197,6 +204,11 @@ def push() {
 }
 
 def poll() {
+	refresh()
+}
+
+// PING is used by Device-Watch in attempt to reach the Device
+def ping() {
 	refresh()
 }
 

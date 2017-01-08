@@ -22,7 +22,8 @@
  *  03-19-2016 : Changed tile layout, added clarity for preferences, and removed rounding (line 171)
  *  07-07-2016 : Check for wildly large watts value coming from the switch and do not process them.
  *  08-22-2016 : Tile format changes, specifically statusText.
- *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel. 
+ *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.
+ *  01-08/2017 : Added code for Health Check capabilities/functions, and cleaned up code.
  *
  */
 metadata {
@@ -36,6 +37,7 @@ metadata {
 		capability "Refresh"
 		capability "Sensor"
         capability "Configuration"
+        capability "Health Check"
 
         attribute "power", "string"
         attribute "powerDisp", "string"
@@ -140,6 +142,8 @@ metadata {
 }
 
 def updated() {
+	// Device-Watch simply pings if no device events received for 32min(checkInterval)
+	sendEvent(name: "checkInterval", value: 2 * 15 * 60 + 2 * 60, displayed: false, data: [protocol: "zwave", hubHardwareId: device.hub.hardwareID])
     state.onOffDisabled = ("true" == disableOnOff)
     state.debug = ("true" == debugOutput)
     log.debug "updated(disableOnOff: ${disableOnOff}(${state.onOffDisabled}), debugOutput: ${debugOutput}(${state.debug}), reportType: ${reportType}, wattsChanged: ${wattsChanged}, wattsPercent: ${wattsPercent}, secondsWatts: ${secondsWatts}, secondsKwh: ${secondsKwh})"
@@ -255,6 +259,11 @@ def off() {
 
 def poll() {
     refresh()
+}
+
+// PING is used by Device-Watch in attempt to reach the Device
+def ping() {
+	refresh()
 }
 
 def refresh() {

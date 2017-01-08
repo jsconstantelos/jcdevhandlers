@@ -16,6 +16,7 @@
  *  03-11-2016 : Due to ST's v2.1.0 app totally hosing up SECONDARY_CONTROL, implemented a workaround to display that info in a separate tile.
  *  08-14-2016 : Completely changed the code to use ST's updated DH for "dimmer switch".  Did not reimplement "adjusting" state.
  *  08-28-2016 : Made some cosmetic changes, and fixed the low/med/high reporting to properly reflect any physical adjustment at the switch.
+ *  01-08/2017 : Added code for Health Check capabilities/functions, and cleaned up code.
  *
  */
  
@@ -28,6 +29,7 @@ metadata {
 		capability "Polling"
 		capability "Refresh"
 		capability "Sensor"
+        capability "Health Check"
 
 		command "lowSpeed"
 		command "medSpeed"
@@ -72,15 +74,34 @@ metadata {
 			state "when on", action:"indicator.indicatorNever", icon:"st.indicators.lit-when-on"
 			state "never", action:"indicator.indicatorWhenOff", icon:"st.indicators.never-lit"
 		}
-		standardTile("refresh", "device.switch", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
+		standardTile("refresh", "device.switch", width: 6, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "default", label:'Refresh', action:"refresh.refresh", icon:"st.secondary.refresh-icon"
 		}
         valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 6, height: 2) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}
 		main(["switch"])
-		details(["switch", "lowSpeed", "medSpeed", "highSpeed", "indicator", "refresh"])
+		details(["switch", "lowSpeed", "medSpeed", "highSpeed", "refresh"])
 	}
+}
+
+def updated(){
+	// Device-Watch simply pings if no device events received for 32min(checkInterval)
+	sendEvent(name: "checkInterval", value: 2 * 15 * 60 + 2 * 60, displayed: false, data: [protocol: "zwave", hubHardwareId: device.hub.hardwareID])
+  	switch (ledIndicator) {
+            case "on":
+                indicatorWhenOn()
+                break
+            case "off":
+                indicatorWhenOff()
+                break
+            case "never":
+                indicatorNever()
+                break
+            default:
+                indicatorWhenOn()
+                break
+    }
 }
 
 def parse(String description) {
@@ -233,6 +254,11 @@ def highSpeed() {
 
 def poll() {
 	zwave.switchMultilevelV1.switchMultilevelGet().format()
+}
+
+// PING is used by Device-Watch in attempt to reach the Device
+def ping() {
+	refresh()
 }
 
 def refresh() {

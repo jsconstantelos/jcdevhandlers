@@ -22,6 +22,7 @@
  *  10-27-2016 : Completely changed layout to use all of the multiAttributeTile type: "thermostat", reflects unit/fan modes better, added the e-heat mode tile,
  *			   : added a single slider (does not function in auto mode), and added temperature control arrows that are usefull when in auto mode.
  *  11-19-2016 : Changed color of slider from green to a lighter grey.
+ *  01-08/2017 : Added code for Health Check capabilities/functions, and cleaned up code.
  *
 */
 metadata {
@@ -37,6 +38,7 @@ metadata {
 		capability "Configuration"
 		capability "Polling"
 		capability "Sensor"
+        capability "Health Check"
        
 		command "setLevelUp"
 		command "setLevelDown"
@@ -161,6 +163,11 @@ metadata {
 		main (["temperature"])
 		details(["temperature", "heatLevelUp", "heatTile", "heatLevelDown", "coolLevelUp", "coolTile", "coolLevelDown", "thermoSliderControl", "statusL1Text", "statusL2Text", "fanon", "fanauto", "fancir", "modeheat", "modecool", "modeauto", "modeheatemrgcy", "modeoff", "refresh", "configure"])
 	}
+}
+
+def updated(){
+	// Device-Watch simply pings if no device events received for 32min(checkInterval)
+	sendEvent(name: "checkInterval", value: 2 * 15 * 60 + 2 * 60, displayed: false, data: [protocol: "zwave", hubHardwareId: device.hub.hardwareID])
 }
 
 def parse(String description)
@@ -628,6 +635,11 @@ def poll() {
 		zwave.thermostatFanModeV3.thermostatFanModeGet().format(),
 		zwave.thermostatOperatingStateV1.thermostatOperatingStateGet().format()
 	], 3000)
+}
+
+// PING is used by Device-Watch in attempt to reach the Device
+def ping() {
+	poll()
 }
 
 def configure() {
