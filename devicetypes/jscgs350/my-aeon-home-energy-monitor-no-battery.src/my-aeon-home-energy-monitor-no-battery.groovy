@@ -36,6 +36,7 @@
  *  11-18-2016 : Removed battery tile just for this version.
  *  11-19-2016 : Changed a few tiles from standardTile to valueTile now that ST fixed the rendering issues between Android and iOS.
  *  11-22-2016 : Added resetMeter section that calls the other resets (min, max, energy/cost).  This is for a SmartApp that resets the meter automatically at the 1st day of month.
+ *  01-08-2017 : Cleaned up code in the resetMeter section.
  *
  */
 metadata {
@@ -318,11 +319,20 @@ def resetmax() {
 
 def resetMeter() {
 	log.debug "Resetting all home energy meter values..."
-	reset()
-    resetmin()
-    resetmax()
+    state.powerHigh = 0
+    state.powerLow = 99999
+    sendEvent(name: "powerOne", value: "", unit: "")
+	sendEvent(name: "powerTwo", value: "", unit: "")
+    sendEvent(name: "energyDisp", value: "", unit: "")
+    sendEvent(name: "energyTwo", value: "Cost\n--", unit: "")
 	def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
     sendEvent(name: "energyOne", value: "Aeon HEM was reset on "+timeString, unit: "")
+    def cmd = delayBetween( [
+        zwave.meterV2.meterReset().format(),
+        zwave.meterV2.meterGet(scale: 0).format(),
+    	zwave.meterV2.meterGet(scale: 2).format()
+    ])
+    cmd
 }
 
 def configure() {
