@@ -33,6 +33,9 @@
  *  10-17-2016 : Cleaned up code.
  *  10-19-2016 : Provided comments in the code for iOS users to edit so that the rendering of text for certain tiles to work right.  Changed default icon.
  *  10-19-2016 : Added a new parameter in Preferences so that a user can specify the high limit for a watts value instead of hard coding a value.  Related to the change on 7-7-2016.
+ *  11-22-2016 : Added resetMeter section that calls the other resets (min, max, energy/cost).  This is for a SmartApp that resets the meter automatically at the 1st day of month.
+ *  01-08-2017 : Added parameter 12 and set it to 1.  Accumulates kWh energy when Battery Powered.
+ *  01-08-2017 : Cleaned up code in the resetMeter section.
  *
  */
 metadata {
@@ -60,6 +63,7 @@ metadata {
     command "configure"
     command "resetmin"
     command "resetmax"
+    command "resetMeter"
     
     fingerprint deviceId: "0x2101", inClusters: " 0x70,0x31,0x72,0x86,0x32,0x80,0x85,0x60"
 
@@ -313,6 +317,24 @@ def resetmax() {
     cmd
 }
 
+def resetMeter() {
+	log.debug "Resetting all home energy meter values..."
+    state.powerHigh = 0
+    state.powerLow = 99999
+    sendEvent(name: "powerOne", value: "", unit: "")
+	sendEvent(name: "powerTwo", value: "", unit: "")
+    sendEvent(name: "energyDisp", value: "", unit: "")
+    sendEvent(name: "energyTwo", value: "Cost\n--", unit: "")
+	def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
+    sendEvent(name: "energyOne", value: "Aeon HEM was reset on "+timeString, unit: "")
+    def cmd = delayBetween( [
+        zwave.meterV2.meterReset().format(),
+        zwave.meterV2.meterGet(scale: 0).format(),
+    	zwave.meterV2.meterGet(scale: 2).format()
+    ])
+    cmd
+}
+
 def configure() {
     log.debug "${device.name} configuring..."
     
@@ -386,6 +408,9 @@ def configure() {
  	// Performs a complete factory reset.  Use this all by itself and comment out all others below.  Once reset, comment this line out and uncomment the others to go back to normal
 //  zwave.configurationV1.configurationSet(parameterNumber: 255, size: 4, scaledConfigurationValue: 1).format()
 
+	// Accumulate kWh energy when Battery Powered. By default this is disabled to assist saving battery power. (0 == disable, 1 == enable)
+	zwave.configurationV1.configurationSet(parameterNumber: 12, size: 1, scaledConfigurationValue: 1).format(),	    
+	    
     // Send data based on a time interval (0), or based on a change in wattage (1).  0 is default and enables parameters 111, 112, and 113. 1 enables parameters 4 and 8.
     zwave.configurationV1.configurationSet(parameterNumber: 3, size: 1, scaledConfigurationValue: reportType).format(),
         
