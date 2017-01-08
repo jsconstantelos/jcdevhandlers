@@ -14,9 +14,9 @@
  *
  *  Overview
  *  ----------------
- *  This SmartApp resets the Aeon HEM v1 at the 1st of every month at a time you specify.
+ *  This SmartApp resets the Aeon HEM v1 on a user specified day every month at a time you specify.
  *  NOTE: This has been tested and only works with my DH for the Aeon HEM v1, which can be found here:
- *  https://raw.githubusercontent.com/constjs/jcdevhandlers/master/devicetypes/jscgs350/my-aeon-home-energy-monitor-no-battery.src/my-aeon-home-energy-monitor-no-battery.groovy
+ *  https://github.com/constjs/jcdevhandlers/tree/master/devicetypes/jscgs350
  *
  *  Revision History
  *  ----------------
@@ -28,22 +28,25 @@ definition(
     name: "Aeon HEM v1 Reset Manager",
     namespace: "jscgs350",
     author: "jscgs350",
-    description: "Resets the HEM on the 1st day of every month",
+    description: "Resets the HEM on a specified day/time of every month",
     category: "My Apps",
     iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
     iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png")
 
 preferences {
-    section("Choose an Aeon HEM v1 to reset on the 1st day of every month:") {
-        input(name: "meter", type: "capability.energyMeter", title: "Aeon HEM v1", description: null, required: true, submitOnChange: true)
+    section("Choose an Aeon HEM v1 to reset:") {
+        input(name: "meter", type: "capability.energyMeter", title: "Which Aeon HEM v1? (tap here)", description: null, required: true, submitOnChange: true)
     }    
-    section("Reset Time") {
-        input "time", "time", title: "At this time"
+    section("Reset Time of Day") {
+        input "time", "time", title: "At this time of day"
     }    
+    section("Reset Day of Month") {
+        input "day", "number", title: "On this day of the month"
+    }
 }
 
 def installed() {
-	log.debug "Aeon HEM v1 Reset Manager SmartApp installed, check for 1st day of month and schedule another check for the next day"
+	log.debug "Aeon HEM v1 Reset Manager SmartApp installed, check for the user defined schedule and schedule another check for the next day"
     resetTheMeter()
 }
 
@@ -63,13 +66,14 @@ def initialize() {
 def resetTheMeter() {
     Calendar localCalendar = Calendar.getInstance(TimeZone.getDefault());
     def currentDayOfMonth = localCalendar.get(Calendar.DAY_OF_MONTH);
-    log.debug "Check for 1st day of month..."
+    log.debug "Check for the day of month..."
     log.debug "...day of the month today is ${currentDayOfMonth}"
-    if (currentDayOfMonth == 1) {
-        log.debug "...Resetting HEM because it's the first day of the month."
+    log.debug "...day user requested a reset is ${day}"
+    if (currentDayOfMonth == day) {
+        log.debug "...Resetting HEM because it's when the user requested it."
         meter.resetMeter()
     } else {
-        log.debug "...HEM reset not scheduled for today because it's not the first day of the month."
+        log.debug "...HEM reset not scheduled for today because it's not when the user requested it."
     }
     log.debug "Check complete, now schedule the SmartApp to check the next day."
     initialize()
