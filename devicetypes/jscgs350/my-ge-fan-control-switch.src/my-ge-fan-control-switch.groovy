@@ -16,7 +16,7 @@
  *  03-11-2016 : Due to ST's v2.1.0 app totally hosing up SECONDARY_CONTROL, implemented a workaround to display that info in a separate tile.
  *  08-14-2016 : Completely changed the code to use ST's updated DH for "dimmer switch".  Did not reimplement "adjusting" state.
  *  08-28-2016 : Made some cosmetic changes, and fixed the low/med/high reporting to properly reflect any physical adjustment at the switch.
- *  01-08/2017 : Added code for Health Check capabilities/functions, and cleaned up code.
+ *  01-08-2017 : Added code for Health Check capabilities/functions, and cleaned up code.
  *
  */
  
