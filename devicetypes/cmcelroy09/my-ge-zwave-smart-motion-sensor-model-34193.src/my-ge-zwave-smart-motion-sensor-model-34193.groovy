@@ -79,7 +79,7 @@ def updated() {
     zwave.configurationV1.configurationSet(parameterNumber: 18, size: 1, scaledConfigurationValue: motionSensitivity).format(),
     // Enable or disable the LED when motion is triggered. (0=Disable, *1=Enable)
     zwave.configurationV1.configurationSet(parameterNumber: 28, size: 1, scaledConfigurationValue: ledIndicator).format()    
-	],1000)
+	])
 }
 
 def parse(String description) {
