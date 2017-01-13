@@ -36,7 +36,8 @@
  *  11-18-2016 : Removed battery tile just for this version.
  *  11-19-2016 : Changed a few tiles from standardTile to valueTile now that ST fixed the rendering issues between Android and iOS.
  *  11-22-2016 : Added resetMeter section that calls the other resets (min, max, energy/cost).  This is for a SmartApp that resets the meter automatically at the 1st day of month.
- *  01-08/2017 : Added code for Health Check capabilities/functions, and cleaned up code in the resetMeter section.
+ *  01-08-2017 : Added code for Health Check capabilities/functions, and cleaned up code in the resetMeter section.
+ *  01-12-2017 : No functionality changes.  Just tweaking tiles to see why the 1x1 tile next to the min/max tile dissapears at times.
  *
  */
 metadata {
@@ -71,7 +72,7 @@ metadata {
 }
 // tile definitions
 	tiles(scale: 2) {
-		multiAttributeTile(name:"powerDisp", type: "generic", width: 6, height: 4, decoration: "flat", canChangeIcon: true, canChangeBackground: true){
+		multiAttributeTile(name:"powerDisp", type: "lighting", width: 6, height: 4, decoration: "flat", canChangeIcon: true, canChangeBackground: true){
 			tileAttribute ("device.powerDisp", key: "PRIMARY_CONTROL") {
 				attributeState "default", action: "refresh", label: '${currentValue}', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/device-activity-tile@2x.png", backgroundColor: "#79b821"
 			}
@@ -100,10 +101,13 @@ metadata {
         valueTile("battery", "device.battery", width: 2, height: 1, inactiveLabel: false, decoration: "flat") {
             state "battery", label:'${currentValue}%\nbattery', unit:""
         }
-        standardTile("blankTile", "statusText", inactiveLabel: false, decoration: "flat", width: 1, height: 2) {
+        standardTile("blankTile", "blankTile", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
 			state "default", icon:"st.secondary.device-activity-tile"
 		}
-
+        standardTile("refreshTile", "refreshTile", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
+			state "default", icon:"st.unknown.thing.thing-circle"
+		}
+        
         valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}
@@ -119,7 +123,7 @@ metadata {
 		}
 
         main (["powerDisp"])
-        details(["powerDisp", "blankTile", "statusText", "energyOne", "energyDisp", "energyTwo", "resetmin", "resetmax", "resetenergy", "reset", "refresh", "configure"])
+        details(["powerDisp", "blankTile", "statusText", "refreshTile", "energyOne", "energyDisp", "energyTwo", "resetmin", "resetmax", "resetenergy", "reset", "refresh", "configure"])
         }
 
         preferences {
