@@ -22,7 +22,8 @@
  *  10-27-2016 : Completely changed layout to use all of the multiAttributeTile type: "thermostat", reflects unit/fan modes better, added the e-heat mode tile,
  *			   : added a single slider (does not function in auto mode), and added temperature control arrows that are usefull when in auto mode.
  *  11-19-2016 : Changed color of slider from green to a lighter grey.
- *  01-08/2017 : Added code for Health Check capabilities/functions, and cleaned up code.
+ *  01-08-2017 : Added code for Health Check capabilities/functions, and cleaned up code.
+ *  01-13-2017 : Added a couple debug lines in the Configure section.
  *
 */
 metadata {
@@ -643,12 +644,13 @@ def ping() {
 }
 
 def configure() {
-//	log.debug "Executing configure...."
+	log.debug "Executing configure...."
 	delayBetween([
 		zwave.thermostatModeV2.thermostatModeSupportedGet().format(),
 		zwave.thermostatFanModeV3.thermostatFanModeSupportedGet().format(),
 		zwave.associationV1.associationSet(groupingIdentifier:1, nodeId:[zwaveHubNodeId]).format()
 	], 2300)
+    log.debug "....done executing configure"
 }
 
 private getStandardDelay() {
