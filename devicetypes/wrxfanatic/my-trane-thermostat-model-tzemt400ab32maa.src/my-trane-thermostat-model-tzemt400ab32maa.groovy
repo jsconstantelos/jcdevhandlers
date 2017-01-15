@@ -172,9 +172,13 @@ def parse(String description)
 	}
 
 	if (map.name == "thermostatFanMode"){
-		if (map.value == "fanAuto") {sendEvent(name: "currentfanMode", value: "Auto Mode" as String)}
-	    if (map.value == "fanOn") {sendEvent(name: "currentfanMode", value: "On Mode" as String)}
-	    if (map.value == "fanCirculate") {sendEvent(name: "currentfanMode", value: "Cycle Mode" as String)}
+		if (map.value == "fanAuto") {
+        	sendEvent(name: "currentfanMode", value: "Auto Mode" as String)
+        } else if (map.value == "fanOn") {
+        	sendEvent(name: "currentfanMode", value: "On Mode" as String)
+        } else {
+        	sendEvent(name: "currentfanMode", value: "Cycle Mode" as String)
+        }
 	}
 
 	def result = [map]
