@@ -309,7 +309,8 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
             	dispGallon = prevCumulative+" gallons on"+"\n"+timeString
             	sendEvent(name: "gallonHigh", value: dispGallon as String, displayed: false)
             	state.lastGallon = prevCumulative
-        	}        
+        	}
+            [name: "power", value: prevCumulative, unit: "gals", displayed: true]
     	} else {
         	log.debug "Flow detected..."
     		map.value = "Flow detected\n"+delta+" gpm"
