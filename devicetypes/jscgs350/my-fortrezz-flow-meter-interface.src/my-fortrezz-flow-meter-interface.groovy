@@ -47,6 +47,7 @@ metadata {
 	definition (name: "My FortrezZ Flow Meter Interface", namespace: "jscgs350", author: "Daniel Kurin") {
 		capability "Battery"
 		capability "Energy Meter"
+        capability "Power Meter"
 		capability "Image Capture"
 		capability "Temperature Measurement"
         capability "Sensor"
