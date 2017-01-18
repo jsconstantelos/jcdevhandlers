@@ -23,7 +23,8 @@
  *  07-07-2016 : Check for wildly large watts value coming from the switch and do not process them.
  *  08-22-2016 : Tile format changes, specifically statusText.
  *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.
- *  01-08/2017 : Added code for Health Check capabilities/functions, and cleaned up code.
+ *  01-08-2017 : Added code for Health Check capabilities/functions, and cleaned up code.
+ *  01-17-2017 : Cleaned up code that wasn't needed.
  *
  */
 metadata {
@@ -39,7 +40,6 @@ metadata {
         capability "Configuration"
         capability "Health Check"
 
-        attribute "power", "string"
         attribute "powerDisp", "string"
         attribute "powerOne", "string"
         attribute "powerTwo", "string"
