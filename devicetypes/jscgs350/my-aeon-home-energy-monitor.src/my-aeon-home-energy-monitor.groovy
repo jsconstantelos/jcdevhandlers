@@ -49,12 +49,10 @@ metadata {
     capability "Polling"
     capability "Battery"
     
-    attribute "energy", "string"
     attribute "energyDisp", "string"
     attribute "energyOne", "string"
     attribute "energyTwo", "string"
     
-    attribute "power", "string"
     attribute "powerDisp", "string"
     attribute "powerOne", "string"
     attribute "powerTwo", "string"
