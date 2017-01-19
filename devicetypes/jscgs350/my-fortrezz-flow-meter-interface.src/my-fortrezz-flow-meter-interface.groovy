@@ -40,7 +40,7 @@
  *  10-03-2016 : jscgs350: When the meter is reset, and if a custom ID is defined by the user, new charts will be created.
  *  10-05-2016 : jscgs350: Changed the chart selection process from toggling through each via a single tile, to a tile for each chart mode/type. Taping on the same tile refreshes the chart.
  *  11-11-2016 : jscgs350: Cleaned up code where meter values are assessed. (physicalgraph.zwave.commands.meterv3.MeterReport)
- *  01-08/2017 : Added code for Health Check capabilities/functions, and cleaned up code.
+ *  01-08-2017 : Added code for Health Check capabilities/functions, and cleaned up code.
  *
  */
 metadata {
@@ -69,6 +69,7 @@ metadata {
         attribute "chartMode", "string"
         attribute "lastThreshhold", "number"
         attribute "lastReset", "string"
+        attribute "gallons", "number"
 
         command "chartMode"
         command "take1"
@@ -310,7 +311,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
             	sendEvent(name: "gallonHigh", value: dispGallon as String, displayed: false)
             	state.lastGallon = prevCumulative
         	}
-            [name: "power", value: prevCumulative, unit: "gals", displayed: true]
+			sendEvent(name: "power", value: prevCumulative, displayed: false)  // This is only used for SmartApps that need power capabilities to capture and log data to places like Google Sheets.
     	} else {
         	log.debug "Flow detected..."
     		map.value = "Flow detected\n"+delta+" gpm"
