@@ -38,6 +38,7 @@
  *  11-22-2016 : Added resetMeter section that calls the other resets (min, max, energy/cost).  This is for a SmartApp that resets the meter automatically at the 1st day of month.
  *  01-08-2017 : Added code for Health Check capabilities/functions, and cleaned up code in the resetMeter section.
  *  01-12-2017 : No functionality changes.  Just tweaking tiles to see why the 1x1 tile next to the min/max tile dissapears at times.
+ *  01-18-2017 : Removed code no longer needed, and added another parameter in Preference to enable or disable the display of values in the Recently tab and device's event log (not Live Logs).  Enabling may be required for some SmartApps.
  *
  */
 metadata {
@@ -51,12 +52,10 @@ metadata {
     capability "Polling"
     capability "Health Check"
     
-    attribute "energy", "string"
     attribute "energyDisp", "string"
     attribute "energyOne", "string"
     attribute "energyTwo", "string"
     
-    attribute "power", "string"
     attribute "powerDisp", "string"
     attribute "powerOne", "string"
     attribute "powerTwo", "string"
@@ -72,7 +71,7 @@ metadata {
 }
 // tile definitions
 	tiles(scale: 2) {
-		multiAttributeTile(name:"powerDisp", type: "lighting", width: 6, height: 4, decoration: "flat", canChangeIcon: true, canChangeBackground: true){
+		multiAttributeTile(name:"powerDisp", type: "lighting", width: 6, height: 4, decoration: "flat"){
 			tileAttribute ("device.powerDisp", key: "PRIMARY_CONTROL") {
 				attributeState "default", action: "refresh", label: '${currentValue}', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/device-activity-tile@2x.png", backgroundColor: "#79b821"
 			}
@@ -100,7 +99,7 @@ metadata {
     	}
         valueTile("battery", "device.battery", width: 2, height: 1, inactiveLabel: false, decoration: "flat") {
             state "battery", label:'${currentValue}%\nbattery', unit:""
-        }
+        }        
         standardTile("blankTile", "blankTile", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
 			state "default", icon:"st.secondary.device-activity-tile"
 		}
@@ -127,6 +126,11 @@ metadata {
         }
 
         preferences {
+        	input "displayEvents", "boolean",
+            	title: "Display all events in the Recently tab and the device's event log?", 
+            	defaultValue: false,
+                required: false,
+            	displayDuringSetup: true
             input "kWhCost", "string",
             	title: "Enter your cost per kWh (or just use the default, or use 0 to not calculate):",
             	defaultValue: 0.16,
@@ -163,7 +167,7 @@ metadata {
                 required: false, 
                 displayDuringSetup: true
             input "secondsBattery", "number", 
-                title: "Send battery data every how many seconds? (range 0 - 65,000 seconds)",  
+                title: "(Not used in this DH) Send battery data every how many seconds? (range 0 - 65,000 seconds)",  
                 defaultValue: 900, 
                 required: false, 
                 displayDuringSetup: true 
@@ -173,6 +177,7 @@ metadata {
 def updated() {
 	// Device-Watch simply pings if no device events received for 32min(checkInterval)
 	sendEvent(name: "checkInterval", value: 2 * 15 * 60 + 2 * 60, displayed: false, data: [protocol: "zwave", hubHardwareId: device.hub.hardwareID])
+    state.displayDisabled = ("true" == displayEvents)
     log.debug "updated (kWhCost: ${kWhCost}, wattsLimit: ${wattsLimit}, reportType: ${reportType}, wattsChanged: ${wattsChanged}, wattsPercent: ${wattsPercent}, secondsWatts: ${secondsWatts}, secondsKwh: ${secondsKwh}, secondsBattery: ${secondsBattery})"
     response(configure())
 }
@@ -206,7 +211,11 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
                 BigDecimal costDecimal = newValue * ( kWhCost as BigDecimal)
                 def costDisplay = String.format("%3.2f",costDecimal)
                 sendEvent(name: "energyTwo", value: "Cost\n\$${costDisplay}", unit: "", displayed: false)
-                [name: "energy", value: newValue, unit: "kWh", displayed: false]
+                if (state.displayDisabled) {
+                	[name: "energy", value: newValue, unit: "kWh", displayed: true]
+                } else {
+                	[name: "energy", value: newValue, unit: "kWh", displayed: false]
+                }
             }
         } else if (cmd.scale == 1) {
             newValue = cmd.scaledMeterValue
@@ -214,7 +223,11 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
                 dispValue = String.format("%5.2f",newValue)+"\nkVAh"
                 sendEvent(name: "energyDisp", value: dispValue as String, unit: "", displayed: false)
                 state.energyValue = newValue
-                [name: "energy", value: newValue, unit: "kVAh", displayed: false]
+                if (state.displayDisabled) {
+                	[name: "energy", value: newValue, unit: "kVAh", displayed: true]
+                } else {
+                	[name: "energy", value: newValue, unit: "kVAh", displayed: false]
+                }
             }
         }
         else if (cmd.scale==2) {                
@@ -235,7 +248,11 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
 	                    state.powerHigh = newValue
 	                }
 	                state.powerValue = newValue
-	                [name: "power", value: newValue, unit: "W", displayed: false]
+                    if (state.displayDisabled) {
+                        [name: "power", value: newValue, unit: "W", displayed: true]
+                    } else {
+                        [name: "power", value: newValue, unit: "W", displayed: false]
+                    }
 	            }
 			}            
         }
@@ -420,6 +437,9 @@ def configure() {
  	// Performs a complete factory reset.  Use this all by itself and comment out all others below.  Once reset, comment this line out and uncomment the others to go back to normal
 //  zwave.configurationV1.configurationSet(parameterNumber: 255, size: 4, scaledConfigurationValue: 1).format()
 
+	// Accumulate kWh energy when Battery Powered. By default this is disabled to assist saving battery power. (0 == disable, 1 == enable)
+	zwave.configurationV1.configurationSet(parameterNumber: 12, size: 1, scaledConfigurationValue: 1).format(),	    
+	    
     // Send data based on a time interval (0), or based on a change in wattage (1).  0 is default and enables parameters 111, 112, and 113. 1 enables parameters 4 and 8.
     zwave.configurationV1.configurationSet(parameterNumber: 3, size: 1, scaledConfigurationValue: reportType).format(),
         
