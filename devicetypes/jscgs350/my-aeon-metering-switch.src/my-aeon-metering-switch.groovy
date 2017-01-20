@@ -24,7 +24,8 @@
  *  08-22-2016 : Tile format changes, specifically statusText.
  *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.
  *  01-08-2017 : Added code for Health Check capabilities/functions, and cleaned up code.
- *  01-17-2017 : Cleaned up code that wasn't needed.
+ *  01-18-2017 : Removed code no longer needed, and added another parameter in Preference to enable or disable the display of values in the Recently tab and device's event log (not Live Logs).  Enabling may be required for some SmartApps.
+ *  01-19-2017 : Added code similar to the HEM v1 to display energy and cost.
  *
  */
 metadata {
@@ -40,15 +41,18 @@ metadata {
         capability "Configuration"
         capability "Health Check"
 
+        attribute "energyDisp", "string"
+        attribute "energyOne", "string"
+        attribute "energyTwo", "string"
+
         attribute "powerDisp", "string"
         attribute "powerOne", "string"
         attribute "powerTwo", "string"
-        
-        attribute "energyDisp", "string"
-        attribute "energyOne", "string"
-        
-        command "reset"
+
+        command "resetenergy"
+        command "resetmax"
         command "configure"
+        command "resetMeter"
         
 		fingerprint inClusters: "0x25,0x32"
 	}
@@ -62,6 +66,16 @@ metadata {
             title: "Enable debug logging?", 
             defaultValue: false, 
             displayDuringSetup: true
+        input "displayEvents", "boolean",
+            title: "Display all events in the Recently tab and the device's event log?", 
+            defaultValue: false,
+            required: false,
+            displayDuringSetup: true
+        input "kWhCost", "string",
+            title: "Enter your cost per kWh (or just use the default, or use 0 to not calculate):",
+            defaultValue: 0.16,
+            required: false,                
+            displayDuringSetup: true            
         input "reportType", "number", 
             title: "ReportType: Send watts/kWh data on a time interval (0), or on a change in wattage (1)? Enter a 0 or 1:",  
             defaultValue: 1, 
@@ -90,7 +104,7 @@ metadata {
     }
 
 	tiles(scale: 2) {
-		multiAttributeTile(name:"switch", type: "lighting", width: 6, height: 4, decoration: "flat", canChangeIcon: true, canChangeBackground: true){
+		multiAttributeTile(name:"switch", type: "lighting", width: 6, height: 4, decoration: "flat"){
 			tileAttribute ("device.switch", key: "PRIMARY_CONTROL") {
 				attributeState "on", label: '${name}', action: "switch.off", icon: "st.switches.switch.on", backgroundColor: "#79b821"
 				attributeState "off", label: '${name}', action: "switch.on", icon: "st.switches.switch.off", backgroundColor: "#ffffff"
@@ -105,11 +119,9 @@ metadata {
         valueTile("powerDisp", "device.powerDisp", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
             state ("default", icon: "st.secondary.activity", label:'Now ${currentValue}')
         }
-        
         valueTile("powerOne", "device.powerOne", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
             state("default", label:'Low ${currentValue}')
         }
-        
         valueTile("powerTwo", "device.powerTwo", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
             state("default", label:'High ${currentValue}')
         }
@@ -117,15 +129,25 @@ metadata {
         standardTile("blankTile", "statusText", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
 			state "default", label:'', icon:"http://cdn.device-icons.smartthings.com/secondary/device-activity-tile@2x.png"
 		}
-
-		valueTile("energy", "device.energy", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
-			state "default", label:'${currentValue} kWh'
+        standardTile("refreshTile", "refreshTile", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
+			state "default", icon:"st.unknown.thing.thing-circle"
 		}
-        valueTile("energyOne", "device.energyOne", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
+
+        valueTile("energyDisp", "device.energyDisp", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
             state("default", label: '${currentValue}', backgroundColor:"#ffffff")
-        } 
-        standardTile("reset", "device.energy", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
-			state "default", label:'Reset Saved Maximum Usage Value', action:"reset", icon:"st.secondary.refresh-icon"
+        }
+        valueTile("energyOne", "device.energyOne", width: 5, height: 1, inactiveLabel: false, decoration: "flat") {
+            state("default", label: '${currentValue}', backgroundColor:"#ffffff")
+        }
+        valueTile("energyTwo", "device.energyTwo", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
+            state("default", label: '${currentValue}', backgroundColor:"#ffffff")
+        }    
+        
+        standardTile("resetenergy", "device.energy", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
+			state "default", label:'Reset Energy Use', action:"resetenergy", icon:"st.secondary.refresh-icon"
+		}        
+        standardTile("resetmax", "device.energy", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
+			state "default", label:'Reset Maximum', action:"resetmax", icon:"st.secondary.refresh-icon"
 		}
 		standardTile("configure", "device.power", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "configure", label:'', action:"configuration.configure", icon:"st.secondary.configure"
@@ -137,7 +159,7 @@ metadata {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}
 		main "powerDisp"
-		details(["switch", "blankTile", "statusText", "energyOne", "reset", "refresh","configure"])
+		details(["switch", "blankTile", "statusText", "refreshTile", "energyOne", "energyDisp", "energyTwo", "resetmax", "resetenergy", "refresh","configure"])
 	}
 }
 
@@ -146,6 +168,7 @@ def updated() {
 	sendEvent(name: "checkInterval", value: 2 * 15 * 60 + 2 * 60, displayed: false, data: [protocol: "zwave", hubHardwareId: device.hub.hardwareID])
     state.onOffDisabled = ("true" == disableOnOff)
     state.debug = ("true" == debugOutput)
+    state.displayDisabled = ("true" == displayEvents)
     log.debug "updated(disableOnOff: ${disableOnOff}(${state.onOffDisabled}), debugOutput: ${debugOutput}(${state.debug}), reportType: ${reportType}, wattsChanged: ${wattsChanged}, wattsPercent: ${wattsPercent}, secondsWatts: ${secondsWatts}, secondsKwh: ${secondsKwh})"
     response(configure())
 }
@@ -177,14 +200,35 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
     def newValue
     def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
 	if (cmd.scale == 0) {
-		[name: "energy", value: cmd.scaledMeterValue, unit: "kWh", displayed: false]
+        newValue = cmd.scaledMeterValue
+        if (newValue != state.energyValue) {
+            dispValue = String.format("%5.2f",newValue)+"\nkWh"
+            sendEvent(name: "energyDisp", value: dispValue as String, unit: "", displayed: false)
+            state.energyValue = newValue
+            BigDecimal costDecimal = newValue * ( kWhCost as BigDecimal)
+            def costDisplay = String.format("%3.2f",costDecimal)
+            sendEvent(name: "energyTwo", value: "Cost\n\$${costDisplay}", unit: "", displayed: false)
+            if (state.displayDisabled) {
+                [name: "energy", value: newValue, unit: "kWh", displayed: true]
+            } else {
+                [name: "energy", value: newValue, unit: "kWh", displayed: false]
+            }
+		}
 	} else if (cmd.scale == 1) {
-		[name: "energy", value: cmd.scaledMeterValue, unit: "kVAh", displayed: false]
-	}
-	else {
-//            newValue = Math.round( cmd.scaledMeterValue )       // really not worth the hassle to show decimals for Watts
+        newValue = cmd.scaledMeterValue
+        if (newValue != state.energyValue) {
+            dispValue = String.format("%5.2f",newValue)+"\nkVAh"
+            sendEvent(name: "energyDisp", value: dispValue as String, unit: "", displayed: false)
+            state.energyValue = newValue
+            if (state.displayDisabled) {
+                [name: "energy", value: newValue, unit: "kVAh", displayed: true]
+            } else {
+                [name: "energy", value: newValue, unit: "kVAh", displayed: false]
+            }
+        }
+    } else {
 			newValue = cmd.scaledMeterValue
-            if (newValue < 2000) {								  // don't handle any wildly large readings due to firmware issues
+            if (newValue < 3000) {								  // don't handle any wildly large readings due to firmware issues
 	            if (newValue != state.powerValue) {
 	                dispValue = newValue+"w"
 	                sendEvent(name: "powerDisp", value: dispValue, unit: "", displayed: false)
@@ -199,7 +243,11 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
 	                    state.powerHigh = newValue
 	                }
 	                state.powerValue = newValue
-	                [name: "power", value: newValue, unit: "W", displayed: false]
+                    if (state.displayDisabled) {
+                        [name: "power", value: newValue, unit: "W", displayed: true]
+                    } else {
+                        [name: "power", value: newValue, unit: "W", displayed: false]
+                    }                    
 	            }
 			}
 	}
@@ -275,23 +323,45 @@ def refresh() {
 	])
 }
 
-def reset() {
+def resetmax() {
     if (state.debug) log.debug "${device.name} reset"
-
-    state.powerHigh = 0
-    state.powerLow = 99999
-    
+    state.powerHigh = 0   
 	def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
-    sendEvent(name: "energyOne", value: "Last Reset On:\n"+timeString, unit: "")
-    sendEvent(name: "powerOne", value: "", unit: "")    
-    sendEvent(name: "powerDisp", value: "", unit: "")    
-    sendEvent(name: "powerTwo", value: "", unit: "")    
+    sendEvent(name: "energyOne", value: "Watts Data Maximum Value Reset On:\n"+timeString, unit: "")    
+    sendEvent(name: "powerTwo", value: "", unit: "")
+    def cmd = delayBetween( [
+        zwave.meterV2.meterGet(scale: 0).format()
+    ])
+    cmd
+}
 
+def resetenergy() {
+    log.debug "${device.name} reset kWh/Cost values"
+	def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
+    sendEvent(name: "energyOne", value: "Energy Data (kWh/Cost) Reset On:\n"+timeString, unit: "")       
+    sendEvent(name: "energyDisp", value: "", unit: "")
+    sendEvent(name: "energyTwo", value: "Cost\n--", unit: "")
     def cmd = delayBetween( [
         zwave.meterV2.meterReset().format(),
         zwave.meterV2.meterGet(scale: 0).format()
     ])
-    
+    cmd
+}
+
+def resetMeter() {
+	log.debug "Resetting all metering switch values..."
+    state.powerHigh = 0
+    sendEvent(name: "powerOne", value: "", unit: "")
+	sendEvent(name: "powerTwo", value: "", unit: "")
+    sendEvent(name: "energyDisp", value: "", unit: "")
+    sendEvent(name: "energyTwo", value: "Cost\n--", unit: "")
+	def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
+    sendEvent(name: "energyOne", value: "Metering switch was reset on "+timeString, unit: "")
+    def cmd = delayBetween( [
+        zwave.meterV2.meterReset().format(),
+        zwave.meterV2.meterGet(scale: 0).format(),
+    	zwave.meterV2.meterGet(scale: 2).format()
+    ])
     cmd
 }
 
