@@ -38,6 +38,7 @@
  *  01-08-2017 : Cleaned up code in the resetMeter section.
  *  01-08-2017 : Added code for Health Check capabilities/functions, and cleaned up code in the resetMeter section.
  *  01-18-2017 : Removed code no longer needed, and added another parameter in Preference to enable or disable the display of values in the Recently tab and device's event log (not Live Logs).  Enabling may be required for some SmartApps.
+ *  01-20-2017 : Removed the check for 0w, but still don't allow negative values.  Also removed all rounding, which now displays 3 positions right of the decimal.
  *
  */
 metadata {
@@ -231,8 +232,9 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
             }
         }
         else if (cmd.scale==2) {                
-            newValue = Math.round(cmd.scaledMeterValue*100)/100
-            if (newValue < 0) {newValue = state.powerValue}	// Don't want to see 0w or negative numbers as a valid minimum value (something isn't right with the meter)
+//            newValue = Math.round(cmd.scaledMeterValue*100)/100		// Round to 2 decimal positions
+			newValue = cmd.scaledMeterValue								// Remove all rounding
+            if (newValue < 0) {newValue = state.powerValue}				// Don't want to see negative numbers as a valid minimum value (something isn't right with the meter)
 			if (newValue < wattsLimit) {								// don't handle any wildly large readings due to firmware issues	
 	            if (newValue != state.powerValue) {
 	                dispValue = newValue+"w"
