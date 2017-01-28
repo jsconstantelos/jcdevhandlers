@@ -40,6 +40,7 @@
  *  01-12-2017 : No functionality changes.  Just tweaking tiles to see why the 1x1 tile next to the min/max tile dissapears at times.
  *  01-18-2017 : Removed code no longer needed, and added another parameter in Preference to enable or disable the display of values in the Recently tab and device's event log (not Live Logs).  Enabling may be required for some SmartApps.
  *  01-20-2017 : Removed the check for 0w, but still don't allow negative values.  Also removed all rounding, which now displays 3 positions right of the decimal.
+ *  01-24-2017 : Removed commands no longer needed.  Documented what each attribute is used for.
  *
  */
 metadata {
@@ -53,16 +54,15 @@ metadata {
     capability "Polling"
     capability "Health Check"
     
-    attribute "energyDisp", "string"
-    attribute "energyOne", "string"
-    attribute "energyTwo", "string"
+    attribute "energyDisp", "string" // Used to show kWh since last reset
+    attribute "energyOne", "string"  // Used for messages of what was reset (min, max, energy, or all values)
+    attribute "energyTwo", "string"  // Used to show energy costs since last reset
     
-    attribute "powerDisp", "string"
-    attribute "powerOne", "string"
-    attribute "powerTwo", "string"
+    attribute "powerDisp", "string"  // Used to show current watts being used on the main tile
+    attribute "powerOne", "string"   // Used to store/display minimum watts used since last reset
+    attribute "powerTwo", "string"   // Used to store/display maximum watts used since last reset
     
     command "reset"
-    command "configure"
     command "resetmin"
     command "resetmax"
     command "resetMeter"
@@ -83,12 +83,10 @@ metadata {
 		}    
         valueTile("energyDisp", "device.energyDisp", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
             state("default", label: '${currentValue}', backgroundColor:"#ffffff")
-        }
-        
+        }    
         valueTile("energyOne", "device.energyOne", width: 5, height: 1, inactiveLabel: false, decoration: "flat") {
             state("default", label: '${currentValue}', backgroundColor:"#ffffff")
         }
-
         valueTile("energyTwo", "device.energyTwo", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
             state("default", label: '${currentValue}', backgroundColor:"#ffffff")
         }
@@ -106,12 +104,10 @@ metadata {
 		}
         standardTile("refreshTile", "refreshTile", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
 			state "default", icon:"st.unknown.thing.thing-circle"
-		}
-        
+		}        
         valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}
-
         standardTile("resetmin", "device.energy", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
             state "default", label:'Reset Minimum', action:"resetmin", icon:"st.secondary.refresh-icon"
         }
@@ -373,8 +369,7 @@ def configure() {
 		log.debug "Setting reportType to ${reportType} per user request."
 	} else if (reportType == 1) {
 		log.debug "Setting reportType to ${reportType} per user request."
-	}
-    else {
+	} else {
         def reportType = 1
         log.debug "Setting reportType to ${reportType} because an invalid value was provided."
     }
@@ -384,8 +379,7 @@ def configure() {
         log.debug "Setting wattsChanged to ${wattsChanged} (device default) because an invalid value was provided."
 	} else if (wattsChanged < 32001) {
 		log.debug "Setting wattsChanged to ${wattsChanged} per user request."
-	}
-    else {
+	} else {
         def wattsChanged = 50
         log.debug "Setting wattsChanged to ${wattsChanged} (device default) because an invalid value was provided."
     }    
@@ -395,8 +389,7 @@ def configure() {
         log.debug "Setting wattsPercent to ${wattsPercent} (device default) because an invalid value was provided."
 	} else if (wattsPercent < 100) {
 		log.debug "Setting wattsPercent to ${wattsPercent} per user request."
-	}
-    else {
+	} else {
         def wattsPercent = 10
         log.debug "Setting wattsPercent to ${wattsPercent} (device default) because an invalid value was provided."
     } 
@@ -406,8 +399,7 @@ def configure() {
         log.debug "Setting secondsWatts to ${secondsWatts} (device default) because an invalid value was provided."
 	} else if (secondsWatts < 65000) {
 		log.debug "Setting secondsWatts to ${secondsWatts} per user request."
-	}
-    else {
+	} else {
         def secondsWatts = 600
         log.debug "Setting secondsWatts to ${secondsWatts} (device default) because an invalid value was provided."
     } 
@@ -417,8 +409,7 @@ def configure() {
         log.debug "Setting secondsKwh to ${secondsKwh} (device default) because an invalid value was provided."
 	} else if (secondsKwh < 65000) {
 		log.debug "Setting secondsKwh to ${secondsKwh} per user request."
-	}
-    else {
+	} else {
         def secondsKwh = 600
         log.debug "Setting secondsKwh to ${secondsKwh} (device default) because an invalid value was provided."
     }
@@ -428,8 +419,7 @@ def configure() {
         log.debug "Setting secondsBattery to ${secondsBattery} (device default) because an invalid value was provided."
 	} else if (secondsBattery < 65000) {
 		log.debug "Setting secondsBattery to ${secondsBattery} per user request."
-	}
-    else {
+	} else {
         def secondsBattery = 3600
         log.debug "Setting secondsBattery to ${secondsBattery} (device default) because an invalid value was provided."
     }
