@@ -134,7 +134,7 @@ metadata {
 	}
 
 	tiles(scale: 2) {
-		multiAttributeTile(name:"status", type: "lighting", width: 6, height: 4, canChangeIcon: true){
+		multiAttributeTile(name:"status", type: "lighting", width: 6, height: 4){
 			tileAttribute ("device.status", key: "PRIMARY_CONTROL") {
 				attributeState "off", 
 					label:'Off', 

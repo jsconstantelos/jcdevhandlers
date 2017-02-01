@@ -15,7 +15,8 @@
  *  02-19-2016 : Initial commit
  *  03-11-2016 : Due to ST's v2.1.0 app totally hosing up SECONDARY_CONTROL, implemented a workaround to display that info in a separate tile.
  *  08-14-2016 : Reimplemented SECONDARY_CONTROL (looks like formatting issues were fixed.
- *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel. 
+ *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.
+ *  01-31-2017 : Modified the device handler for my liking, primarly for looks and feel.  Cleaned up code a bit.
  *
  */
 metadata {
@@ -27,6 +28,7 @@ metadata {
         capability "Refresh"
         capability "Sensor"
 		capability "Switch"
+        
 		attribute "alarmState", "string"
 
 	}
@@ -35,7 +37,7 @@ metadata {
 		multiAttributeTile(name:"alarm", type: "lighting", width: 6, height: 4, canChangeIcon: true){
 			tileAttribute ("device.alarm", key: "PRIMARY_CONTROL") {
 				attributeState "both", label:'alarm!', action:'alarm.off', icon:"st.alarm.alarm.alarm", backgroundColor:"#e86d13"
-				attributeState "off", label:'off', action:'alarm.strobe', icon:"st.alarm.alarm.alarm", backgroundColor:"#79b821"
+				attributeState "off", label:'off', action:'alarm.strobe', icon:"st.security.alarm.clear", backgroundColor:"#ffffff"
 			}
             tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
            		attributeState "statusText", label:'${currentValue}'
@@ -55,7 +57,6 @@ metadata {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}      
 		main "alarm"
-//		details(["alarm","statusText","battery","refresh"])
 		details(["alarm","battery","refresh"])        
 	}
 }
