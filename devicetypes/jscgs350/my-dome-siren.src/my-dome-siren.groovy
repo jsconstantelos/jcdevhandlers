@@ -7,13 +7,6 @@
  *
  *  URL to documentation:  https://community.smartthings.com/t/release-dome-siren-official/75499?u=krlaframboise
  *    
- *
- *  Changelog:
- *
- *    1.0 (01/25/2017)
- *      - Initial Release
- *
- *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  *  in compliance with the License. You may obtain a copy of the License at:
  *
@@ -22,6 +15,12 @@
  *  Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
+ *
+ *  Changelog:
+ * 
+ *  01/25/2017 - 1.0 Initial Release
+ *  01/30/2017 - Modified Status tile to use more of the multiattributetile features to include battery status instead of a separate tile.
+ *  01/31/2017 - Modified the UI for my liking, primarily just moving tiles around (my OCD was kicking in...)
  *
  */
 metadata {
@@ -135,7 +134,7 @@ metadata {
 	}
 
 	tiles(scale: 2) {
-		multiAttributeTile(name:"status", type: "generic", width: 6, height: 4, canChangeIcon: true){
+		multiAttributeTile(name:"status", type: "lighting", width: 6, height: 4, canChangeIcon: true){
 			tileAttribute ("device.status", key: "PRIMARY_CONTROL") {
 				attributeState "off", 
 					label:'Off', 
@@ -158,9 +157,12 @@ metadata {
 					icon:"st.Entertainment.entertainment2", 					
 					backgroundColor: "#cc99cc"
 			}
+            tileAttribute ("device.battery", key: "SECONDARY_CONTROL") {
+                attributeState("default", label:'${currentValue}% battery')
+            }            
 		}
 		
-		standardTile("playAlarm", "device.alarm", width: 2, height: 2) {
+		standardTile("playAlarm", "device.alarm", width: 3, height: 2) {
 			state "default", 
 				label:'Alarm', 
 				action:"alarm.siren", 
@@ -173,7 +175,7 @@ metadata {
 				background: "#ffffff"	
 		}
 				
-		standardTile("turnOff", "device.off", width: 2, height: 2) {
+		standardTile("turnOff", "device.off", width: 3, height: 2) {
 			state "default", 
 				label:'Off', 
 				action:"alarm.off", 
@@ -213,24 +215,20 @@ metadata {
 			state "default", label:'Chime 3', action:"chime3", icon:"st.Entertainment.entertainment2",backgroundColor: "#CC99CC"
 		}
 		
-		standardTile("playSiren1", "device.status", width: 2, height: 2) {
+		standardTile("playSiren1", "device.status", width: 3, height: 2) {
 			state "default", label:'Siren 1', action:"siren1", icon:"st.security.alarm.clear",backgroundColor: "#ff9999"
 		}
 		
-		standardTile("playSiren2", "device.status", width: 2, height: 2) {
+		standardTile("playSiren2", "device.status", width: 3, height: 2) {
 			state "default", label:'Siren 2', action:"siren2", icon:"st.security.alarm.clear",backgroundColor: "#ff9999"
 		}
 		
-		standardTile("refresh", "device.refresh", width: 2, height: 2) {
+		standardTile("refresh", "device.refresh", width: 6, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "refresh", label:'Refresh', action: "refresh", icon:"st.secondary.refresh-icon"
-		}
-		
-		valueTile("battery", "device.battery", decoration: "flat", width: 2, height: 2){
-			state "battery", label:'${currentValue}% battery', unit:""
-		}		
+		}	
 				
 		main "status"
-		details(["status", "playAlarm", "turnOff", "refresh", "playSiren1", "playSiren2", "playChime1", "playBell1", "playBell2", "playChime2", "playBell3", "playBell4", "playChime3", "playBell5", "battery"])
+		details(["status", "playAlarm", "turnOff", "playSiren1", "playSiren2", "playChime1", "playChime2", "playChime3", "playBell1", "playBell2", "playBell3", "playBell4", "playBell5", "refresh"])
 	}
 }
 
