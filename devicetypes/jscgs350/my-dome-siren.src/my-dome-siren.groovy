@@ -21,7 +21,6 @@
  *  01/25/2017 - 1.0 Initial Release
  *  01/30/2017 - Modified Status tile to use more of the multiattributetile features to include battery status instead of a separate tile.
  *  01/31/2017 - Modified the UI for my liking, primarily just moving tiles around (my OCD was kicking in...)
- *  02/02/2017 - Added Health Check
  *
  */
 metadata {
@@ -40,7 +39,6 @@ metadata {
 		capability "Speech Synthesis"
 		capability "Audio Notification"
 		capability "Music Player"
-        capability "Health Check"
 		
 		attribute "lastCheckin", "number"
 		attribute "status", "enum", ["alarm", "pending", "off", "chime"]
@@ -242,7 +240,6 @@ def updated() {
 		logTrace "updated()"
 		
 		if (state.firstUpdate == false) {
-        	sendEvent(name: "checkInterval", value: 2 * 15 * 60 + 2 * 60, displayed: false, data: [protocol: "zwave", hubHardwareId: device.hub.hardwareID])
 			def result = []
 			result += configure()
 			if (result) {
@@ -484,11 +481,6 @@ def poll() {
 	else {
 		logDebug "Ignored poll request because it hasn't been long enough since the last poll."
 	}
-}
-
-// PING is used by Device-Watch in attempt to reach the Device
-def ping() {
-	poll()
 }
 
 def parse(String description) {
