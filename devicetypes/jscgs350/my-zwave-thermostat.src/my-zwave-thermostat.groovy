@@ -74,6 +74,10 @@ metadata {
                 attributeState("idle", backgroundColor:"#44b621")
                 attributeState("heating", backgroundColor:"#ea5462")
                 attributeState("cooling", backgroundColor:"#269bd2")
+				attributeState("fan only", backgroundColor:"#145D78")
+				attributeState("pending heat", backgroundColor:"#B27515")
+				attributeState("pending cool", backgroundColor:"#197090")
+				attributeState("vent economizer", backgroundColor:"#8000FF")
             }
             tileAttribute("device.thermostatMode", key: "THERMOSTAT_MODE") {
                 attributeState("off", label:'${name}')
