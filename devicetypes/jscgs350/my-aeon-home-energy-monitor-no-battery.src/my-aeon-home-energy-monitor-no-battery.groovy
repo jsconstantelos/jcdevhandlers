@@ -41,6 +41,7 @@
  *  01-18-2017 : Removed code no longer needed, and added another parameter in Preference to enable or disable the display of values in the Recently tab and device's event log (not Live Logs).  Enabling may be required for some SmartApps.
  *  01-20-2017 : Removed the check for 0w, but still don't allow negative values.  Also removed all rounding, which now displays 3 positions right of the decimal.
  *  01-24-2017 : Removed commands no longer needed.  Documented what each attribute is used for.
+ *  02-11-2017 : Cleaned up code.
  *
  */
 metadata {
@@ -99,12 +100,9 @@ metadata {
         valueTile("battery", "device.battery", width: 2, height: 1, inactiveLabel: false, decoration: "flat") {
             state "battery", label:'${currentValue}%\nbattery', unit:""
         }        
-        standardTile("blankTile", "blankTile", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
+        standardTile("iconTile", "iconTile", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
 			state "default", icon:"st.secondary.device-activity-tile"
-		}
-        standardTile("refreshTile", "refreshTile", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
-			state "default", icon:"st.unknown.thing.thing-circle"
-		}        
+		}      
         valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}
@@ -119,7 +117,7 @@ metadata {
 		}
 
         main (["powerDisp"])
-        details(["powerDisp", "blankTile", "statusText", "refreshTile", "energyOne", "energyDisp", "energyTwo", "resetmin", "resetmax", "resetenergy", "reset", "refresh", "configure"])
+        details(["powerDisp", "iconTile", "statusText", "iconTile", "energyOne", "energyDisp", "energyTwo", "resetmin", "resetmax", "resetenergy", "reset", "refresh", "configure"])
         }
 
         preferences {
@@ -188,7 +186,7 @@ def parse(String description) {
     }
 //    if (result) log.debug "Parse returned ${result}"
     def statusTextmsg = ""
-	statusTextmsg = "Min was ${device.currentState('powerOne')?.value}\nMax was ${device.currentState('powerTwo')?.value}\n"
+	statusTextmsg = "Min was ${device.currentState('powerOne')?.value}.\nMax was ${device.currentState('powerTwo')?.value}."
     sendEvent("name":"statusText", "value":statusTextmsg)
     return result
 }

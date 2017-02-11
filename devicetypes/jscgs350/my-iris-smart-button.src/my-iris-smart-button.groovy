@@ -19,7 +19,8 @@
  *  02-21-2016 : Updated with @mitchp's changes (https://github.com/mitchpond/SmartThingsPublic/blob/master/devicetypes/mitchpond/iris-smart-button.src/iris-smart-button.groovy)
  *  03-11-2016 : Due to ST's v2.1.0 app totally hosing up SECONDARY_CONTROL, implemented a workaround to display that info in a separate tile.
  *  03-25-2016 : Modified to always be Pushed (for the way I use these buttons).  Lines 160/161 can be changed to revert back to normal operation.
- *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel. 
+ *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.
+ *  02-11-2017 : Put battery info into the main tile instead of a separate tile.
  *
  */
 metadata {
@@ -46,19 +47,15 @@ metadata {
     }
 
 	tiles(scale: 2) {
-		multiAttributeTile(name:"button", type: "lighting", width: 6, height: 4, canChangeIcon: true, decoration: "flat"){
+		multiAttributeTile(name:"button", type: "generic", width: 6, height: 4, canChangeIcon: true, decoration: "flat"){
 			tileAttribute ("device.button", key: "PRIMARY_CONTROL") {
 				attributeState "default", label: "Button", icon: "st.unknown.thing.thing-circle", backgroundColor: "#53a7c0"
 			}
-            tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
-//           		attributeState "statusText", label:'${currentValue}'
-                attributeState "statusText", label:''
+            tileAttribute ("device.battery", key: "SECONDARY_CONTROL") {
+                attributeState("default", label:'${currentValue}% battery', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/battery-icon-614x460.png")
             }
         }
-		valueTile("battery", "device.battery", decoration: "flat", width: 2, height: 2) {
-			state "battery", label:'${currentValue}% battery', unit:""
-		}
-        valueTile("temperature", "device.temperature", inactiveLabel: false, width: 2, height: 2) {
+        valueTile("temperature", "device.temperature", inactiveLabel: false, width: 3, height: 2) {
 			state "temperature", icon:"st.tesla.tesla-hvac", label:'${currentValue}°',
 				backgroundColors:[
 					[value: 31, color: "#153591"],
@@ -70,7 +67,7 @@ metadata {
 					[value: 96, color: "#bc2323"]
 				]
 		}
-        standardTile("refresh", "device.refresh", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
+        standardTile("refresh", "device.refresh", inactiveLabel: false, decoration: "flat", width: 3, height: 2) {
 			state "default", label: "Refresh", action:"refresh.refresh", icon:"st.secondary.refresh-icon"
 		}
         standardTile("blankTile", "statusText", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {

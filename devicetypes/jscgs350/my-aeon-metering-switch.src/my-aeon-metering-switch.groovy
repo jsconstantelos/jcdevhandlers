@@ -26,6 +26,7 @@
  *  01-08-2017 : Added code for Health Check capabilities/functions, and cleaned up code.
  *  01-18-2017 : Removed code no longer needed, and added another parameter in Preference to enable or disable the display of values in the Recently tab and device's event log (not Live Logs).  Enabling may be required for some SmartApps.
  *  01-19-2017 : Added code similar to the HEM v1 to display energy and cost.
+ *  02-11-2017 : Cleaned up code and added an icon to the secondary_control section of the main tile.
  *
  */
 metadata {
@@ -104,13 +105,13 @@ metadata {
     }
 
 	tiles(scale: 2) {
-		multiAttributeTile(name:"switch", type: "lighting", width: 6, height: 4, decoration: "flat"){
+		multiAttributeTile(name:"switch", type: "generic", width: 6, height: 4, decoration: "flat"){
 			tileAttribute ("device.switch", key: "PRIMARY_CONTROL") {
 				attributeState "on", label: '${name}', action: "switch.off", icon: "st.switches.switch.on", backgroundColor: "#79b821"
 				attributeState "off", label: '${name}', action: "switch.on", icon: "st.switches.switch.off", backgroundColor: "#ffffff"
 			}
             tileAttribute ("secondaryText", key: "SECONDARY_CONTROL") {
-           		attributeState "secondaryText", label:'${currentValue}'
+           		attributeState "secondaryText", label:'${currentValue}', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/device-activity-tile@2x.png"
             }
 		}
 

@@ -18,6 +18,7 @@
  *  07-11-2016 : Added Actuator capability so that the water meter smartapp can see the valve.
  *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.
  *  01-08/2017 : Added code for Health Check capabilities/functions. 
+ *  02-11-2017 : Cleaned up code, and used secondary_control again for messages.
  *
  */
 metadata {
@@ -40,16 +41,15 @@ metadata {
 
     // UI tile definitions
 	tiles(scale: 2) {
-		multiAttributeTile(name:"switch", type: "lighting", width: 6, height: 4, canChangeIcon: true, decoration: "flat"){
+		multiAttributeTile(name:"switch", type: "generic", width: 6, height: 4, canChangeIcon: true, decoration: "flat"){
 			tileAttribute ("device.switch", key: "PRIMARY_CONTROL") {
 				attributeState "on", label: 'Closed', action: "switch.off", icon: "st.valves.water.closed", backgroundColor: "#ff0000", nextState:"openingvalve"
 				attributeState "off", label: 'Open', action: "switch.on", icon: "st.valves.water.open", backgroundColor: "#53a7c0", nextState:"closingvalve"
 				attributeState "closingvalve", label:'Closing', icon:"st.valves.water.closed", backgroundColor:"#ffd700"
 				attributeState "openingvalve", label:'Opening', icon:"st.valves.water.open", backgroundColor:"#ffd700"
 			}
-            tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
-//           		attributeState "statusText", label:'${currentValue}'
-                attributeState "statusText", label:''
+            tileAttribute ("device.valveState", key: "SECONDARY_CONTROL") {
+                attributeState("default", label:'${currentValue}', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/watervalve1.png")
             }
         }
         standardTile("contact", "device.contact", width: 3, height: 2, inactiveLabel: false) {
@@ -100,7 +100,7 @@ def parse(String description) {
     
     def statusTextmsg = ""
     def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
-    statusTextmsg = "Valve is ${device.currentState('valveState').value}.\nLast refreshed at "+timeString+"."
+    statusTextmsg = "Last refreshed at "+timeString+"."
     sendEvent(name:"statusText", value:statusTextmsg)
     log.debug statusTextmsg
 
@@ -111,11 +111,11 @@ def sensorValueEvent(Short value) {
     if (value) {
 		log.debug "Main Water Valve is Open"
 		sendEvent(name: "contact", value: "open", descriptionText: "$device.displayName is open")
-        sendEvent(name: "valveState", value: "flowing water (tap to close)")
+        sendEvent(name: "valveState", value: "Valve is flowing water (tap to close)")
     } else {
     	log.debug "Main Water Valve is Closed"
         sendEvent(name: "contact", value: "closed", descriptionText: "$device.displayName is closed")
-        sendEvent(name: "valveState", value: "NOT flowing water (tap to open)")
+        sendEvent(name: "valveState", value: "Valve is NOT flowing water (tap to open)")
     }
 }
 

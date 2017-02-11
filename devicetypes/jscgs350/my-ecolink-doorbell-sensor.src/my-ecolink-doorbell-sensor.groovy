@@ -15,6 +15,7 @@
  *  02-18-2016 : Initial commit
  *  03-11-2016 : Due to ST's v2.1.0 app totally hosing up SECONDARY_CONTROL, implemented a workaround to display that info in a separate tile.
  *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.
+ *  02-11-2017 : Put battery info into the main tile instead of a separate tile.
  *
  */
 
@@ -36,22 +37,18 @@ metadata {
 				attributeState "closed", label: "Ding Dong", icon: "st.Home.home30", backgroundColor: "#53a7c0"
 				attributeState "open", label: "Ding Dong", icon: "st.Home.home30", backgroundColor: "#53a7c0"
 			}
-            tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
-//           		attributeState "statusText", label:'${currentValue}'
-                attributeState "statusText", label:''       		
+            tileAttribute ("device.battery", key: "SECONDARY_CONTROL") {
+                attributeState("default", label:'${currentValue}% battery', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/battery-icon-614x460.png")
             }
 		}
         standardTile("blankTile", "statusText", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
 			state "default", label:'', icon:"http://cdn.device-icons.smartthings.com/secondary/device-activity-tile@2x.png"
 		}        
-		valueTile("battery", "device.battery", width: 6, height: 2, inactiveLabel: false, decoration: "flat") {
-			state "battery", label:'${currentValue}% battery', unit:""
-		}
         valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}
 		main "contact"
-		details(["contact", "blankTile", "statusText", "battery"])
+		details(["contact", "blankTile", "statusText"])
 	}
 }
 

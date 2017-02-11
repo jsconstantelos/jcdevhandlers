@@ -14,6 +14,7 @@
  *  -------
  *  01-28-2017 : Initial commit.  This DH is specifically for the Gen 1 (original) SmartSense Multi device by SmartThings, not Samsung SmartThings.
  *  01-28-2017 : This DH is specifically used for acceleration, and removes the contact sensor tile.  Use cases would be for mailboxes, or anything else where you want to montor movement of something (like someone stealing your TV).
+ *  02-11-2017 : Put battery info into the main tile instead of a separate tile.
  *
  */
 metadata {
@@ -37,16 +38,16 @@ metadata {
 	}
 
 	tiles(scale: 2) {
-		multiAttributeTile(name:"acceleration", type: "lighting", width: 6, height: 4){
+		multiAttributeTile(name:"acceleration", type: "generic", width: 6, height: 4){
 			tileAttribute ("device.acceleration", key: "PRIMARY_CONTROL") {
 				attributeState "active", label:'${name}', icon:"st.motion.acceleration.active", backgroundColor:"#53a7c0"
 				attributeState "inactive", label:'${name}', icon:"st.motion.acceleration.inactive", backgroundColor:"#ffffff"
 			}
-            tileAttribute ("secondaryText", key: "SECONDARY_CONTROL") {
-           		attributeState "secondaryText", label:'${currentValue}'
+            tileAttribute ("device.battery", key: "SECONDARY_CONTROL") {
+                attributeState("default", label:'${currentValue}% battery', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/battery-icon-614x460.png")
             }
 		}
-		valueTile("temperature", "device.temperature", width: 3, height: 2) {
+		valueTile("temperature", "device.temperature", width: 6, height: 2) {
 			state("temperature", label:'${currentValue}°',
 				backgroundColors:[
 					[value: 31, color: "#153591"],
@@ -59,12 +60,9 @@ metadata {
 				]
 			)
 		}
-		valueTile("battery", "device.battery", decoration: "flat", inactiveLabel: false, width: 3, height: 2) {
-			state "battery", label:'${currentValue}% battery', unit:""
-		}
 
 		main(["acceleration"])
-		details(["acceleration", "temperature", "battery"])
+		details(["acceleration", "temperature"])
 	}
 }
 

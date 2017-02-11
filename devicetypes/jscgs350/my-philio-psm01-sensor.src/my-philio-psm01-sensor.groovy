@@ -19,7 +19,8 @@
  *  04-05-2016 : Added fingerprint for the PSM01
  *  04-09-2016 : Rewrote several sections of code, added additional config parameter (5) to ensure open/close not disabled
  *  04-13-2016 : Added icon for illuminance
- *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.  
+ *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.
+ *  02-11-2017 : Put battery info into the main tile instead of a separate tile.
  *
  */ 
 metadata {
@@ -44,8 +45,11 @@ metadata {
 				attributeState "open", label:'open', icon:"st.contact.contact.open", backgroundColor:"#ffa81e"
 				attributeState "closed", label:'closed', icon:"st.contact.contact.closed", backgroundColor:"#79b821"
 			}
+            tileAttribute ("device.battery", key: "SECONDARY_CONTROL") {
+                attributeState("default", label:'${currentValue}% battery', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/battery-icon-614x460.png")
+            }
 		}
-		valueTile("temperature", "device.temperature", inactiveLabel: false, width: 3, height: 2) {
+		valueTile("temperature", "device.temperature", inactiveLabel: false, width: 2, height: 2) {
 			state "temperature", label:'${currentValue}°',
 			backgroundColors:[
 				[value: 31, color: "#153591"],
@@ -57,18 +61,15 @@ metadata {
 				[value: 96, color: "#bc2323"]
 			]
 		}
-		standardTile("illuminance", "device.illuminance", inactiveLabel: false, decoration: "flat", width: 3, height: 2) {
+		standardTile("illuminance", "device.illuminance", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
 			state "luminosity", label:'${currentValue} ${unit}', unit:"lux", icon:"st.illuminance.illuminance.bright"
 		}
-		valueTile("battery", "device.battery", inactiveLabel: false, decoration: "flat", width: 3, height: 2) {
-			state "battery", label:'${currentValue}% battery', unit:""
-		}
-		standardTile("configure", "device.configure", inactiveLabel: false, decoration: "flat", width: 3, height: 2) {
+		standardTile("configure", "device.configure", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
 			state "configure", label:'', action:"configuration.configure", icon:"st.secondary.configure"
 		}
 
 		main(["contact", "temperature", "illuminance"])
-		details(["contact", "temperature", "illuminance", "battery", "configure"])
+		details(["contact", "temperature", "illuminance", "configure"])
 	}
 }
 

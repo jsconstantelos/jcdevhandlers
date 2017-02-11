@@ -20,6 +20,7 @@
  *  03-11-2016 : Due to ST's v2.1.0 app totally hosing up SECONDARY_CONTROL, implemented a workaround to display that info in a separate tile.
  *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.
  *  01-08/2017 : Added code for Health Check capabilities/functions.
+ *  02-11-2017 : Cleaned up code, and used secondary_control again for messages.
  *
  */
 metadata {
@@ -50,16 +51,15 @@ metadata {
 
 	// UI tile definitions 
 	tiles(scale: 2) {
-		multiAttributeTile(name:"switch", type: "lighting", width: 6, height: 4){
+		multiAttributeTile(name:"switch", type: "generic", width: 6, height: 4){
 			tileAttribute ("device.switch", key: "PRIMARY_CONTROL") {
             	attributeState "doorClosed", label: "Closed", action: "push", icon: "st.doors.garage.garage-closed", backgroundColor: "#79b821", nextState:"openingdoor"
             	attributeState "doorOpen", label: "Open", action: "push", icon: "st.doors.garage.garage-open", backgroundColor: "#ffa81e", nextState:"closingdoor"
                 attributeState "closingdoor", label:'Closing', icon:"st.doors.garage.garage-closing", backgroundColor:"#ffd700"
                 attributeState "openingdoor", label:'Opening', icon:"st.doors.garage.garage-opening", backgroundColor:"#ffd700"
 			}
-            tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
-//           		attributeState "statusText", label:'${currentValue}'
-                attributeState "statusText", label:''
+            tileAttribute ("device.contactState", key: "SECONDARY_CONTROL") {
+                attributeState("default", label:'${currentValue}', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/icon-garage1.png")
             }
 		}
         standardTile("contact", "device.contact", inactiveLabel: false) {
@@ -114,7 +114,7 @@ def parse(String description) {
     
     def statusTextmsg = ""
     def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
-    statusTextmsg = "${device.currentState('contactState').value}\nLast updated: "+timeString
+    statusTextmsg = "Last updated: "+timeString
     sendEvent("name":"statusText", "value":statusTextmsg)
     
 	return result

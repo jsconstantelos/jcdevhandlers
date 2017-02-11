@@ -39,6 +39,7 @@
  *  01-08-2017 : Added code for Health Check capabilities/functions, and cleaned up code in the resetMeter section.
  *  01-18-2017 : Removed code no longer needed, and added another parameter in Preference to enable or disable the display of values in the Recently tab and device's event log (not Live Logs).  Enabling may be required for some SmartApps.
  *  01-20-2017 : Removed the check for 0w, but still don't allow negative values.  Also removed all rounding, which now displays 3 positions right of the decimal.
+ *  02-11-2017 : Removed commands no longer needed.  Documented what each attribute is used for.  Put battery info into the main tile instead of a separate tile.
  *
  */
 metadata {
@@ -53,16 +54,15 @@ metadata {
     capability "Battery"
     capability "Health Check"
     
-    attribute "energyDisp", "string"
-    attribute "energyOne", "string"
-    attribute "energyTwo", "string"
+    attribute "energyDisp", "string" // Used to show kWh since last reset
+    attribute "energyOne", "string"  // Used for messages of what was reset (min, max, energy, or all values)
+    attribute "energyTwo", "string"  // Used to show energy costs since last reset
     
-    attribute "powerDisp", "string"
-    attribute "powerOne", "string"
-    attribute "powerTwo", "string"
+    attribute "powerDisp", "string"  // Used to show current watts being used on the main tile
+    attribute "powerOne", "string"   // Used to store/display minimum watts used since last reset
+    attribute "powerTwo", "string"   // Used to store/display maximum watts used since last reset
     
     command "reset"
-    command "configure"
     command "resetmin"
     command "resetmax"
     command "resetMeter"
@@ -76,12 +76,11 @@ metadata {
 			tileAttribute ("device.powerDisp", key: "PRIMARY_CONTROL") {
 				attributeState "default", action: "refresh", label: '${currentValue}', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/device-activity-tile@2x.png", backgroundColor: "#79b821"
 			}
-            tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
-//           		attributeState "statusText", label:'${currentValue}'
-           		attributeState "statusText", label:''                
+            tileAttribute ("device.battery", key: "SECONDARY_CONTROL") {
+                attributeState("default", label:'${currentValue}% battery', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/battery-icon-614x460.png")
             }
 		}    
-        valueTile("energyDisp", "device.energyDisp", width: 2, height: 1, inactiveLabel: false, decoration: "flat") {
+        valueTile("energyDisp", "device.energyDisp", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
             state("default", label: '${currentValue}', backgroundColor:"#ffffff")
         }
         
@@ -89,7 +88,7 @@ metadata {
             state("default", label: '${currentValue}', backgroundColor:"#ffffff")
         }
 
-        valueTile("energyTwo", "device.energyTwo", width: 2, height: 1, inactiveLabel: false, decoration: "flat") {
+        valueTile("energyTwo", "device.energyTwo", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
             state("default", label: '${currentValue}', backgroundColor:"#ffffff")
         }
     	standardTile("refresh", "device.power", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
@@ -98,20 +97,12 @@ metadata {
     	standardTile("configure", "device.power", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
         	state "configure", label:'', action:"configure", icon:"st.secondary.configure"
     	}
-        valueTile("battery", "device.battery", width: 2, height: 1, inactiveLabel: false, decoration: "flat") {
-            state "battery", label:'${currentValue}%\nbattery', unit:""
-        }
-        standardTile("blankTile", "blankTile", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
-			state "default", icon:"st.secondary.device-activity-tile"
-		}
-        standardTile("refreshTile", "refreshTile", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
-			state "default", icon:"st.unknown.thing.thing-circle"
-		}
-        
+        standardTile("iconTile", "iconTile", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
+			state "default", icon:"https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/device-activity-tile@2x.png"
+		}       
         valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}
-
         standardTile("resetmin", "device.energy", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
             state "default", label:'Reset Minimum', action:"resetmin", icon:"st.secondary.refresh-icon"
         }
@@ -123,7 +114,7 @@ metadata {
 		}
 
         main (["powerDisp"])
-        details(["powerDisp", "blankTile", "statusText", "refreshTile", "energyOne", "battery", "energyDisp", "energyTwo", "resetmin", "resetmax", "resetenergy", "reset", "refresh", "configure"])
+        details(["powerDisp", "iconTile", "statusText", "iconTile", "energyOne", "energyDisp", "energyTwo", "resetmin", "resetmax", "resetenergy", "reset", "refresh", "configure"])
         }
 
         preferences {
@@ -192,7 +183,7 @@ def parse(String description) {
     }
 //    if (result) log.debug "Parse returned ${result}"
     def statusTextmsg = ""
-	statusTextmsg = "Min was ${device.currentState('powerOne')?.value}\nMax was ${device.currentState('powerTwo')?.value}\n"
+	statusTextmsg = "Min was ${device.currentState('powerOne')?.value}.\nMax was ${device.currentState('powerTwo')?.value}."
     sendEvent("name":"statusText", "value":statusTextmsg)
     return result
 }

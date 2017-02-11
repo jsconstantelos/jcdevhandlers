@@ -53,7 +53,7 @@ metadata {
             }
             tileAttribute ("device.level", key: "SLIDER_CONTROL") {
                 attributeState "level", action:"switch level.setLevel"
-            }            
+            }
         }
 
         valueTile("ventTwentyFive", "device.level", width: 1, height: 1, inactiveLabel: false, decoration: "flat") {

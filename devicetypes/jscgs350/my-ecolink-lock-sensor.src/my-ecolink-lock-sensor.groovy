@@ -14,7 +14,9 @@
  *  -------
  *  02-18-2016 : Initial commit
  *  03-05-2016 : Cleaned up code
- *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel. 
+ *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.
+ *  02-11-2017 : Removed commands no longer needed.  Documented what each attribute is used for.  Put battery info into the main tile instead of a separate tile.
+ *  02-11-2017 : Put battery info into the main tile instead of a separate tile.
  *
  */
 
@@ -37,15 +39,12 @@ metadata {
 				attributeState "locked", label: 'Locked', icon: "st.presence.house.secured", backgroundColor: "#79b821"
 				attributeState "unlocked", label: 'Unlocked', icon: "st.presence.house.unlocked", backgroundColor: "#ffa81e"
 			}
+            tileAttribute ("device.battery", key: "SECONDARY_CONTROL") {
+                attributeState("default", label:'${currentValue}% battery', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/battery-icon-614x460.png")
+            }            
 		}        
-        valueTile("battery", "device.battery", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
-			state "battery", label:'${currentValue}% battery', unit:""
-		}
-        standardTile("refresh", "device.lock", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
-			state "default", label:'FORCE LOCK', action:"refresh.refresh", icon: "st.presence.house.secured"
-		}
 		main "lock"
-		details(["lock", "battery", "refresh"])
+		details(["lock"])
 	}
 }
 

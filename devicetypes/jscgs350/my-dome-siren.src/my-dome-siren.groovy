@@ -21,6 +21,7 @@
  *  01/25/2017 - 1.0 Initial Release
  *  01/30/2017 - Modified Status tile to use more of the multiattributetile features to include battery status instead of a separate tile.
  *  01/31/2017 - Modified the UI for my liking, primarily just moving tiles around (my OCD was kicking in...)
+ *  02/10/2017 - Added battery icon in the main tile.
  *
  */
 metadata {
@@ -158,7 +159,7 @@ metadata {
 					backgroundColor: "#cc99cc"
 			}
             tileAttribute ("device.battery", key: "SECONDARY_CONTROL") {
-                attributeState("default", label:'${currentValue}% battery')
+                attributeState("default", label:'${currentValue}% battery', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/battery-icon-614x460.png")
             }            
 		}
 		

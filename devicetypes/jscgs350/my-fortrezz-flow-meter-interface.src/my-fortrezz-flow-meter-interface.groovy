@@ -106,7 +106,7 @@ metadata {
 		}
         
 		// Tile Row 3
-		standardTile("waterState", "device.waterState", width: 3, height: 2, canChangeIcon: true, canChangeBackground: true, decoration: "flat") {
+		standardTile("waterState", "device.waterState", width: 3, height: 2, decoration: "flat") {
 			state "none", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#cccccc", label: "None"
 			state "flow", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#01AAE8", label: "Flow"
 			state "overflow", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#ff0000", label: "High"

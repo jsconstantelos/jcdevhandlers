@@ -34,30 +34,26 @@ metadata {
 	}
 
 	tiles(scale: 2) {
-		multiAttributeTile(name:"alarm", type: "lighting", width: 6, height: 4, canChangeIcon: true){
+		multiAttributeTile(name:"alarm", type: "generic", width: 6, height: 4, canChangeIcon: true){
 			tileAttribute ("device.alarm", key: "PRIMARY_CONTROL") {
 				attributeState "both", label:'alarm!', action:'alarm.off', icon:"st.alarm.alarm.alarm", backgroundColor:"#e86d13"
 				attributeState "off", label:'off', action:'alarm.strobe', icon:"st.security.alarm.clear", backgroundColor:"#ffffff"
 			}
-            tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
-           		attributeState "statusText", label:'${currentValue}'
-//                attributeState "statusText", label:''
+            tileAttribute ("device.battery", key: "SECONDARY_CONTROL") {
+                attributeState("default", label:'${currentValue}% battery', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/battery-icon-614x460.png")
             }
 		}
-		standardTile("off", "device.alarm", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
-			state "default", label:'', action:"alarm.off", icon:"st.secondary.off"
-		}
-        valueTile("battery", "device.battery", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
-			state "battery", label:'${currentValue}% battery', unit:""
-		}
-        standardTile("refresh", "device.refresh", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
+        standardTile("refresh", "device.refresh", width: 6, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "default", label:'Refresh', action:"refresh.refresh", icon:"st.secondary.refresh-icon"
 		}
-        valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 6, height: 2) {
+        standardTile("blankTile", "statusText", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
+			state "default", label:'', icon:"http://cdn.device-icons.smartthings.com/secondary/device-activity-tile@2x.png"
+		}   
+        valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}      
 		main "alarm"
-		details(["alarm","battery","refresh"])        
+		details(["alarm", "blankTile","statusText","refresh"])        
 	}
 }
 

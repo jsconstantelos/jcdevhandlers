@@ -15,7 +15,8 @@
  *  02-18-2016 : Initial commit
  *  04-08-2016 : Added fingerprint info
  *  04-10-2016 : Added Refesh tile
- *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.  
+ *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.
+ *  02-11-2017 : Put battery info into the main tile instead of a separate tile.
  *
  */
 
@@ -52,8 +53,11 @@ metadata {
 				attributeState "active", label:'motion', icon:"st.motion.motion.active", backgroundColor:"#53a7c0"
 				attributeState "inactive", label:'no motion', icon:"st.motion.motion.inactive", backgroundColor:"#ffffff"
 			}
+            tileAttribute ("device.battery", key: "SECONDARY_CONTROL") {
+                attributeState("default", label:'${currentValue}% battery', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/battery-icon-614x460.png")
+            }
 		}
-		valueTile("temperature", "device.temperature", width: 2, height: 2) {
+		valueTile("temperature", "device.temperature", width: 3, height: 2) {
 			state("temperature", label:'${currentValue}°', unit:"F",
 				backgroundColors:[
 					[value: 31, color: "#153591"],
@@ -66,14 +70,11 @@ metadata {
 				]
 			)
 		}
-		valueTile("battery", "device.battery", decoration: "flat", inactiveLabel: false, width: 2, height: 2) {
-			state "battery", label:'${currentValue}% battery', unit:""
-		}
-        standardTile("refresh", "device.motion", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
+        standardTile("refresh", "device.motion", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "default", label:'Refresh', action:"refresh.refresh", icon:"st.secondary.refresh-icon"
 		}
 		main(["motion", "temperature"])
-		details(["motion", "temperature", "battery", "refresh"])
+		details(["motion", "temperature", "refresh"])
 	}
 }
 
