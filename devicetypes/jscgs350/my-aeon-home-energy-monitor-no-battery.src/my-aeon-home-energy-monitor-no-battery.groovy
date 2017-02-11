@@ -96,10 +96,7 @@ metadata {
     	}
     	standardTile("configure", "device.power", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
         	state "configure", label:'', action:"configure", icon:"st.secondary.configure"
-    	}
-        valueTile("battery", "device.battery", width: 2, height: 1, inactiveLabel: false, decoration: "flat") {
-            state "battery", label:'${currentValue}%\nbattery', unit:""
-        }        
+    	}       
         standardTile("iconTile", "iconTile", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
 			state "default", icon:"st.secondary.device-activity-tile"
 		}      
