@@ -61,7 +61,6 @@ metadata {
     attribute "maxWATTS", "string"   	// Used to store/display maximum watts used since last reset
     attribute "resetMessage", "string"  // Used for messages of what was reset (min, max, energy, or all values)
     attribute "kwhCosts", "string"  	// Used to show energy costs since last reset
-    attribute "nobattery", "string"		// Used within the main tile to not show battery info if selected by the user
 
     command "resetkwh"
     command "resetmin"
@@ -269,23 +268,19 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
-	log.debug "Battery level report sent from the meter: ${cmd}"
-	if (state.displayBattery) {
-        def map = [:]
-        map.name = "battery"
-        map.unit = "%"
-        if (cmd.batteryLevel == 0xFF) {
-        	log.debug "Low battery alert!"
-            map.value = 1
-            map.descriptionText = "${device.displayName} has a low battery"
-            map.isStateChange = true
-        } else {
-            map.value = cmd.batteryLevel
-            map.isStateChange = true
-            sendEvent(name: "battery", value: map.value as String, displayed: false)
-        }
-        return map
+    def map = [:]
+    map.name = "battery"
+    map.unit = "%"
+    if (cmd.batteryLevel == 0xFF) {
+        map.value = 1
+        map.descriptionText = "${device.displayName} has a low battery"
+        map.isStateChange = true
+    } else {
+        map.value = cmd.batteryLevel
+        map.isStateChange = true
+        sendEvent(name: "battery", value: map.value as String, displayed: false)
     }
+    return map
 }
 
 def zwaveEvent(physicalgraph.zwave.Command cmd) {
