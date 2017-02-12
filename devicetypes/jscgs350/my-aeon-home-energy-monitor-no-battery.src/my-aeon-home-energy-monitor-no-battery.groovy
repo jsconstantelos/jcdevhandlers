@@ -197,7 +197,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
         if (cmd.scale == 0) {
             newValue = cmd.scaledMeterValue
             if (newValue != state.energyValue) {
-                dispValue = String.format("%5.2f",newValue)+"\nkWh"
+                dispValue = newValue+"\nkWh"
                 sendEvent(name: "energyDisp", value: dispValue as String, unit: "", displayed: false)
                 state.energyValue = newValue
                 BigDecimal costDecimal = newValue * ( kWhCost as BigDecimal)
@@ -212,7 +212,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
         } else if (cmd.scale == 1) {
             newValue = cmd.scaledMeterValue
             if (newValue != state.energyValue) {
-                dispValue = String.format("%5.2f",newValue)+"\nkVAh"
+                dispValue = newValue+"\nkVAh"
                 sendEvent(name: "energyDisp", value: dispValue as String, unit: "", displayed: false)
                 state.energyValue = newValue
                 if (state.displayDisabled) {
