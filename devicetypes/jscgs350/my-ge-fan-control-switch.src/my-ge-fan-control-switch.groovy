@@ -57,7 +57,7 @@ metadata {
 				attributeState "turningOff", label:'TURNINGOFF', icon:"st.Lighting.light24", backgroundColor:"#2179b8", nextState: "turningOff"
 			}   
             tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
-           		attributeState "statusText", label:'${currentValue}'
+           		attributeState "statusText", label:'${currentValue}', icon:"st.Lighting.light24"
             }
 		}
 		standardTile("lowSpeed", "device.currentState", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
