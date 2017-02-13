@@ -200,6 +200,7 @@ def parse(String description) {
         def batteryStatusmsg = ""
         batteryStatusmsg = "USB Power"
         sendEvent(name: "batteryStatus", value: batteryStatusmsg, displayed: false)
+        sendEvent(name: "battery", value: 99 as String, displayed: false)	// Wonky way of preventing low battery warnings, but  it's needed for now.
     }
 
     return result
