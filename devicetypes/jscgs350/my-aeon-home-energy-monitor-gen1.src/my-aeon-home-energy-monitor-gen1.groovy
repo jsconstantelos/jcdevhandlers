@@ -276,9 +276,15 @@ def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
         map.descriptionText = "${device.displayName} has a low battery"
         map.isStateChange = true
     } else {
-        map.value = cmd.batteryLevel
-        map.isStateChange = true
-        sendEvent(name: "battery", value: map.value as String, displayed: false)
+        if (state.displayBattery) {
+            map.value = cmd.batteryLevel
+        	map.isStateChange = true
+        	sendEvent(name: "battery", value: map.value as String, displayed: false)
+        } else {
+            map.value = 99
+            map.isStateChange = true
+            sendEvent(name: "battery", value: map.value as String, displayed: false)
+        }
     }
     return map
 }
