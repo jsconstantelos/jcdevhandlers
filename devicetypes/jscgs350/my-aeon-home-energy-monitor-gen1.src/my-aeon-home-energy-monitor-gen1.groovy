@@ -41,6 +41,7 @@
  *  01-20-2017 : Removed the check for 0w, but still don't allow negative values.  Also removed all rounding, which now displays 3 positions right of the decimal.
  *  02-11-2017 : Removed commands no longer needed.  Documented what each attribute is used for.  Put battery info into the main tile instead of a separate tile.
  *  02-12-2017 : Combined the battery and no-battery version into a single DTH, cleaned up code, and general improvements.
+ *  02-13-2017 : Cleaned up code for battery message being displayed. If someone decides to display battery % while not having batteries installed Health Check will catch that and push low battery notifications until the user disables the display.
  *
  */
 metadata {
@@ -55,12 +56,13 @@ metadata {
     capability "Battery"
     capability "Health Check"
     
-    attribute "currentKWH", "string" 	// Used to show current kWh since last reset
-    attribute "currentWATTS", "string"  // Used to show current watts being used on the main tile
-    attribute "minWATTS", "string"   	// Used to store/display minimum watts used since last reset
-    attribute "maxWATTS", "string"   	// Used to store/display maximum watts used since last reset
-    attribute "resetMessage", "string"  // Used for messages of what was reset (min, max, energy, or all values)
-    attribute "kwhCosts", "string"  	// Used to show energy costs since last reset
+    attribute "currentKWH", "string" 		// Used to show current kWh since last reset
+    attribute "currentWATTS", "string"  	// Used to show current watts being used on the main tile
+    attribute "minWATTS", "string"   		// Used to store/display minimum watts used since last reset
+    attribute "maxWATTS", "string"   		// Used to store/display maximum watts used since last reset
+    attribute "resetMessage", "string"  	// Used for messages of what was reset (min, max, energy, or all values)
+    attribute "kwhCosts", "string"  		// Used to show energy costs since last reset
+    attribute "batteryStatus", "string"
 
     command "resetkwh"
     command "resetmin"
@@ -76,7 +78,7 @@ metadata {
 			tileAttribute ("device.currentWATTS", key: "PRIMARY_CONTROL") {
 				attributeState "default", action: "refresh", label: '${currentValue}', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/device-activity-tile@2x.png", backgroundColor: "#79b821"
 			}
-            tileAttribute ("batteryStatus", key: "SECONDARY_CONTROL") {
+            tileAttribute ("device.batteryStatus", key: "SECONDARY_CONTROL") {
            		attributeState "batteryStatus", label:'${currentValue}', icon:"https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/Battery-Charge-icon.png"
             }
 		}    
@@ -194,13 +196,12 @@ def parse(String description) {
 
 	if (state.displayBattery) {
         def batteryStatusmsg = ""
-        batteryStatusmsg = "USB Power, and ${device.currentState('battery')?.value}% Battery"
+        batteryStatusmsg = "USB power, batteries at ${device.currentState('battery')?.value}%"
         sendEvent(name: "batteryStatus", value: batteryStatusmsg, displayed: false)
     } else {
         def batteryStatusmsg = ""
-        batteryStatusmsg = "USB Power"
+        batteryStatusmsg = "USB power"
         sendEvent(name: "batteryStatus", value: batteryStatusmsg, displayed: false)
-        sendEvent(name: "battery", value: 99 as String, displayed: false)	// Wonky way of preventing low battery warnings, but  it's needed for now.
     }
 
     return result
@@ -269,25 +270,28 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
-    def map = [:]
-    map.name = "battery"
-    map.unit = "%"
-    if (cmd.batteryLevel == 0xFF) {
-        map.value = 1
-        map.descriptionText = "${device.displayName} has a low battery"
-        map.isStateChange = true
-    } else {
-        if (state.displayBattery) {
-            map.value = cmd.batteryLevel
-        	map.isStateChange = true
-        	sendEvent(name: "battery", value: map.value as String, displayed: false)
-        } else {
-            map.value = 99
+	if (state.displayBattery) {
+        def map = [:]
+        map.name = "battery"
+        map.unit = "%"
+        if (cmd.batteryLevel == 0xFF) { // low battery message from device
+            map.value = 1
             map.isStateChange = true
-            sendEvent(name: "battery", value: map.value as String, displayed: false)
+        } else {
+            map.value = cmd.batteryLevel
+            map.isStateChange = true
         }
+        return map
+        sendEvent(name: "battery", value: map.value as String, displayed: false)
+    } else {
+        def map = [:]
+        map.name = "battery"
+        map.unit = "%"
+        map.value = 999
+        map.isStateChange = true
+        return map
+        sendEvent(name: "battery", value: map.value as String, displayed: false)
     }
-    return map
 }
 
 def zwaveEvent(physicalgraph.zwave.Command cmd) {
@@ -376,8 +380,10 @@ def configure() {
 
 	if (state.displayBattery) {
     	log.debug "Battery display enabled..."
+        refresh()
     } else { 
         log.debug "Battery display DISABLED..."
+        refresh()
     }
 
 	if (state.displayDisabled) {
