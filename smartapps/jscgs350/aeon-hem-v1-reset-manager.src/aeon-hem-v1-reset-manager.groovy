@@ -21,6 +21,7 @@
  *  Revision History
  *  ----------------
  *  11-22-2016 : Initial release
+ *  02-16-2017 : Fixed scheduling issue and improved handling when the app is initially installed and when it's updated.
  *
  */
 
@@ -46,17 +47,23 @@ preferences {
 }
 
 def installed() {
-	log.debug "Aeon HEM v1 Reset Manager SmartApp installed, check for the user defined schedule and schedule another check for the next day"
-    resetTheMeter()
+	log.debug "Aeon HEM v1 Reset Manager SmartApp installed, now preparing to schedule the first reset."
 }
 
 def updated() {
+	log.debug "Aeon HEM v1 Reset Manager SmartApp updated, so update the user defined schedule and schedule another check for the next day."
+	unschedule()
+    def scheduleTime = timeToday(time, location.timeZone)
+    def timeNow = now()
+    log.debug "Current time is ${(new Date(timeNow)).format("EEE MMM dd yyyy HH:mm z", location.timeZone)}"
+    log.debug "Scheduling meter reset check at ${scheduleTime.format("EEE MMM dd yyyy HH:mm z", location.timeZone)}"
+    schedule(scheduleTime, resetTheMeter)
 }
 
 def initialize() {
 	unschedule()
     def scheduleTime = timeToday(time, location.timeZone)
-    def timeNow = now() + (2*1000) // ST platform has resolution of 1 minutes, so be safe and check for 2 minutes) 
+    def timeNow = now()
     log.debug "Current time is ${(new Date(timeNow)).format("EEE MMM dd yyyy HH:mm z", location.timeZone)}"
     scheduleTime = scheduleTime + 1 // Next day schedule
     log.debug "Scheduling next meter reset check at ${scheduleTime.format("EEE MMM dd yyyy HH:mm z", location.timeZone)}"
@@ -66,15 +73,16 @@ def initialize() {
 def resetTheMeter() {
     Calendar localCalendar = Calendar.getInstance(TimeZone.getDefault());
     def currentDayOfMonth = localCalendar.get(Calendar.DAY_OF_MONTH);
-    log.debug "Check for the day of month..."
-    log.debug "...day of the month today is ${currentDayOfMonth}"
-    log.debug "...day user requested a reset is ${day}"
+    log.debug "Aeon HEM v1 meter reset schedule triggered..."
+    log.debug "...checking for the day of month requested by the user"
+    log.debug "...the day of the month right now is ${currentDayOfMonth}"
+    log.debug "...the day the user requested a reset is ${day}"
     if (currentDayOfMonth == day) {
-        log.debug "...Resetting HEM because it's when the user requested it."
+        log.debug "...resetting the meter because it's when the user requested it."
         meter.resetMeter()
     } else {
-        log.debug "...HEM reset not scheduled for today because it's not when the user requested it."
+        log.debug "...meter reset not scheduled for today because it's not when the user requested it."
     }
-    log.debug "Check complete, now schedule the SmartApp to check the next day."
+    log.debug "Process completed, now schedule the reset to check on the next day."
     initialize()
 }
