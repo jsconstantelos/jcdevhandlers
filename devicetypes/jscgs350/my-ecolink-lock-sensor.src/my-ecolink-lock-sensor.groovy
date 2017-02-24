@@ -38,11 +38,11 @@ metadata {
 			tileAttribute ("device.lock", key: "PRIMARY_CONTROL") {
 				attributeState "locked", label: 'Locked', icon: "st.presence.house.secured", backgroundColor: "#79b821"
 				attributeState "unlocked", label: 'Unlocked', icon: "st.presence.house.unlocked", backgroundColor: "#ffa81e"
-			}
+			}           
             tileAttribute ("device.battery", key: "SECONDARY_CONTROL") {
                 attributeState("default", label:'${currentValue}% battery', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/battery-icon-614x460.png")
-            }            
-		}        
+            }       
+		}
 		main "lock"
 		details(["lock"])
 	}
