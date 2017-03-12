@@ -16,30 +16,27 @@
  *
  *  Updates:
  *  -------
- *  07-06-2016 : jscgs350: Original commit.
- *  07-13-2016 : jscgs350: Modified the device handler for my liking, primarly for looks and feel.
- *  07-16-2016 : jscgs350: Changed GPM tile to be more descriptive during water flow, and then to show cumulative and last used gallons.
- *  07-23-2016 : jscgs350: Added tracking for highest recorded usage in gallons, and added actions for tiles to reset high values.  Added Reset Meter tile.
- *  08-07-2016 : jscgs350: Fixed GPM calculation error whenever the reporting threshold was less than 60 seconds.
- *  08-08-2016 : jscgs350: Moved where "waterState" gets defined (none, flow, highflow) - from AlarmReport to the MeterReport section since this DH handles this alarm condition differently than FortrezZ's original design.
- *  08-11-2016 : jscgs350: Fixed decimal positions so that only 2 positions are displayed vs as many as 9, 10, or more.  Minor cosmetic changes as well.
- *  08-10-2016 : bridaus : Some optimization, some documentation supporting future changes.
- *  08-20-2016 : bridaus : Added weighted averaging when using High Accuracy (reportThreshhold = 1).
- *  08-20-2016 : jscgs350: Merged bridaus's changes, changed how parameters are handled (via Updated section now) and removed unneeded code due to that change.
- *  08-21-2016 : bridaus : Fixed log.trace issue with "Current Measurement Value".
- *  08-21-2016 : jscgs350: Removed the Updated section because ST would execute Configure twice for some reason.  User needs to tap on the Config tile after parameters are changed.
- *  08-27-2016 : jscgs350: Modified the device handler for my liking, primarly for looks and feel for some of the tiles.
- *  08-28-2016 : jscgs350: Reverted back to original gpm flow calculation instead of using weighted average due to large flow rate calculations (under review)
- *  08-29-2016 : jscgs350: Updated the resetMeter() section to get it working, and to update a status tile with the date a reset was last performed.
- *  08-31-2016 : jscgs350: Cleaned up unused code.  Used carouselTile for showing charts.  This is helpful after resetting the meter and user wanted to see previous charts.
- *  09-01-2016 : jscgs350: Added a few new attributes (ending in LastReset) to capture high values prior to being reset in case user needs to know or forgot to save.
- *  09-01-2016 : jscgs350: Created another user preference for a custom device ID that causes a new set of charts to be created as soon as the preference is defined.
- *  09-01-2016 : jscgs350: Moved where data is sent to the cloud to address data issues when reporting threshold is not 60 seconds.
- *  09-02-2016 : jscgs350: Moved and resized tiles around for a cleaner look (moved stats row up and resized to 2wx1h)
- *  09-12-2016 : jscgs350: Every so often a crazy high delta would be sent, so added a check for a not so realistic value.
- *  10-03-2016 : jscgs350: When the meter is reset, and if a custom ID is defined by the user, new charts will be created.
- *  10-05-2016 : jscgs350: Changed the chart selection process from toggling through each via a single tile, to a tile for each chart mode/type. Taping on the same tile refreshes the chart.
- *  11-11-2016 : jscgs350: Cleaned up code where meter values are assessed. (physicalgraph.zwave.commands.meterv3.MeterReport)
+ *  07-06-2016 : Original commit.
+ *  07-13-2016 : Modified the device handler for my liking, primarly for looks and feel.
+ *  07-16-2016 : Changed GPM tile to be more descriptive during water flow, and then to show cumulative and last used gallons.
+ *  07-23-2016 : Added tracking for highest recorded usage in gallons, and added actions for tiles to reset high values.  Added Reset Meter tile.
+ *  08-07-2016 : Fixed GPM calculation error whenever the reporting threshold was less than 60 seconds.
+ *  08-08-2016 : Moved where "waterState" gets defined (none, flow, highflow) - from AlarmReport to the MeterReport section since this DH handles this alarm condition differently than FortrezZ's original design.
+ *  08-11-2016 : Fixed decimal positions so that only 2 positions are displayed vs as many as 9, 10, or more.  Minor cosmetic changes as well.
+ *  08-20-2016 : Changed how parameters are handled (via Updated section now) and removed unneeded code due to that change.
+ *  08-21-2016 : Removed the Updated section because ST would execute Configure twice for some reason.  User needs to tap on the Config tile after parameters are changed.
+ *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel for some of the tiles.
+ *  08-28-2016 : Reverted back to original gpm flow calculation instead of using weighted average due to large flow rate calculations (under review)
+ *  08-29-2016 : Updated the resetMeter() section to get it working, and to update a status tile with the date a reset was last performed.
+ *  08-31-2016 : Cleaned up unused code.  Used carouselTile for showing charts.  This is helpful after resetting the meter and user wanted to see previous charts.
+ *  09-01-2016 : Added a few new attributes (ending in LastReset) to capture high values prior to being reset in case user needs to know or forgot to save.
+ *  09-01-2016 : Created another user preference for a custom device ID that causes a new set of charts to be created as soon as the preference is defined.
+ *  09-01-2016 : Moved where data is sent to the cloud to address data issues when reporting threshold is not 60 seconds.
+ *  09-02-2016 : Moved and resized tiles around for a cleaner look (moved stats row up and resized to 2wx1h)
+ *  09-12-2016 : Every so often a crazy high delta would be sent, so added a check for a not so realistic value.
+ *  10-03-2016 : When the meter is reset, and if a custom ID is defined by the user, new charts will be created.
+ *  10-05-2016 : Changed the chart selection process from toggling through each via a single tile, to a tile for each chart mode/type. Taping on the same tile refreshes the chart.
+ *  11-11-2016 : Cleaned up code where meter values are assessed. (physicalgraph.zwave.commands.meterv3.MeterReport)
  *  01-08-2017 : Added code for Health Check capabilities/functions, and cleaned up code.
  *  03-11-2017 : Changed from valueTile to standardTile for three tiles since ST's mobile app v2.3.x broke the ability for valueTiles to initiate an action.
  *
