@@ -17,6 +17,7 @@
  *  08-14-2016 : Completely changed the code to use ST's updated DH for "dimmer switch".  Did not reimplement "adjusting" state.
  *  08-28-2016 : Made some cosmetic changes, and fixed the low/med/high reporting to properly reflect any physical adjustment at the switch.
  *  01-08-2017 : Added code for Health Check capabilities/functions, and cleaned up code.
+ *  03-11-2017 : Changed from valueTile to standardTile for a few tiles since ST's mobile app v2.3.x changed something between the two.
  *
  */
  
@@ -77,7 +78,7 @@ metadata {
 		standardTile("refresh", "device.switch", width: 6, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "default", label:'Refresh', action:"refresh.refresh", icon:"st.secondary.refresh-icon"
 		}
-        valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 6, height: 2) {
+        standardTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 6, height: 2) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}
 		main(["switch"])

@@ -27,6 +27,7 @@
  *  01-18-2017 : Removed code no longer needed, and added another parameter in Preference to enable or disable the display of values in the Recently tab and device's event log (not Live Logs).  Enabling may be required for some SmartApps.
  *  01-19-2017 : Added code similar to the HEM v1 to display energy and cost.
  *  02-11-2017 : Cleaned up code and added an icon to the secondary_control section of the main tile.
+ *  03-11-2017 : Changed from valueTile to standardTile for a few tiles since ST's mobile app v2.3.x changed something between the two.
  *
  */
 metadata {
@@ -118,12 +119,12 @@ metadata {
 // Watts row
 
         valueTile("powerDisp", "device.powerDisp", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
-            state ("default", icon: "st.secondary.activity", label:'Now ${currentValue}')
+            state ("default", icon: "st.secondary.activity", label:'Now ${currentValue}W')
         }
-        valueTile("powerOne", "device.powerOne", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
+        standardTile("powerOne", "device.powerOne", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
             state("default", label:'Low ${currentValue}')
         }
-        valueTile("powerTwo", "device.powerTwo", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
+        standardTile("powerTwo", "device.powerTwo", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
             state("default", label:'High ${currentValue}')
         }
         
@@ -135,13 +136,13 @@ metadata {
 		}
 
         valueTile("energyDisp", "device.energyDisp", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
-            state("default", label: '${currentValue}', backgroundColor:"#ffffff")
+            state("default", label: '${currentValue}kWh', backgroundColor:"#ffffff")
         }
-        valueTile("energyOne", "device.energyOne", width: 5, height: 1, inactiveLabel: false, decoration: "flat") {
+        standardTile("energyOne", "device.energyOne", width: 5, height: 1, inactiveLabel: false, decoration: "flat") {
             state("default", label: '${currentValue}', backgroundColor:"#ffffff")
         }
         valueTile("energyTwo", "device.energyTwo", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
-            state("default", label: '${currentValue}', backgroundColor:"#ffffff")
+            state("default", label: 'Cost $${currentValue}', backgroundColor:"#ffffff")
         }    
         
         standardTile("resetenergy", "device.energy", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
@@ -156,7 +157,7 @@ metadata {
 		standardTile("refresh", "device.power", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "default", label:'Refresh', action:"refresh.refresh", icon:"st.secondary.refresh-icon"
 		}
-        valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
+        standardTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}
 		main "powerDisp"
@@ -203,12 +204,12 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
 	if (cmd.scale == 0) {
         newValue = cmd.scaledMeterValue
         if (newValue != state.energyValue) {
-            dispValue = newValue+"\nkWh"
+            dispValue = newValue
             sendEvent(name: "energyDisp", value: dispValue as String, unit: "", displayed: false)
             state.energyValue = newValue
             BigDecimal costDecimal = newValue * ( kWhCost as BigDecimal)
             def costDisplay = String.format("%3.2f",costDecimal)
-            sendEvent(name: "energyTwo", value: "Cost\n\$${costDisplay}", unit: "", displayed: false)
+            sendEvent(name: "energyTwo", value: "${costDisplay}", unit: "", displayed: false)
             if (state.displayDisabled) {
                 [name: "energy", value: newValue, unit: "kWh", displayed: true]
             } else {
@@ -231,7 +232,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
 			newValue = cmd.scaledMeterValue
             if (newValue < 3000) {								  // don't handle any wildly large readings due to firmware issues
 	            if (newValue != state.powerValue) {
-	                dispValue = newValue+"w"
+	                dispValue = newValue
 	                sendEvent(name: "powerDisp", value: dispValue, unit: "", displayed: false)
 	                if (newValue < state.powerLow) {
 	                    dispValue = newValue+"w"+"on "+timeString

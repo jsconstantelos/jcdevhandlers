@@ -42,6 +42,7 @@
  *  02-11-2017 : Removed commands no longer needed.  Documented what each attribute is used for.  Put battery info into the main tile instead of a separate tile.
  *  02-12-2017 : Combined the battery and no-battery version into a single DTH, cleaned up code, and general improvements.
  *  02-13-2017 : Cleaned up code for battery message being displayed. If someone decides to display battery % while not having batteries installed Health Check will catch that and push low battery notifications until the user disables the display.
+ *  03-11-2017 : Changed from valueTile to standardTile for a few tiles since ST's mobile app v2.3.x changed something between the two.
  *
  */
 metadata {
@@ -85,17 +86,17 @@ metadata {
         standardTile("iconTile", "iconTile", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
 			state "default", icon:"https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/device-activity-tile@2x.png"
 		}
-        valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
+        standardTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}        
-        valueTile("resetMessage", "device.resetMessage", width: 5, height: 1, inactiveLabel: false, decoration: "flat") {
+        standardTile("resetMessage", "device.resetMessage", width: 5, height: 1, inactiveLabel: false, decoration: "flat") {
             state("default", label: '${currentValue}', backgroundColor:"#ffffff")
         }
         valueTile("currentKWH", "device.currentKWH", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
-            state("default", label: '${currentValue}', backgroundColor:"#ffffff")
+            state("default", label: '${currentValue}kWh', backgroundColor:"#ffffff")
         }
         valueTile("kwhCosts", "device.kwhCosts", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
-            state("default", label: '${currentValue}', backgroundColor:"#ffffff")
+            state("default", label: 'Cost $${currentValue}', backgroundColor:"#ffffff")
         }
         standardTile("resetmin", "device.resetmin", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
             state "default", label:'Reset Min', action:"resetmin", icon:"st.secondary.refresh-icon"
@@ -215,12 +216,12 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
         if (cmd.scale == 0) {
             newValue = cmd.scaledMeterValue
             if (newValue != state.energyValue) {
-                dispValue = newValue+"\nkWh"
+                dispValue = newValue
                 sendEvent(name: "currentKWH", value: dispValue as String, unit: "", displayed: false)
                 state.energyValue = newValue
                 BigDecimal costDecimal = newValue * ( kWhCost as BigDecimal)
                 def costDisplay = String.format("%3.2f",costDecimal)
-                sendEvent(name: "kwhCosts", value: "Cost\n\$${costDisplay}", unit: "", displayed: false)
+                sendEvent(name: "kwhCosts", value: "${costDisplay}", unit: "", displayed: false)
                 if (state.displayDisabled) {
                 	[name: "energy", value: newValue, unit: "kWh", displayed: true]
                 } else {

@@ -17,6 +17,7 @@
  *  08-14-2016 : Reimplemented SECONDARY_CONTROL (looks like formatting issues were fixed.
  *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.
  *  01-31-2017 : Modified the device handler for my liking, primarly for looks and feel.  Cleaned up code a bit.
+ *  03-11-2017 : Changed from valueTile to standardTile for a few tiles since ST's mobile app v2.3.x changed something between the two.
  *
  */
 metadata {
@@ -49,7 +50,7 @@ metadata {
         standardTile("blankTile", "statusText", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
 			state "default", label:'', icon:"http://cdn.device-icons.smartthings.com/secondary/device-activity-tile@2x.png"
 		}   
-        valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
+        standardTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}      
 		main "alarm"
@@ -150,7 +151,7 @@ def createEvents(physicalgraph.zwave.commands.basicv1.BasicReport cmd)
 	def alarmValue
 	if (cmd.value == 0) {
 		alarmValue = "off"
-        sendEvent(name: "alarmState", value: "waiting for events")
+        sendEvent(name: "alarmState", value: "standing by")
 	}
 	else if (cmd.value <= 33) {
 		alarmValue = "strobe"

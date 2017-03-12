@@ -19,6 +19,7 @@
  *  -------
  *  04-17-2016 : jscgs350: Original commit.
  *  08-27-2016 : jscgs350: Modified the device handler for my liking, primarly for looks and feel.
+ *  03-11-2017 : Changed from valueTile to standardTile for a few tiles since ST's mobile app v2.3.x changed something between the two.
  *
  */
 
@@ -88,37 +89,37 @@ metadata {
 		standardTile("buttonNum1", "device.button", width: 2, height: 2) {
         	state("default", label: "Button 1", defaultState: true, backgroundColor: "#ffffff", icon: "st.unknown.thing.thing-circle", decoration: "flat")
         }        
-        valueTile("pushNum1", "device.lblPush1", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
+        standardTile("pushNum1", "device.lblPush1", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
 			state("default", label: '${currentValue}', action: "push1", defaultState: true)
         }
-        valueTile("holdNum1", "device.lblHold1", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
+        standardTile("holdNum1", "device.lblHold1", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
            	state("default", label: '${currentValue}', action: "hold1", defaultState: true) 
         }
 		standardTile("buttonNum2", "device.button", width: 2, height: 2) {
         	state("default", label: "Button 2", defaultState: true, backgroundColor: "#ffffff", icon: "st.unknown.thing.thing-circle", decoration: "flat")
         }        
-        valueTile("pushNum2", "device.lblPush2", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
+        standardTile("pushNum2", "device.lblPush2", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
 			state("default", label: '${currentValue}', action: "push2", defaultState: true)
         }
-        valueTile("holdNum2", "device.lblHold2", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
+        standardTile("holdNum2", "device.lblHold2", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
            	state("default", label: '${currentValue}', action: "hold2", defaultState: true) 
         }
 		standardTile("buttonNum3", "device.button", width: 2, height: 2) {
         	state("default", label: "Button 3", defaultState: true, backgroundColor: "#ffffff", icon: "st.unknown.thing.thing-circle", decoration: "flat")
         }        
-        valueTile("pushNum3", "device.lblPush3", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
+        standardTile("pushNum3", "device.lblPush3", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
 			state("default", label: '${currentValue}', action: "push3", defaultState: true)
         }
-        valueTile("holdNum3", "device.lblHold3", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
+        standardTile("holdNum3", "device.lblHold3", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
            	state("default", label: '${currentValue}', action: "hold3", defaultState: true) 
         }
 		standardTile("buttonNum4", "device.button", width: 2, height: 2) {
         	state("default", label: "Button 4", defaultState: true, backgroundColor: "#ffffff", icon: "st.unknown.thing.thing-circle", decoration: "flat")
         }        
-        valueTile("pushNum4", "device.lblPush4", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
+        standardTile("pushNum4", "device.lblPush4", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
 			state("default", label: '${currentValue}', action: "push4", defaultState: true)
         }
-        valueTile("holdNum4", "device.lblHold4", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
+        standardTile("holdNum4", "device.lblHold4", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
            	state("default", label: '${currentValue}', action: "hold4", defaultState: true) 
         }
 

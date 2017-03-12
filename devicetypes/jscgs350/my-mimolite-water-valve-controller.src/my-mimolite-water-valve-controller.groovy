@@ -19,6 +19,7 @@
  *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.
  *  01-08/2017 : Added code for Health Check capabilities/functions. 
  *  02-11-2017 : Cleaned up code, and used secondary_control again for messages.
+ *  03-11-2017 : Changed from valueTile to standardTile for a few tiles since ST's mobile app v2.3.x changed something between the two.
  *
  */
 metadata {
@@ -69,7 +70,7 @@ metadata {
         standardTile("blankTile", "statusText", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
 			state "default", label:'', icon:"http://cdn.device-icons.smartthings.com/secondary/device-activity-tile@2x.png"
 		}         
-        valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
+        standardTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}
         main (["switch", "contact"])

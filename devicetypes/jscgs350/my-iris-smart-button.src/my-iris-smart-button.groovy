@@ -21,6 +21,7 @@
  *  03-25-2016 : Modified to always be Pushed (for the way I use these buttons).  Lines 160/161 can be changed to revert back to normal operation.
  *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.
  *  02-11-2017 : Put battery info into the main tile instead of a separate tile.
+ *  03-11-2017 : Changed from valueTile to standardTile for a few tiles since ST's mobile app v2.3.x changed something between the two.
  *
  */
 metadata {
@@ -73,7 +74,7 @@ metadata {
         standardTile("blankTile", "statusText", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
 			state "default", label:'', icon:"http://cdn.device-icons.smartthings.com/secondary/device-activity-tile@2x.png"
 		} 
-        valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
+        standardTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}
 		main (["temperature"])

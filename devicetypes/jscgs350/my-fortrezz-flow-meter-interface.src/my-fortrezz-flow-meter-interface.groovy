@@ -41,6 +41,7 @@
  *  10-05-2016 : jscgs350: Changed the chart selection process from toggling through each via a single tile, to a tile for each chart mode/type. Taping on the same tile refreshes the chart.
  *  11-11-2016 : jscgs350: Cleaned up code where meter values are assessed. (physicalgraph.zwave.commands.meterv3.MeterReport)
  *  01-08-2017 : Added code for Health Check capabilities/functions, and cleaned up code.
+ *  03-11-2017 : Changed from valueTile to standardTile for three tiles since ST's mobile app v2.3.x broke the ability for valueTiles to initiate an action.
  *
  */
 metadata {
@@ -126,13 +127,13 @@ metadata {
         }       
 
 		// Tile Row 4
-        valueTile("gpm", "device.gpm", inactiveLabel: false, width: 2, height: 1) {
+        standardTile("gpm", "device.gpm", inactiveLabel: false, width: 2, height: 1) {
 			state "gpm", label:'${currentValue}', unit:""
 		}        
-        valueTile("gpmHigh", "device.gpmHigh", inactiveLabel: false, width: 2, height: 1, decoration: "flat") {
+        standardTile("gpmHigh", "device.gpmHigh", inactiveLabel: false, width: 2, height: 1, decoration: "flat") {
 			state "default", label:'Highest flow:\n${currentValue}', action: 'resetgpmHigh'
 		}
-        valueTile("gallonHigh", "device.gallonHigh", inactiveLabel: false, width: 2, height: 1, decoration: "flat") {
+        standardTile("gallonHigh", "device.gallonHigh", inactiveLabel: false, width: 2, height: 1, decoration: "flat") {
 			state "default", label:'Highest usage:\n${currentValue}', action: 'resetgallonHigh'
 		} 
 
@@ -140,7 +141,7 @@ metadata {
         standardTile("blankTile", "statusText", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
 			state "default", label:'', icon:"http://cdn.device-icons.smartthings.com/secondary/device-activity-tile@2x.png"
 		}    
-        valueTile("lastReset", "lastReset", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
+        standardTile("lastReset", "lastReset", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
 			state "lastReset", label:'${currentValue}'
 		}
 
@@ -152,7 +153,7 @@ metadata {
 			state "noBattery", icon:"http://swiftlet.technology/wp-content/uploads/2016/04/No-Battery-96.png", backgroundColor:"#cc0000"
 		}
 		standardTile("battery", "device.battery", inactiveLabel: false, width: 3, height: 2) {
-			state "battery", label:'${currentValue}%\n Battery', unit:"", icon: "st.secondary.tools"
+			state "battery", label:'${currentValue}%\n Battery', unit:"", icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/battery-icon-614x460.png"
 		}
         
 		// Tile Row 7
