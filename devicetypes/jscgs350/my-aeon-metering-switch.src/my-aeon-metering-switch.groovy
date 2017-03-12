@@ -128,11 +128,8 @@ metadata {
             state("default", label:'High ${currentValue}')
         }
         
-        standardTile("blankTile", "statusText", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
+        standardTile("iconTile", "statusText", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
 			state "default", label:'', icon:"http://cdn.device-icons.smartthings.com/secondary/device-activity-tile@2x.png"
-		}
-        standardTile("refreshTile", "refreshTile", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
-			state "default", icon:"st.unknown.thing.thing-circle"
 		}
 
         valueTile("energyDisp", "device.energyDisp", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
@@ -161,7 +158,7 @@ metadata {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}
 		main "powerDisp"
-		details(["switch", "blankTile", "statusText", "refreshTile", "energyOne", "energyDisp", "energyTwo", "resetmax", "resetenergy", "refresh","configure"])
+		details(["switch", "iconTile", "statusText", "iconTile", "energyOne", "energyDisp", "energyTwo", "resetmax", "resetenergy", "refresh","configure"])
 	}
 }
 
@@ -189,7 +186,7 @@ def parse(String description) {
     if (state.debug) log.debug statusTextmsg
     
     def secondaryTextmsg = ""
-    secondaryTextmsg = "Currently using ${device.currentState('powerDisp')?.value}"
+    secondaryTextmsg = "Currently using ${device.currentState('powerDisp')?.value}W"
     sendEvent(name: "secondaryText", value: secondaryTextmsg)
     if (state.debug) log.debug secondaryTextmsg    
 
