@@ -124,13 +124,13 @@ metadata {
         }       
 
 		// Tile Row 4
-        standardTile("gpm", "device.gpm", inactiveLabel: false, width: 2, height: 1) {
+        valueTile("gpm", "device.gpm", inactiveLabel: false, width: 2, height: 1) {
 			state "gpm", label:'${currentValue}', unit:""
 		}        
-        standardTile("gpmHigh", "device.gpmHigh", inactiveLabel: false, width: 2, height: 1, decoration: "flat") {
+        valueTile("gpmHigh", "device.gpmHigh", inactiveLabel: false, width: 2, height: 1, decoration: "flat") {
 			state "default", label:'Highest flow:\n${currentValue}', action: 'resetgpmHigh'
 		}
-        standardTile("gallonHigh", "device.gallonHigh", inactiveLabel: false, width: 2, height: 1, decoration: "flat") {
+        valueTile("gallonHigh", "device.gallonHigh", inactiveLabel: false, width: 2, height: 1, decoration: "flat") {
 			state "default", label:'Highest usage:\n${currentValue}', action: 'resetgallonHigh'
 		} 
 
