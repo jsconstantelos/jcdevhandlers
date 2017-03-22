@@ -24,6 +24,7 @@
  *  11-19-2016 : Changed color of slider from green to a lighter grey.
  *  01-08-2017 : Added code for Health Check capabilities/functions, and cleaned up code.
  *  01-13-2017 : Added a couple debug lines in the Configure section.
+ *  03-21-2017 : Added THERMOSTAT_SETPOINT to the multiAttributeTile to properly reflect mode and setpoint.
  *
 */
 metadata {
@@ -91,7 +92,10 @@ metadata {
             }
             tileAttribute("device.coolingSetpoint", key: "COOLING_SETPOINT") {
                 attributeState("default", label:'${currentValue}°', unit:"dF")
-            }            
+            }
+            tileAttribute("device.thermostatSetpoint", key: "THERMOSTAT_SETPOINT") {
+                attributeState("default", label:'${currentValue}°', unit:"dF")
+            } 
 		}       
 
 //Thermostat Mode Control
