@@ -1,5 +1,7 @@
 /**
- *  Dome Siren Model DMS01
+ *  Dome Siren v1.1.4
+ *  (Model: DMS01)
+ *
  *  Zooz Siren Model ZSE33
  *
  *  Author: 
@@ -7,6 +9,24 @@
  *
  *  URL to documentation:  https://community.smartthings.com/t/release-dome-siren-official/75499?u=krlaframboise
  *    
+ *
+ *  Changelog:
+ *
+ *    1.1.4 (03/21/2017)
+ *    	- Fix for SmartThings TTS url changing.
+ *
+ *    1.1.3 (03/11/2017)
+ *      - Cleaned code for publication.
+ *
+ *    1.1.2 (03/09/2017)
+ *      - Added health check and switch capabilities.
+ *      - Added self polling functionality.
+ *      - Removed polling capability.
+ *
+ *    1.0 (01/25/2017)
+ *      - Initial Release
+ *
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  *  in compliance with the License. You may obtain a copy of the License at:
  *
@@ -15,13 +35,6 @@
  *  Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
- *
- *  Changelog:
- * 
- *  01/25/2017 - 1.0 Initial Release
- *  01/30/2017 - Modified Status tile to use more of the multiattributetile features to include battery status instead of a separate tile.
- *  01/31/2017 - Modified the UI for my liking, primarily just moving tiles around (my OCD was kicking in...)
- *  02/10/2017 - Added battery icon in the main tile.
  *
  */
 metadata {
@@ -36,12 +49,13 @@ metadata {
 		capability "Configuration"
 		capability "Refresh"
 		capability "Tone"
-		capability "Polling"
 		capability "Speech Synthesis"
 		capability "Audio Notification"
 		capability "Music Player"
+		capability "Switch"
+		capability "Health Check"
 		
-		attribute "lastCheckin", "number"
+		attribute "lastCheckin", "string"
 		attribute "status", "enum", ["alarm", "pending", "off", "chime"]
 		
 		// Required for Speaker notify with sound
@@ -100,10 +114,10 @@ metadata {
 			options: sirenDelayOptions.collect { it.name }
 		input "sirenDelayBeep", "enum",
 			title: "Alarm Delay Beep:",
-			defaultValue: sirenDelayBeepSetting,
-			required: false,
-			displayDuringSetup: true,
-			options: sirenDelayBeepOptions.collect { it.name }
+				defaultValue: sirenDelayBeepSetting,
+				required: false,
+				displayDuringSetup: true,
+				options: sirenDelayBeepOptions.collect { it.name }
 		input "chimeVolume", "enum",
 			title: "Chime Volume:",
 			required: false,
@@ -122,12 +136,18 @@ metadata {
 			required: false,
 			displayDuringSetup: true,
 			options: ledOptions.collect { it.name }
-		input "reportBatteryEvery", "number", 
-			title: "Battery Reporting Interval (Hours)", 
-			range: "1..167",
+		input "checkinInterval", "enum",
+			title: "Checkin Interval:",
+			defaultValue: checkinIntervalSetting,
 			required: false,
 			displayDuringSetup: true,
-			defaultValue: reportBatteryEverySetting
+			options: checkinIntervalOptions.collect { it.name }
+		input "batteryReportingInterval", "enum",
+			title: "Battery Reporting Interval:",
+			defaultValue: batteryReportingIntervalSetting,
+			required: false,
+			displayDuringSetup: true,
+			options: checkinIntervalOptions.collect { it.name }
 		input "debugOutput", "bool", 
 			title: "Enable debug logging?", 
 			defaultValue: true, 
@@ -135,7 +155,7 @@ metadata {
 	}
 
 	tiles(scale: 2) {
-		multiAttributeTile(name:"status", type: "lighting", width: 6, height: 4){
+		multiAttributeTile(name:"status", type: "generic", width: 6, height: 4, canChangeIcon: true){
 			tileAttribute ("device.status", key: "PRIMARY_CONTROL") {
 				attributeState "off", 
 					label:'Off', 
@@ -233,12 +253,15 @@ metadata {
 	}
 }
 
+// Initializes the health check interval and sends configuration to device the first time it runs.
 def updated() {	
 	// This method always gets called twice when preferences are saved.
 	if (!isDuplicateCommand(state.lastUpdated, 3000)) {		
 		state.lastUpdated = new Date().time
 		state.activeEvents = []
 		logTrace "updated()"
+		
+		initializeCheckin()
 		
 		if (state.firstUpdate == false) {
 			def result = []
@@ -254,6 +277,59 @@ def updated() {
 	}		
 }
 
+private initializeCheckin() {
+	// Set the Health Check interval so that it can be skipped once plus 2 minutes.
+	def checkInterval = ((checkinIntervalSettingMinutes * 2 * 60) + (2 * 60))
+	
+	sendEvent(name: "checkInterval", value: checkInterval, displayed: false, data: [protocol: "zwave", hubHardwareId: device.hub.hardwareID])
+	
+	startHealthPollSchedule()
+}
+
+private startHealthPollSchedule() {
+	unschedule(healthPoll)
+	switch (checkinIntervalSettingMinutes) {
+		case 5:
+			runEvery5Minutes(healthPoll)
+			break
+		case 10:
+			runEvery10Minutes(healthPoll)
+			break
+		case 15:
+			runEvery15Minutes(healthPoll)
+			break
+		case 30:
+			runEvery30Minutes(healthPoll)
+			break
+		case [60, 120]:
+			runEvery1Hour(healthPoll)
+			break
+		default:
+			runEvery3Hours(healthPoll)			
+	}
+}
+
+// Executed by internal schedule and requests a report from the device to determine if it's still online.
+def healthPoll() {
+	logTrace "healthPoll()"
+	def cmd = canReportBattery() ? batteryGetCmd() : versionGetCmd()
+	sendHubCommand(new physicalgraph.device.HubAction(cmd))
+}
+
+// Executed by SmartThings if the specified checkInterval is exceeded.
+def ping() {
+	logTrace "ping()"
+	// Don't allow it to ping the device more than once per minute.
+	if (!isDuplicateCommand(state.lastCheckinTime, 60000)) {
+		logDebug "Attempting to ping device."
+		// Restart the polling schedule in case that's the reason why it's gone too long without checking in.
+		startHealthPollSchedule()
+		
+		return versionGetCmd()
+	}	
+}
+
+// Initializes the device state when paired and updates the device's configuration.
 def configure() {
 	logTrace "configure()"
 	def cmds = []
@@ -300,6 +376,7 @@ private updateConfigVal(paramNum, val, refreshAll) {
 	return result
 }
 
+// Music Player capability commands that aren't being used.
 def mute() { logUnsupportedCommand("mute()") }
 def unmute() { logUnsupportedCommand("unmute()") }
 def nextTrack() { logUnsupportedCommand("nextTrack()") }
@@ -351,19 +428,14 @@ def playText(message, volume=null) {
 }
 
 private getTextFromTTSUrl(URI) {
-	def urlPrefix = "https://s3.amazonaws.com/smartapp-media/tts/"
-	def urlPrefix2 = "http://s3.amazonaws.com/smartapp-media/sonos/"
-	
-	def text = ""	
-	[urlPrefix, urlPrefix2].each {
-		if (URI?.toString()?.toLowerCase()?.contains(it)) {
-			text = URI.replace(it, "").replace(".mp3", "")
-		}
-	}	
-	return text ?: URI
+	if (URI?.toString()?.contains("/")) {
+		def startIndex = URI.lastIndexOf("/") + 1
+		URI = URI.substring(startIndex, URI.size())?.toLowerCase()?.replace(".mp3","")
+	}
+	return URI
 }
 
-
+// Commands that turn the device off.
 def pause() { return off() }
 def stop() { return off() }
 def off() {
@@ -373,14 +445,14 @@ def off() {
 	return sirenToggleCmds(0x00)
 }
 
+// Commands that turn the device on.
 def play() { return on() }
 def on() {	
 	logDebug "Playing Default Chime"	
-	// addPendingSound("switch", "on")
-	// return chimePlayCmds(onChimeSoundSetting)
-	return startChime(null)
+	return both()
 }
 
+// Plays beep sound specified in settings.
 def beep() {
 	def beepSound = 10
 	logDebug "Beeping (#${beepSound})"
@@ -392,12 +464,11 @@ def beep() {
 		]
 	}
 	else {
-		// addPendingSound("status", "chime")
-		// return chimePlayCmds(beepSound)
 		return startChime(beepSound)
 	}
 }
 
+// Plays the sound by name.
 def bell1() { playText("bell1") }
 def bell2() { playText("bell2") }
 def bell3() { playText("bell3") }
@@ -427,10 +498,7 @@ private startChime(sound) {
 	}
 }
 
-def strobe() { 
-	return siren() 
-}
-
+// Starts beeping (if applicable) and turns on siren after delay.
 def both() {
 	def delayMS = (convertOptionSettingToInt(sirenDelayOptions, sirenDelaySetting) * 1000)
 	
@@ -453,6 +521,10 @@ def both() {
 	}
 }
 
+// Immediately turns on the siren.
+def strobe() { 
+	return siren() 
+}
 def siren() { 
 	state.sirenStartTime = new Date().time
 	state.pendingSiren = false
@@ -468,22 +540,14 @@ private addPendingSound(name, value) {
 	state.pendingSound = [name: "$name", value: "$value", time: new Date().time]
 }
 
+// Resends configuration to device.
 def refresh() {	
 	logTrace "refresh()"
 	state.pendingRefresh = true
 	return configure()
 }
 
-def poll() {
-	if (canCheckin() && canReportBattery()) {
-		logDebug "Requesting battery report because device was polled."
-		return [batteryGetCmd()]
-	}
-	else {
-		logDebug "Ignored poll request because it hasn't been long enough since the last poll."
-	}
-}
-
+// Processes messages received from device.
 def parse(String description) {
 	def result = []
 	
@@ -501,17 +565,20 @@ def parse(String description) {
 		}
 	}
 	
-	if (canCheckin()) {
-		result << createEvent(name: "lastCheckin",value: new Date().time, isStateChange: true, displayed: false)
-	}
-	
+	if (!isDuplicateCommand(state.lastCheckinTime, 60000)) {
+		result << createLastCheckinEvent()
+	}	
 	return result
 }
 
-private canCheckin() {
-	// Only allow the event to be created once per minute.
-	def lastCheckin = device.currentValue("lastCheckin")
-	return (!lastCheckin || lastCheckin < (new Date().time - 60000))
+private createLastCheckinEvent() {
+	state.lastCheckinTime = new Date().time
+	logDebug "Device Checked In"
+	return createEvent(name: "lastCheckin", value: convertToLocalTimeString(new Date()), displayed: false)
+}
+
+private convertToLocalTimeString(dt) {
+	return dt.format("MM/dd/yyyy hh:mm:ss a", TimeZone.getTimeZone(location.timeZone.ID))
 }
 
 private getCommandClassVersions() {
@@ -531,39 +598,37 @@ private getCommandClassVersions() {
 	]
 }
 
-private canReportBattery() {	
-	def reportEveryMS = (reportBatteryEverySetting * 60 * 60 * 1000)
+private canReportBattery() {
+	def reportEveryMS = (batteryReportingIntervalSettingMinutes * 60 * 1000)
 		
 	return (!state.lastBatteryReport || ((new Date().time) - state.lastBatteryReport > reportEveryMS)) 
 }
 
+// Creates the event for the battery level.
 def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
 	logTrace "BatteryReport: $cmd"
-	def map = [ 
-		name: "battery", 		
-		unit: "%"
-	]
-	
-	if (cmd.batteryLevel == 0xFF) {
-		map.value = 1
-		map.descriptionText = "Battery is low"
-		map.isStateChange = true
-		logDebug "${map.descriptionText}"
+	def val = (cmd.batteryLevel == 0xFF ? 1 : cmd.batteryLevel)
+	if (val > 100) {
+		val = 100
 	}
-	else {	
-		def isNew = (device.currentValue("battery") != cmd.batteryLevel)
-		map.value = cmd.batteryLevel
-		map.displayed = isNew
-		map.isStateChange = isNew
-		logDebug "Battery is ${cmd.batteryLevel}%"
-	}	
-	
 	state.lastBatteryReport = new Date().time	
-	[
-		createEvent(map)
-	]
+	logDebug "Battery ${val}%"
+	
+	def isNew = (device.currentValue("battery") != val)
+			
+	def result = []
+	result << createEvent(name: "battery", value: val, unit: "%", display: isNew, isStateChange: isNew)	
+	return result
 }	
 
+// Requested by health poll to verify that it's still online.
+def zwaveEvent(physicalgraph.zwave.commands.versionv1.VersionReport cmd) {
+	logTrace "VersionReport: $cmd"	
+	// Using this event for health monitoring to update lastCheckin
+	return []
+}
+
+// Stores configuration values so that when it's updated it only has to send the ones that have changed.
 def zwaveEvent(physicalgraph.zwave.commands.configurationv1.ConfigurationReport cmd) {	
 	def name = configData.find { it.paramNum == cmd.parameterNumber }?.name
 	if (name) {	
@@ -581,6 +646,7 @@ def zwaveEvent(physicalgraph.zwave.commands.configurationv1.ConfigurationReport 
 	return []
 }
 
+// Used by the delayed alarm feature to turn the siren on after the delay. 
 def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicReport cmd) {
 	if (state.pendingSiren || (state.sirenStartTime && device.currentValue("status") != "alarm")) {
 		state.pendingSiren = false
@@ -591,6 +657,7 @@ def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicReport cmd) {
 	}
 }
 
+// Creates off events.
 def zwaveEvent(physicalgraph.zwave.commands.switchbinaryv1.SwitchBinaryReport cmd) {
 	def result = []	
 	if (cmd.value == 0x00 && !state.pendingSiren) {
@@ -603,6 +670,7 @@ def zwaveEvent(physicalgraph.zwave.commands.switchbinaryv1.SwitchBinaryReport cm
 	return result
 }
 
+// Executes a beep during the beep delayed alarm and creates events for device turning on.
 def zwaveEvent(physicalgraph.zwave.commands.indicatorv1.IndicatorReport cmd) {
 	def beepDelayMS = 2500
 	if (state.pendingSiren) {
@@ -618,6 +686,7 @@ def zwaveEvent(physicalgraph.zwave.commands.indicatorv1.IndicatorReport cmd) {
 	}
 }
 
+// Creates events for chimes being played.
 def zwaveEvent(physicalgraph.zwave.commands.notificationv3.NotificationReport cmd) {
 	def result = []	
 	
@@ -711,6 +780,7 @@ private getEventMap(event, displayed=false) {
 	return eventMap
 }
 
+// Handles unexpected device event.
 def zwaveEvent(physicalgraph.zwave.Command cmd) {
 	logDebug "Unhandled Command: $cmd"
 	return []
@@ -770,6 +840,10 @@ private batteryGetCmd() {
 	return zwave.batteryV1.batteryGet().format()
 }
 
+private versionGetCmd() {
+	return zwave.versionV1.versionGet().format()
+}
+
 private configGetCmd(paramNum) {
 	return zwave.configurationV1.configurationGet(parameterNumber: paramNum).format()
 }
@@ -795,9 +869,6 @@ private getConfigData() {
 }
 
 // Settings
-private getReportBatteryEverySetting() {
-	return safeToInt(settings?.reportBatteryEvery, 8)
-}
 private getSirenSoundSetting() {
 	return settings?.sirenSound ?: findDefaultOptionName(sirenSoundOptions)
 }
@@ -827,6 +898,18 @@ private getChimeLEDSetting() {
 }
 private getChimeModeSetting() {
 	return 1 // Chime Mode should always be disabled.
+}
+private getCheckinIntervalSettingMinutes() {
+	return convertOptionSettingToInt(checkinIntervalOptions, checkinIntervalSetting) ?: 720
+}
+private getCheckinIntervalSetting() {
+	return settings?.checkinInterval ?: findDefaultOptionName(checkinIntervalOptions)
+}
+private getBatteryReportingIntervalSettingMinutes() {
+	return convertOptionSettingToInt(checkinIntervalOptions, batteryReportingIntervalSetting) ?: checkinIntervalSettingMinutes
+}
+private getBatteryReportingIntervalSetting() {
+	return settings?.batteryReportingInterval ?: findDefaultOptionName(checkinIntervalOptions)
 }
 
 private validateSound(sound, defaultVal) {
@@ -928,6 +1011,23 @@ private getSirenLengthOptions() {
 		[name: formatDefaultOptionName("1 Minute"), value: 2],
 		[name: "5 Minutes", value: 3],
 		[name: "${noLengthMsg}", value: 4] // config value is 255
+	]
+}
+
+private getCheckinIntervalOptions() {
+	[
+		[name: "5 Minutes", value: 5],
+		[name: "10 Minutes", value: 10],
+		[name: "15 Minutes", value: 15],
+		[name: "30 Minutes", value: 30],
+		[name: "1 Hour", value: 60],
+		[name: "2 Hours", value: 120],
+		[name: "3 Hours", value: 180],
+		[name: "6 Hours", value: 360],
+		[name: "9 Hours", value: 540],
+		[name: formatDefaultOptionName("12 Hours"), value: 720],
+		[name: "18 Hours", value: 1080],
+		[name: "24 Hours", value: 1440]
 	]
 }
 
