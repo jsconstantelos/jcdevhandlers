@@ -22,6 +22,7 @@
  *  01-08/2017 : Added code for Health Check capabilities/functions.
  *  02-11-2017 : Cleaned up code, and used secondary_control again for messages.
  *  03-11-2017 : Cleaned up code.
+ *  03-24-2017 : Changed color schema to match ST's new format.
  *
  */
 metadata {
@@ -54,8 +55,8 @@ metadata {
 	tiles(scale: 2) {
 		multiAttributeTile(name:"switch", type: "generic", width: 6, height: 4){
 			tileAttribute ("device.switch", key: "PRIMARY_CONTROL") {
-            	attributeState "doorClosed", label: "Closed", action: "push", icon: "st.doors.garage.garage-closed", backgroundColor: "#79b821", nextState:"openingdoor"
-            	attributeState "doorOpen", label: "Open", action: "push", icon: "st.doors.garage.garage-open", backgroundColor: "#ffa81e", nextState:"closingdoor"
+            	attributeState "doorClosed", label: "Closed", action: "push", icon: "st.doors.garage.garage-closed", backgroundColor: "#00A0DC", nextState:"openingdoor"
+            	attributeState "doorOpen", label: "Open", action: "push", icon: "st.doors.garage.garage-open", backgroundColor: "#e86d13", nextState:"closingdoor"
                 attributeState "closingdoor", label:'Closing', icon:"st.doors.garage.garage-closing", backgroundColor:"#ffd700"
                 attributeState "openingdoor", label:'Opening', icon:"st.doors.garage.garage-opening", backgroundColor:"#ffd700"
 			}

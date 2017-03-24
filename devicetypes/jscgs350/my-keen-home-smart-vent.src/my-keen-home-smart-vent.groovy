@@ -13,7 +13,8 @@
  *  Updates:
  *  -------
  *  02-18-2016 : Initial commit
- *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.  
+ *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.
+ *  03-24-2017 : Changed color schema to match ST's new format.
  *
  */
 metadata {
@@ -46,7 +47,7 @@ metadata {
     tiles(scale: 2) {
         multiAttributeTile(name:"switch", type: "lighting", width: 6, height: 4, canChangeIcon: true, decoration: "flat"){
             tileAttribute ("device.switch", key: "PRIMARY_CONTROL") {
-                attributeState "on", action: "switch.off", label: "OPEN", icon: "st.vents.vent-open", backgroundColor: "#53a7c0"
+                attributeState "on", action: "switch.off", label: "OPEN", icon: "st.vents.vent-open", backgroundColor: "#00A0DC"
                 attributeState "off", action: "switch.on", label: "CLOSED", icon: "st.vents.vent", backgroundColor: "#ffffff"
                 attributeState "obstructed", action: "clearObstruction", label: "OBSTRUCTION", icon: "st.vents.vent-open", backgroundColor: "#ff0000"
                 attributeState "clearing", action: "", label: "CLEARING", icon: "st.vents.vent-open", backgroundColor: "#ffff33"

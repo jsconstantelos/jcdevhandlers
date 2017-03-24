@@ -21,6 +21,7 @@
  *  04-13-2016 : Added icon for illuminance
  *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.
  *  02-11-2017 : Put battery info into the main tile instead of a separate tile.
+ *  03-24-2017 : Changed color schema to match ST's new format.
  *
  */ 
 metadata {
@@ -42,8 +43,8 @@ metadata {
 	tiles(scale: 2) {
 		multiAttributeTile(name:"contact", type: "generic", width: 6, height: 4){
 			tileAttribute ("device.contact", key: "PRIMARY_CONTROL") {
-				attributeState "open", label:'open', icon:"st.contact.contact.open", backgroundColor:"#ffa81e"
-				attributeState "closed", label:'closed', icon:"st.contact.contact.closed", backgroundColor:"#79b821"
+				attributeState "open", label:'open', icon:"st.contact.contact.open", backgroundColor:"#e86d13"
+				attributeState "closed", label:'closed', icon:"st.contact.contact.closed", backgroundColor:"#00A0DC"
 			}
             tileAttribute ("device.battery", key: "SECONDARY_CONTROL") {
                 attributeState("default", label:'${currentValue}% battery', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/battery-icon-614x460.png")

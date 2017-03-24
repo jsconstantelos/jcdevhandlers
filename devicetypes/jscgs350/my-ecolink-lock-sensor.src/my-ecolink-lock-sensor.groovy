@@ -17,6 +17,7 @@
  *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.
  *  02-11-2017 : Removed commands no longer needed.  Documented what each attribute is used for.  Put battery info into the main tile instead of a separate tile.
  *  02-11-2017 : Put battery info into the main tile instead of a separate tile.
+ *  03-24-2017 : Changed color schema to match ST's new format.
  *
  */
 
@@ -36,8 +37,8 @@ metadata {
 	tiles(scale: 2) {
 		multiAttributeTile(name:"lock", type: "generic", width: 6, height: 4){
 			tileAttribute ("device.lock", key: "PRIMARY_CONTROL") {
-				attributeState "locked", label: 'Locked', icon: "st.presence.house.secured", backgroundColor: "#79b821"
-				attributeState "unlocked", label: 'Unlocked', icon: "st.presence.house.unlocked", backgroundColor: "#ffa81e"
+				attributeState "locked", label: 'Locked', icon: "st.presence.house.secured", backgroundColor: "#00A0DC"
+				attributeState "unlocked", label: 'Unlocked', icon: "st.presence.house.unlocked", backgroundColor: "#e86d13"
 			}           
             tileAttribute ("device.battery", key: "SECONDARY_CONTROL") {
                 attributeState("default", label:'${currentValue}% battery', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/battery-icon-614x460.png")
