@@ -28,6 +28,7 @@
  *  01-19-2017 : Added code similar to the HEM v1 to display energy and cost.
  *  02-11-2017 : Cleaned up code and added an icon to the secondary_control section of the main tile.
  *  03-11-2017 : Changed from valueTile to standardTile for a few tiles since ST's mobile app v2.3.x changed something between the two.
+ *  03-24-2017 : Changed color schema to match ST's new format.
  *
  */
 metadata {
@@ -108,7 +109,7 @@ metadata {
 	tiles(scale: 2) {
 		multiAttributeTile(name:"switch", type: "generic", width: 6, height: 4, decoration: "flat"){
 			tileAttribute ("device.switch", key: "PRIMARY_CONTROL") {
-				attributeState "on", label: '${name}', action: "switch.off", icon: "st.switches.switch.on", backgroundColor: "#79b821"
+				attributeState "on", label: '${name}', action: "switch.off", icon: "st.switches.switch.on", backgroundColor: "#00A0DC"
 				attributeState "off", label: '${name}', action: "switch.on", icon: "st.switches.switch.off", backgroundColor: "#ffffff"
 			}
             tileAttribute ("secondaryText", key: "SECONDARY_CONTROL") {
