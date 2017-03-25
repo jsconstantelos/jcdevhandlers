@@ -188,7 +188,7 @@ def parse(String description) {
     
     def secondaryTextmsg = ""
     secondaryTextmsg = "Currently using ${device.currentState('powerDisp')?.value}W"
-    sendEvent(name: "secondaryText", value: secondaryTextmsg)
+    sendEvent(name: "secondaryText", value: secondaryTextmsg, displayed: false)
     if (state.debug) log.debug secondaryTextmsg    
 
 	return result

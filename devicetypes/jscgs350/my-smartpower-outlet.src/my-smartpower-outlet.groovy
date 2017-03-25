@@ -12,6 +12,12 @@
  *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
  *  License for the specific language governing permissions and limitations
  *  under the License.
+ *
+ *  Updates:
+ *  -------
+ *  03-24-2017 : Initial commit.
+ *  03-25-2017 : Added features from @blebson's DTH (Energy in kWh), as well as from my Aeon DSC06 gen 1 DTH
+ *
  */
 metadata {
 	// Automatically generated. Make future change here.
@@ -19,6 +25,7 @@ metadata {
 		capability "Actuator"
 		capability "Switch"
 		capability "Power Meter"
+        capability "Energy Meter"
 		capability "Configuration"
 		capability "Refresh"
 		capability "Sensor"
@@ -32,17 +39,6 @@ metadata {
 		fingerprint profileId: "0104", inClusters: "0000,0003,0004,0005,0006,0B04,0B05", outClusters: "0019"
 	}
 
-	// simulator metadata
-	simulator {
-		// status messages
-		status "on": "on/off: 1"
-		status "off": "on/off: 0"
-
-		// reply messages
-		reply "zcl on-off on": "on/off: 1"
-		reply "zcl on-off off": "on/off: 0"
-	}
-
 	preferences {
 		section {
 			image(name: 'educationalcontent', multiple: true, images: [
@@ -50,43 +46,75 @@ metadata {
 					"http://cdn.device-gse.smartthings.com/Outlet/US/OutletUS2.jpg"
 			])
 		}
+        section("Device customizations") {
+            input "disableOnOff", "boolean", 
+                title: "Disable On/Off switch?", 
+                defaultValue: false, 
+                displayDuringSetup: true
+            input "debugOutput", "boolean", 
+                title: "Enable debug logging?", 
+                defaultValue: false, 
+                displayDuringSetup: true
+            input "displayEvents", "boolean",
+                title: "Display Power (watts) events in the Recently tab and the device's event log?", 
+                defaultValue: false,
+                required: false,
+                displayDuringSetup: true
+            input "kWhCost", "string",
+                title: "Enter your cost per kWh (or just use the default, or use 0 to not calculate):",
+                defaultValue: 0.16,
+                required: false,                
+                displayDuringSetup: true
+        }
 	}
 
 	// UI tile definitions
 	tiles(scale: 2) {
 		multiAttributeTile(name: "switch", type: "lighting", width: 6, height: 4, canChangeIcon: true) {
 			tileAttribute("device.switch", key: "PRIMARY_CONTROL") {
-				attributeState "on", label: 'On', action: "switch.off", icon: "st.switches.switch.on", backgroundColor: "#00A0DC", nextState: "turningOff"
-				attributeState "off", label: 'Off', action: "switch.on", icon: "st.switches.switch.off", backgroundColor: "#ffffff", nextState: "turningOn"
-				attributeState "turningOn", label: 'Turning On', action: "switch.off", icon: "st.switches.switch.on", backgroundColor: "#00A0DC", nextState: "turningOff"
-				attributeState "turningOff", label: 'Turning Off', action: "switch.on", icon: "st.switches.switch.off", backgroundColor: "#ffffff", nextState: "turningOn"
+				attributeState "on", label: 'On', action: "switch.off", icon: "st.switches.switch.on", backgroundColor: "#00A0DC"
+				attributeState "off", label: 'Off', action: "switch.on", icon: "st.switches.switch.off", backgroundColor: "#ffffff"
 			}
 			tileAttribute("power", key: "SECONDARY_CONTROL") {
-				attributeState "power", label: '${currentValue} W', icon: "st.secondary.activity"
+				attributeState "power", label: 'Currently using ${currentValue}W', icon: "st.secondary.activity"
 			}
 		}
 		standardTile("power", "device.power", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
 			state "power", label: '${currentValue} W', icon: "st.secondary.activity"
 		}
-		standardTile("refresh", "device.power", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
+        
+		standardTile("refresh", "device.power", inactiveLabel: false, decoration: "flat", width: 6, height: 2) {
 			state "default", label: '', action: "refresh.refresh", icon: "st.secondary.refresh"
 		}
 
 		main "power"
-		details(["switch", "refresh"])
+		details(["switch", "energyDisplay", "energyCost", "refresh"])
 	}
+}
+
+def updated() {
+    state.onOffDisabled = ("true" == disableOnOff)
+    state.debug = ("true" == debugOutput)
+    state.displayDisabled = ("true" == displayEvents)
+    log.debug "updated(disableOnOff: ${disableOnOff}(${state.onOffDisabled}), debugOutput: ${debugOutput}(${state.debug})"
+    response(configure())
 }
 
 // Parse incoming device messages to generate events
 def parse(String description) {
-	log.debug "description is $description"
+	if (state.debug) log.debug "description is $description"
 
 	def event = zigbee.getEvent(description)
 
 	if (event) {
 		if (event.name == "power") {
 			def value = (event.value as Integer) / 10
-			event = createEvent(name: event.name, value: value, descriptionText: '{{ device.displayName }} power is {{ value }} Watts', translatable: true)
+            if (state.displayDisabled) {
+				event = createEvent(name: event.name, value: value, descriptionText: '{{ device.displayName }} power is {{ value }} Watts', translatable: true, displayed: true)
+            } else {
+            	event = createEvent(name: event.name, value: value, descriptionText: '{{ device.displayName }} power is {{ value }} Watts', translatable: true, displayed: false)
+            }
+//            return calculateAndShowEnergy()
 		} else if (event.name == "switch") {
 			def descriptionText = event.value == "on" ? '{{ device.displayName }} is On' : '{{ device.displayName }} is Off'
 			event = createEvent(name: event.name, value: event.value, descriptionText: descriptionText, translatable: true)
@@ -96,27 +124,56 @@ def parse(String description) {
 
 		if (cluster && cluster.clusterId == 0x0006 && cluster.command == 0x07) {
 			if (cluster.data[0] == 0x00) {
-				log.debug "ON/OFF REPORTING CONFIG RESPONSE: " + cluster
+				if (state.debug) log.debug "ON/OFF REPORTING CONFIG RESPONSE: " + cluster
 				event = createEvent(name: "checkInterval", value: 60 * 12, displayed: false, data: [protocol: "zigbee", hubHardwareId: device.hub.hardwareID])
 			} else {
-				log.warn "ON/OFF REPORTING CONFIG FAILED- error code:${cluster.data[0]}"
+				if (state.debug) log.warn "ON/OFF REPORTING CONFIG FAILED- error code:${cluster.data[0]}"
 				event = null
 			}
 		} else {
-			log.warn "DID NOT PARSE MESSAGE for description : $description"
-			log.debug "${cluster}"
+			if (state.debug) log.warn "DID NOT PARSE MESSAGE for description : $description"
+			if (state.debug) log.debug "${cluster}"
 		}
 	}
 	return event ? createEvent(event) : event
 }
 
 def off() {
-	zigbee.off()
+    if (state.onOffDisabled) {
+        if (state.debug) log.debug "On/Off disabled..."
+        refresh()
+    }
+    else {
+        zigbee.off()
+    }
 }
 
 def on() {
-	zigbee.on()
+    if (state.onOffDisabled) {
+        if (state.debug) log.debug "On/Off disabled..."
+        refresh()
+    }
+    else {
+        zigbee.on()
+    }
 }
+
+def calculateAndShowEnergy()
+{
+    def recentEvents = device.statesSince("power", new Date()-1, [max: 2]).collect {[value: it.value as float, date: it.date]}        	
+    def deltaT = (recentEvents[0].date.getTime() - recentEvents[1].date.getTime()) // time since last "power" event in milliseconds
+    deltaT = deltaT / 3600000 // convert to hours
+    
+    def energyValue = device.currentValue("energy") 
+    if(energyValue != null) {
+    	energyValue += (recentEvents[1].value * deltaT) / 1000 // energy used since last "power" event in kWh 
+    }
+    
+    sendEvent(name: "energy", value: energyValue, displayed: false)
+    sendEvent(name: "energyDisplay", value: String.format("%6.3f kWh",energyValue), displayed: false)
+
+}
+
 /**
  * PING is used by Device-Watch in attempt to reach the Device
  * */
@@ -129,6 +186,7 @@ def refresh() {
 }
 
 def configure() {
+	log.debug "Configuring..."
 	// Device-Watch allows 2 check-in misses from device + ping (plus 1 min lag time)
 	// enrolls with default periodic reporting until newer 5 min interval is confirmed
 	sendEvent(name: "checkInterval", value: 2 * 10 * 60 + 1 * 60, displayed: false, data: [protocol: "zigbee", hubHardwareId: device.hub.hardwareID])
