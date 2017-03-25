@@ -62,7 +62,7 @@ metadata {
 				attributeState "turningOff", label: 'Turning Off', action: "switch.on", icon: "st.switches.switch.off", backgroundColor: "#ffffff", nextState: "turningOn"
 			}
 			tileAttribute("power", key: "SECONDARY_CONTROL") {
-				attributeState "power", label: '${currentValue} W'
+				attributeState "power", label: '${currentValue} W', icon: "st.secondary.activity"
 			}
 		}
 		standardTile("power", "device.power", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
