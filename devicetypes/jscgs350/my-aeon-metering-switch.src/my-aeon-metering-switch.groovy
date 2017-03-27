@@ -82,27 +82,32 @@ metadata {
             displayDuringSetup: true            
         input "reportType", "number", 
             title: "ReportType: Send watts/kWh data on a time interval (0), or on a change in wattage (1)? Enter a 0 or 1:",  
-            defaultValue: 1, 
+            defaultValue: 1,
+            range: "0..1",
             required: false, 
             displayDuringSetup: true
         input "wattsChanged", "number", 
             title: "For ReportType = 1, Don't send unless watts have changed by this many watts: (range 0 - 32,000W)",  
-            defaultValue: 50, 
+            defaultValue: 50,
+            range: "0..32000",
             required: false, 
             displayDuringSetup: true
         input "wattsPercent", "number", 
             title: "For ReportType = 1, Don't send unless watts have changed by this percent: (range 0 - 99%)",  
-            defaultValue: 10, 
+            defaultValue: 10,
+            range: "0..99",
             required: false, 
             displayDuringSetup: true
         input "secondsWatts", "number", 
             title: "For ReportType = 0, Send Watts data every how many seconds? (range 0 - 65,000 seconds)",  
-            defaultValue: 10, 
+            defaultValue: 10,
+            range: "0..65000",
             required: false, 
             displayDuringSetup: true
         input "secondsKwh", "number", 
             title: "For ReportType = 0, Send kWh data every how many seconds? (range 0 - 65,000 seconds)",  
-            defaultValue: 60, 
+            defaultValue: 60,
+            range: "0..65000",
             required: false, 
             displayDuringSetup: true 
         input "decimalPositions", "number", 
