@@ -43,6 +43,7 @@
  *  02-12-2017 : Combined the battery and no-battery version into a single DTH, cleaned up code, and general improvements.
  *  02-13-2017 : Cleaned up code for battery message being displayed. If someone decides to display battery % while not having batteries installed Health Check will catch that and push low battery notifications until the user disables the display.
  *  03-11-2017 : Changed from valueTile to standardTile for a few tiles since ST's mobile app v2.3.x changed something between the two.
+ *  03-27-2017 : Added a new device Preference that allows for selecting how many decimal positions should be used to display for WATTS and kWh.  Min/max values still use 3 positions, as well as what's stored for the actual meter reading that's seen in the IDE for Power and what's sent to SmartApps.
  *
  */
 metadata {
@@ -77,7 +78,7 @@ metadata {
 	tiles(scale: 2) {
 		multiAttributeTile(name:"currentWATTS", type: "generic", width: 6, height: 4, decoration: "flat"){
 			tileAttribute ("device.currentWATTS", key: "PRIMARY_CONTROL") {
-				attributeState "default", action: "refresh", label: '${currentValue}', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/device-activity-tile@2x.png", backgroundColor: "#79b821"
+				attributeState "default", action: "refresh", label: '${currentValue}W', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/device-activity-tile@2x.png", backgroundColor: "#79b821"
 			}
             tileAttribute ("device.batteryStatus", key: "SECONDARY_CONTROL") {
            		attributeState "batteryStatus", label:'${currentValue}', icon:"https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/Battery-Charge-icon.png"
@@ -141,34 +142,46 @@ metadata {
             	displayDuringSetup: true                
             input "reportType", "number", 
                 title: "ReportType: Send watt/kWh data on a time interval (0), or on a change in wattage (1)? Enter a 0 or 1:",  
-                defaultValue: 1, 
+                defaultValue: 1,
+                range: "0..1",
                 required: false, 
                 displayDuringSetup: true
             input "wattsChanged", "number", 
                 title: "For ReportType = 1, Don't send unless watts have changed by this many watts: (range 0 - 32,000W)",  
-                defaultValue: 50, 
+                defaultValue: 50,
+                range: "0..32000",
                 required: false, 
                 displayDuringSetup: true
             input "wattsPercent", "number", 
                 title: "For ReportType = 1, Don't send unless watts have changed by this percent: (range 0 - 99%)",  
-                defaultValue: 10, 
+                defaultValue: 10,
+                range: "0..99",
                 required: false, 
                 displayDuringSetup: true
             input "secondsWatts", "number", 
                 title: "For ReportType = 0, Send Watts data every how many seconds? (range 0 - 65,000 seconds)",  
-                defaultValue: 15, 
+                defaultValue: 15,
+                range: "0..65000",
                 required: false, 
                 displayDuringSetup: true
             input "secondsKwh", "number", 
                 title: "For ReportType = 0, Send kWh data every how many seconds? (range 0 - 65,000 seconds)",  
-                defaultValue: 60, 
+                defaultValue: 60,
+                range: "0..65000",
                 required: false, 
                 displayDuringSetup: true
             input "secondsBattery", "number", 
                 title: "If the HEM has batteries installed, send battery data every how many seconds? (range 0 - 65,000 seconds)",  
-                defaultValue: 900, 
+                defaultValue: 900,
+                range: "0..65000",
                 required: false, 
-                displayDuringSetup: true 
+                displayDuringSetup: true
+            input "decimalPositions", "number", 
+                title: "How many decimal positions do you want watts AND kWh to display? (range 0 - 3)",  
+                defaultValue: 3,
+                range: "0..3",
+                required: false, 
+                displayDuringSetup: true
         }
 }
 
@@ -177,7 +190,7 @@ def updated() {
 	sendEvent(name: "checkInterval", value: 2 * 15 * 60 + 2 * 60, displayed: false, data: [protocol: "zwave", hubHardwareId: device.hub.hardwareID])
     state.displayDisabled = ("true" == displayEvents)
     state.displayBattery = ("true" == displayBatteryLevel)
-    log.debug "updated (kWhCost: ${kWhCost}, wattsLimit: ${wattsLimit}, reportType: ${reportType}, wattsChanged: ${wattsChanged}, wattsPercent: ${wattsPercent}, secondsWatts: ${secondsWatts}, secondsKwh: ${secondsKwh}, secondsBattery: ${secondsBattery})"
+    log.debug "updated (kWhCost: ${kWhCost}, wattsLimit: ${wattsLimit}, reportType: ${reportType}, wattsChanged: ${wattsChanged}, wattsPercent: ${wattsPercent}, secondsWatts: ${secondsWatts}, secondsKwh: ${secondsKwh}, secondsBattery: ${secondsBattery}, decimalPositions: ${decimalPositions})"
     response(configure())
 }
 
@@ -217,6 +230,19 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
             newValue = cmd.scaledMeterValue
             if (newValue != state.energyValue) {
                 dispValue = newValue
+                if (decimalPositions == 3) {
+                    dispValue = newValue
+                } else if (decimalPositions == 2) {
+                    def decimalDisplay = String.format("%3.2f",newValue)
+                    dispValue = decimalDisplay
+                } else if (decimalPositions == 1) {
+                    def decimalDisplay = String.format("%3.1f",newValue)
+                    dispValue = decimalDisplay
+                } else if (decimalPositions == 0) {
+                    dispValue = Math.round(cmd.scaledMeterValue)
+                } else {
+                    dispValue = newValue
+                }                
                 sendEvent(name: "currentKWH", value: dispValue as String, unit: "", displayed: false)
                 state.energyValue = newValue
                 BigDecimal costDecimal = newValue * ( kWhCost as BigDecimal)
@@ -231,7 +257,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
         } else if (cmd.scale == 1) {
             newValue = cmd.scaledMeterValue
             if (newValue != state.energyValue) {
-                dispValue = newValue+"\nkVAh"
+                dispValue = newValue+"kVAh"
                 sendEvent(name: "currentKWH", value: dispValue as String, unit: "", displayed: false)
                 state.energyValue = newValue
                 if (state.displayDisabled) {
@@ -243,10 +269,22 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
         }
         else if (cmd.scale==2) {                
 			newValue = cmd.scaledMeterValue								// Remove all rounding
-            if (newValue < 0) {newValue = state.powerValue}				// Don't want to see negative numbers as a valid minimum value (something isn't right with the meter)
+            if (newValue < 0) {newValue = state.powerValue}				// Don't want to see negative numbers as a valid minimum value (something isn't right with the meter) so use the last known good meter reading
 			if (newValue < wattsLimit) {								// don't handle any wildly large readings due to firmware issues	
-	            if (newValue != state.powerValue) {
-	                dispValue = newValue+"w"
+	            if (newValue != state.powerValue) {						// Only process a meter reading if it isn't the same as the last one
+	                if (decimalPositions == 3) {
+                    	dispValue = newValue
+                    } else if (decimalPositions == 2) {
+                    	def decimalDisplay = String.format("%3.2f",newValue)
+                    	dispValue = decimalDisplay
+                    } else if (decimalPositions == 1) {
+						def decimalDisplay = String.format("%3.1f",newValue)
+                    	dispValue = decimalDisplay
+                    } else if (decimalPositions == 0) {
+                    	dispValue = Math.round(cmd.scaledMeterValue)
+                    } else {
+                    	dispValue = newValue
+                    }
 	                sendEvent(name: "currentWATTS", value: dispValue as String, unit: "", displayed: false)
 	                if (newValue < state.powerLow) {
 	                    dispValue = newValue+"w"+" on "+timeString
