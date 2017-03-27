@@ -29,6 +29,7 @@
  *  02-11-2017 : Cleaned up code and added an icon to the secondary_control section of the main tile.
  *  03-11-2017 : Changed from valueTile to standardTile for a few tiles since ST's mobile app v2.3.x changed something between the two.
  *  03-24-2017 : Changed color schema to match ST's new format.
+ *  03-26-2017 : Added a new device Preference that allows for selecting how many decimal positions should be used to display for WATTS and kWh.  Min/max values still use 3 positions, as well as what's stored for the actual meter reading that's seen in the IDE for Power and what's sent to SmartApps.
  *
  */
 metadata {
@@ -104,6 +105,12 @@ metadata {
             defaultValue: 60, 
             required: false, 
             displayDuringSetup: true 
+        input "decimalPositions", "number", 
+            title: "How many decimal positions do you want watts AND kWh to display? (range 0 - 3)",  
+            defaultValue: 3,
+            range: "0..3",
+            required: false, 
+            displayDuringSetup: true
     }
 
 	tiles(scale: 2) {
@@ -169,7 +176,7 @@ def updated() {
     state.onOffDisabled = ("true" == disableOnOff)
     state.debug = ("true" == debugOutput)
     state.displayDisabled = ("true" == displayEvents)
-    log.debug "updated(disableOnOff: ${disableOnOff}(${state.onOffDisabled}), debugOutput: ${debugOutput}(${state.debug}), reportType: ${reportType}, wattsChanged: ${wattsChanged}, wattsPercent: ${wattsPercent}, secondsWatts: ${secondsWatts}, secondsKwh: ${secondsKwh})"
+    log.debug "updated(disableOnOff: ${disableOnOff}(${state.onOffDisabled}), debugOutput: ${debugOutput}(${state.debug}), reportType: ${reportType}, wattsChanged: ${wattsChanged}, wattsPercent: ${wattsPercent}, secondsWatts: ${secondsWatts}, secondsKwh: ${secondsKwh}, decimalPositions: ${decimalPositions})"
     response(configure())
 }
 
@@ -203,6 +210,19 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
         newValue = cmd.scaledMeterValue
         if (newValue != state.energyValue) {
             dispValue = newValue
+            if (decimalPositions == 3) {
+                dispValue = newValue
+            } else if (decimalPositions == 2) {
+                def decimalDisplay = String.format("%3.2f",newValue)
+                dispValue = decimalDisplay
+            } else if (decimalPositions == 1) {
+                def decimalDisplay = String.format("%3.1f",newValue)
+                dispValue = decimalDisplay
+            } else if (decimalPositions == 0) {
+                dispValue = Math.round(cmd.scaledMeterValue)
+            } else {
+                dispValue = newValue
+            }
             sendEvent(name: "energyDisp", value: dispValue as String, unit: "", displayed: false)
             state.energyValue = newValue
             BigDecimal costDecimal = newValue * ( kWhCost as BigDecimal)
@@ -231,6 +251,19 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
             if (newValue < 3000) {								  // don't handle any wildly large readings due to firmware issues
 	            if (newValue != state.powerValue) {
 	                dispValue = newValue
+	                if (decimalPositions == 3) {
+                    	dispValue = newValue
+                    } else if (decimalPositions == 2) {
+                    	def decimalDisplay = String.format("%3.2f",newValue)
+                    	dispValue = decimalDisplay
+                    } else if (decimalPositions == 1) {
+						def decimalDisplay = String.format("%3.1f",newValue)
+                    	dispValue = decimalDisplay
+                    } else if (decimalPositions == 0) {
+                    	dispValue = Math.round(cmd.scaledMeterValue)
+                    } else {
+                    	dispValue = newValue
+                    }
 	                sendEvent(name: "powerDisp", value: dispValue, unit: "", displayed: false)
 	                if (newValue < state.powerLow) {
 	                    dispValue = newValue+"w"+"on "+timeString
