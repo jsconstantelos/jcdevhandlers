@@ -43,14 +43,14 @@ metadata {
 	}
 
 	preferences {
-        input "parameterOne", "number", title: "Fade On Time : Valid values 0-253. default=2, 0=Instant, 1-127 = 1 to 127 seconds, 128-253 = 1 to 126 minutes",  defaultValue: 2, range: "0..253", required: false, displayDuringSetup: true
-        input "parameterTwo", "number", title: "Fade Off Time : Valid values 0-253. default=2, 0=Instant, 1-127 = 1 to 127 seconds, 128-253 = 1 to 126 minutes",  defaultValue: 2, range: "0..253", required: false, displayDuringSetup: true
-        input "parameterThree", "number", title: "Minimum Light Level : Valid values 0-100. default=10",  defaultValue: 10, range: "0..100", required: false, displayDuringSetup: true
-        input "parameterFour", "number", title: "Maximum Light Level : Valid values 0-100. default=100",  defaultValue: 100, range: "0..100", required: false, displayDuringSetup: true
-		input "parameterFive", "number", title: "Preset Light Level : Valid values 0-100. default=0, 0=memory dim to prev state, 1-100 = % Level",  defaultValue: 0, range: "0..100", required: false, displayDuringSetup: true
-        input "parameterSix", "number", title: "LED Dim Level Indicator Timeout : Valid values 0-255. default=3, 0 = always off, 255 = always on, 1-254 = level indicator timeout",  defaultValue: 3, range: "0..255", required: false, displayDuringSetup: true
-        input "parameterSeven", "number", title: "Locator LED Status : Valid values 0-255. default=255, 0 = LED OFF, 254 = Status Mode, 255 = Locator Mod",  defaultValue: 255, range: "0..255", required: false, displayDuringSetup: true
-        input "parameterEight", "number", title: "Load Type : Valid values 0-2. default=0, 0=incandescent, 1 = LED, 2 = CFL",  defaultValue: 0, range: "0..2", required: false, displayDuringSetup: true
+        input "parameterOne", "number", title: "Parameter 1: Fade On Time : Valid values 0-253. default=2, 0=Instant, 1-127 = 1 to 127 seconds, 128-253 = 1 to 126 minutes",  defaultValue: 2, range: "0..253", required: false, displayDuringSetup: true
+        input "parameterTwo", "number", title: "Parameter 2: Fade Off Time : Valid values 0-253. default=2, 0=Instant, 1-127 = 1 to 127 seconds, 128-253 = 1 to 126 minutes",  defaultValue: 2, range: "0..253", required: false, displayDuringSetup: true
+        input "parameterThree", "number", title: "Parameter 3: Minimum Light Level : Valid values 0-100. default=10",  defaultValue: 10, range: "0..100", required: false, displayDuringSetup: true
+        input "parameterFour", "number", title: "Parameter 4: Maximum Light Level : Valid values 0-100. default=100",  defaultValue: 100, range: "0..100", required: false, displayDuringSetup: true
+		input "parameterFive", "number", title: "Parameter 5: Preset Light Level : Valid values 0-100. default=0, 0=memory dim to prev state, 1-100 = % Level",  defaultValue: 0, range: "0..100", required: false, displayDuringSetup: true
+        input "parameterSix", "number", title: "Parameter 6: LED Dim Level Indicator Timeout : Valid values 0-255. default=3, 0 = always off, 255 = always on, 1-254 = level indicator timeout",  defaultValue: 3, range: "0..255", required: false, displayDuringSetup: true
+        input "parameterSeven", "number", title: "Parameter 7: Locator LED Status : Valid values 0-255. default=255, 0 = LED OFF, 254 = Status Mode, 255 = Locator Mod",  defaultValue: 255, range: "0..255", required: false, displayDuringSetup: true
+        input "parameterEight", "number", title: "Parameter 8: Load Type : Valid values 0-2. default=0, 0=incandescent, 1 = LED, 2 = CFL",  defaultValue: 0, range: "0..2", required: false, displayDuringSetup: true
 	}
 
 	tiles(scale: 2) {
