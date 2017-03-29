@@ -56,7 +56,7 @@ metadata {
     capability "Refresh"
     capability "Polling"
     capability "Battery"
-    capability "Health Check"
+//    capability "Health Check"
     
     attribute "currentKWH", "string" 		// Used to show current kWh since last reset
     attribute "currentWATTS", "string"  	// Used to show current watts being used on the main tile
@@ -87,10 +87,10 @@ metadata {
         standardTile("iconTile", "iconTile", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
 			state "default", icon:"https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/device-activity-tile@2x.png"
 		}
-        standardTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
+        valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}        
-        standardTile("resetMessage", "device.resetMessage", width: 5, height: 1, inactiveLabel: false, decoration: "flat") {
+        valueTile("resetMessage", "device.resetMessage", width: 5, height: 1, inactiveLabel: false, decoration: "flat") {
             state("default", label: '${currentValue}', backgroundColor:"#ffffff")
         }
         valueTile("currentKWH", "device.currentKWH", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
