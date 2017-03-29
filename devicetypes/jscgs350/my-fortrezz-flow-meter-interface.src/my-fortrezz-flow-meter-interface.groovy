@@ -39,6 +39,7 @@
  *  11-11-2016 : Cleaned up code where meter values are assessed. (physicalgraph.zwave.commands.meterv3.MeterReport)
  *  01-08-2017 : Added code for Health Check capabilities/functions, and cleaned up code.
  *  03-11-2017 : Changed from valueTile to standardTile for three tiles since ST's mobile app v2.3.x broke the ability for valueTiles to initiate an action.
+ *  03-29-2017 : Made changes to account for ST v2.3.1 bugs with text rendering.
  *
  */
 metadata {
@@ -135,10 +136,10 @@ metadata {
 		} 
 
 		// Tile Row 5
-        standardTile("blankTile", "statusText", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
+        valueTile("blankTile", "statusText", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
 			state "default", label:'', icon:"http://cdn.device-icons.smartthings.com/secondary/device-activity-tile@2x.png"
 		}    
-        standardTile("lastReset", "lastReset", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
+        valueTile("lastReset", "lastReset", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
 			state "lastReset", label:'${currentValue}'
 		}
 
