@@ -44,6 +44,7 @@
  *  02-13-2017 : Cleaned up code for battery message being displayed. If someone decides to display battery % while not having batteries installed Health Check will catch that and push low battery notifications until the user disables the display.
  *  03-11-2017 : Changed from valueTile to standardTile for a few tiles since ST's mobile app v2.3.x changed something between the two.
  *  03-26-2017 : Added a new device Preference that allows for selecting how many decimal positions should be used to display for WATTS and kWh.  Min/max values still use 3 positions, as well as what's stored for the actual meter reading that's seen in the IDE for Power and what's sent to SmartApps.
+ *  03-29-2017 : Made changes to account for ST v2.3.1 bugs with text rendering.
  *
  */
 metadata {
