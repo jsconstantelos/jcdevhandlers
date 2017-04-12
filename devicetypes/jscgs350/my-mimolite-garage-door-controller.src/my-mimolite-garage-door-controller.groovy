@@ -23,6 +23,7 @@
  *  02-11-2017 : Cleaned up code, and used secondary_control again for messages.
  *  03-11-2017 : Cleaned up code.
  *  03-24-2017 : Changed color schema to match ST's new format.
+ *  04-08-2017 : Updated the updated() section to call configuration().
  *
  */
 metadata {
@@ -92,6 +93,7 @@ metadata {
 def updated(){
 	// Device-Watch simply pings if no device events received for 32min(checkInterval)
 	sendEvent(name: "checkInterval", value: 2 * 15 * 60 + 2 * 60, displayed: false, data: [protocol: "zwave", hubHardwareId: device.hub.hardwareID])
+    response(configure())
 }
 
 def parse(String description) {

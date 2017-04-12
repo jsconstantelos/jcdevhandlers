@@ -20,6 +20,7 @@
  *  01-08/2017 : Added code for Health Check capabilities/functions. 
  *  02-11-2017 : Cleaned up code, and used secondary_control again for messages.
  *  03-11-2017 : Changed from valueTile to standardTile for a few tiles since ST's mobile app v2.3.x changed something between the two.
+ *  04-08-2017 : Updated the updated() section to call configuration().
  *
  */
 metadata {
@@ -81,6 +82,7 @@ metadata {
 def updated(){
 	// Device-Watch simply pings if no device events received for 32min(checkInterval)
 	sendEvent(name: "checkInterval", value: 2 * 15 * 60 + 2 * 60, displayed: false, data: [protocol: "zwave", hubHardwareId: device.hub.hardwareID])
+    response(configure())
 }
 
 def parse(String description) {
