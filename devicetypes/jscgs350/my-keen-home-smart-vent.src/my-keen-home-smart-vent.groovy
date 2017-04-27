@@ -15,6 +15,7 @@
  *  02-18-2016 : Initial commit
  *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.
  *  03-24-2017 : Changed color schema to match ST's new format.
+ *  04-27-2017 : Changed to standardTile instead of valueTile to workaround an ST bug breaking how valueTile worked with versions prior to v2.3.x of the mobile app.
  *
  */
 metadata {
@@ -57,16 +58,16 @@ metadata {
             }
         }
 
-        valueTile("ventTwentyFive", "device.level", width: 1, height: 1, inactiveLabel: false, decoration: "flat") {
+        standardTile("ventTwentyFive", "device.level", width: 1, height: 1, inactiveLabel: false, decoration: "flat") {
             state "ventTwentyFive", label:'25', action:"ventTwentyFive"
         }
-        valueTile("ventFifty", "device.level", width: 1, height: 1, inactiveLabel: false, decoration: "flat") {
+        standardTile("ventFifty", "device.level", width: 1, height: 1, inactiveLabel: false, decoration: "flat") {
             state "ventFifty", label:'50', action:"ventFifty"
         }
-        valueTile("ventSeventyFive", "device.level", width: 1, height: 1, inactiveLabel: false, decoration: "flat") {
+        standardTile("ventSeventyFive", "device.level", width: 1, height: 1, inactiveLabel: false, decoration: "flat") {
             state "ventSeventyFive", label:'75', action:"ventSeventyFive"
         }
-        valueTile("ventHundred", "device.level", width: 1, height: 1, inactiveLabel: false, decoration: "flat") {
+        standardTile("ventHundred", "device.level", width: 1, height: 1, inactiveLabel: false, decoration: "flat") {
             state "ventHundred", label:'100', action:"ventHundred"
         }        
         standardTile("ventLevelUp", "device.level", width: 1, height: 1, inactiveLabel: false, decoration: "flat") {
