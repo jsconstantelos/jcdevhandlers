@@ -45,6 +45,7 @@
  *  03-11-2017 : Changed from valueTile to standardTile for a few tiles since ST's mobile app v2.3.x changed something between the two.
  *  03-26-2017 : Added a new device Preference that allows for selecting how many decimal positions should be used to display for WATTS and kWh.  Min/max values still use 3 positions, as well as what's stored for the actual meter reading that's seen in the IDE for Power and what's sent to SmartApps.
  *  03-29-2017 : Made changes to account for ST v2.3.1 bugs with text rendering.
+ *  04-28-2017 : Cleaned up code, and some formatting/tile layout changes for my liking.
  *
  */
 metadata {
@@ -85,7 +86,7 @@ metadata {
            		attributeState "batteryStatus", label:'${currentValue}', icon:"https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/Battery-Charge-icon.png"
             }
 		}    
-        standardTile("iconTile", "iconTile", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
+        standardTile("iconTile", "iconTile", inactiveLabel: false, width: 1, height: 1) {
 			state "default", icon:"https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/device-activity-tile@2x.png"
 		}
         valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
@@ -117,7 +118,7 @@ metadata {
     	}
 
         main (["currentWATTS"])
-        details(["currentWATTS", "iconTile", "statusText", "iconTile", "resetMessage", "currentKWH", "kwhCosts", "resetmin", "resetmax", "resetkwh", "refresh", "configure"])
+        details(["currentWATTS", "currentKWH", "kwhCosts", "iconTile", "statusText", "iconTile", "resetMessage", "resetmin", "resetmax", "resetkwh", "refresh", "configure"])
         }
 
         preferences {
