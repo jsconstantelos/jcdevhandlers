@@ -40,6 +40,7 @@
  *  01-08-2017 : Added code for Health Check capabilities/functions, and cleaned up code.
  *  03-11-2017 : Changed from valueTile to standardTile for three tiles since ST's mobile app v2.3.x broke the ability for valueTiles to initiate an action.
  *  03-29-2017 : Made changes to account for ST v2.3.1 bugs with text rendering.
+ *  05-10-2017 : Updated code to use different attribute names from what FortrezZ is using, and to revert to their original purpose so that their SmartApps will work with this DTH.
  *
  */
 metadata {
@@ -58,6 +59,7 @@ metadata {
         capability "Health Check"
         
         attribute "gpm", "number"
+        attribute "gpmInfo", "number"
 		attribute "gpmHigh", "number"
 		attribute "gpmHighLastReset", "number"
         attribute "cumulative", "number"
@@ -125,8 +127,8 @@ metadata {
         }       
 
 		// Tile Row 4
-        valueTile("gpm", "device.gpm", inactiveLabel: false, width: 2, height: 1) {
-			state "gpm", label:'${currentValue}', unit:""
+        valueTile("gpmInfo", "device.gpmInfo", inactiveLabel: false, width: 2, height: 1) {
+			state "gpmInfo", label:'${currentValue}', unit:""
 		}        
         standardTile("gpmHigh", "device.gpmHigh", inactiveLabel: false, width: 2, height: 1, decoration: "flat") {
 			state "default", label:'Highest flow:\n${currentValue}', action: 'resetgpmHigh'
@@ -163,7 +165,7 @@ metadata {
 		}
         
 		main (["waterState"])
-		details(["chartCycle", "dayChart", "weekChart", "monthChart", "waterState", "temperature", "gpm", "gallonHigh", "gpmHigh", "blankTile", "lastReset", "powerState", "battery", "zeroTile", "configure"])
+		details(["chartCycle", "dayChart", "weekChart", "monthChart", "waterState", "temperature", "gpmInfo", "gallonHigh", "gpmHigh", "blankTile", "lastReset", "powerState", "battery", "zeroTile", "configure"])
 	}
 }
 
@@ -243,7 +245,7 @@ def resetMeter() {
     def cmds = delayBetween([
 	    zwave.meterV3.meterReset().format()
     ])
-    sendEvent(name: "gpm", value: "Water Meter Was Just Reset" as String, displayed: false)
+    sendEvent(name: "gpmInfo", value: "Water Meter Was Just Reset" as String, displayed: false)
     state.lastCumulative = 0
     resetgpmHigh()
     resetgallonHigh()
@@ -290,7 +292,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
     def prevCumulative
     def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
 	def map = [:]
-    map.name = "gpm"
+    map.name = "gpmInfo"
     def delta = Math.round((((cmd.scaledMeterValue - cmd.scaledPreviousMeterValue) / (reportThreshhold*10)) * 60)*100)/100 //rounds to 2 decimal positions
     if (delta < 0) { //There should never be any negative values
 			log.debug "We just detected a negative delta value that won't be processed: ${delta}"
@@ -300,6 +302,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
     		log.debug "Flow has stopped, so process what the meter collected."
     		sendEvent(name: "waterState", value: "none")
         	sendEvent(name: "water", value: "dry")
+            sendEvent(name: "gpm", value: delta)
         	sendAlarm("")
     		prevCumulative = cmd.scaledMeterValue - state.lastCumulative
         	state.lastCumulative = cmd.scaledMeterValue
@@ -313,6 +316,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
 			sendEvent(name: "power", value: prevCumulative, displayed: false)  // This is only used for SmartApps that need power capabilities to capture and log data to places like Google Sheets.
     	} else {
         	log.debug "Flow detected..."
+            sendEvent(name: "gpm", value: delta)
     		map.value = "Flow detected\n"+delta+" gpm"
             if (delta > state.deltaHigh) {
                 dispValue = delta+" gpm on"+"\n"+timeString
