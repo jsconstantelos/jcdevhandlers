@@ -329,7 +329,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
             	sendAlarm("waterOverflow")
         	} else {
         		sendEvent(name: "waterState", value: "flow")
-            	sendEvent(name: "water", value: "dry")
+            	sendEvent(name: "water", value: "wet")
             	sendAlarm("")
 			}
     }
