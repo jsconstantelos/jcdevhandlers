@@ -21,6 +21,7 @@
  *  02-11-2017 : Cleaned up code, and used secondary_control again for messages.
  *  03-11-2017 : Changed from valueTile to standardTile for a few tiles since ST's mobile app v2.3.x changed something between the two.
  *  04-08-2017 : Updated the updated() section to call configuration().
+ *  05-18-2017 : Changed the main tile to be contact instead of switch primarily due to personal functionality preference and not accidentally actuating the valve while in the Room view.
  *
  */
 metadata {
@@ -74,7 +75,7 @@ metadata {
         standardTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}
-        main (["switch", "contact"])
+        main (["contact"])
         details(["switch", "blankTile", "statusText", "powered", "refresh", "configure"])
     }
 }

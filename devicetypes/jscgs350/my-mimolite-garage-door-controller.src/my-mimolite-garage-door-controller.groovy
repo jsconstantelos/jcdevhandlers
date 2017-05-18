@@ -24,6 +24,7 @@
  *  03-11-2017 : Cleaned up code.
  *  03-24-2017 : Changed color schema to match ST's new format.
  *  04-08-2017 : Updated the updated() section to call configuration().
+ *  05-18-2017 : Changed the main tile to be contact instead of switch primarily due to personal functionality preference and not accidentally actuating the door while in the Room view.
  *
  */
 metadata {
@@ -66,8 +67,8 @@ metadata {
             }
 		}
         standardTile("contact", "device.contact", inactiveLabel: false) {
-			state "open", label: '${name}', icon: "st.contact.contact.open", backgroundColor: "#ffa81e"
-			state "closed", label: '${name}', icon: "st.contact.contact.closed", backgroundColor: "#79b821"
+			state "open", label: '${name}', icon: "st.doors.garage.garage-open", backgroundColor: "#ffa81e"
+			state "closed", label: '${name}', icon: "st.doors.garage.garage-closed", backgroundColor: "#79b821"
 		}
         standardTile("refresh", "device.switch", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "default", label:'Refresh', action:"refresh.refresh", icon:"st.secondary.refresh-icon"
@@ -85,7 +86,7 @@ metadata {
         standardTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}        
-		main (["switch", "contact"])
+		main (["contact"])
 		details(["switch", "blankTile", "statusText", "powered", "refresh", "configure"])
     }
 }

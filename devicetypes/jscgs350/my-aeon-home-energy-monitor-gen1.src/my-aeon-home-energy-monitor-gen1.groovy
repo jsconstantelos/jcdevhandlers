@@ -46,6 +46,7 @@
  *  03-26-2017 : Added a new device Preference that allows for selecting how many decimal positions should be used to display for WATTS and kWh.  Min/max values still use 3 positions, as well as what's stored for the actual meter reading that's seen in the IDE for Power and what's sent to SmartApps.
  *  03-29-2017 : Made changes to account for ST v2.3.1 bugs with text rendering.
  *  04-28-2017 : Cleaned up code, and some formatting/tile layout changes for my liking.
+ *  05-18-2017 : Changed valueTile to standardTile to resolve font/rendering issues.
  *
  */
 metadata {
@@ -80,7 +81,7 @@ metadata {
 	tiles(scale: 2) {
 		multiAttributeTile(name:"currentWATTS", type: "generic", width: 6, height: 4, decoration: "flat"){
 			tileAttribute ("device.currentWATTS", key: "PRIMARY_CONTROL") {
-				attributeState "default", action: "refresh", label: '${currentValue}W', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/device-activity-tile@2x.png", backgroundColor: "#79b821"
+				attributeState "default", label: '${currentValue}W', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/device-activity-tile@2x.png", backgroundColor: "#79b821"
 			}
             tileAttribute ("device.batteryStatus", key: "SECONDARY_CONTROL") {
            		attributeState "batteryStatus", label:'${currentValue}', icon:"https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/Battery-Charge-icon.png"
@@ -89,16 +90,16 @@ metadata {
         standardTile("iconTile", "iconTile", inactiveLabel: false, width: 1, height: 1) {
 			state "default", icon:"https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/device-activity-tile@2x.png"
 		}
-        valueTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
+        standardTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}        
-        valueTile("resetMessage", "device.resetMessage", width: 5, height: 1, inactiveLabel: false, decoration: "flat") {
+        standardTile("resetMessage", "device.resetMessage", width: 5, height: 1, inactiveLabel: false, decoration: "flat") {
             state("default", label: '${currentValue}', backgroundColor:"#ffffff")
         }
-        valueTile("currentKWH", "device.currentKWH", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
-            state("default", label: '${currentValue}kWh', backgroundColor:"#ffffff")
+        standardTile("currentKWH", "device.currentKWH", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
+            state("default", action: "refresh", label: '${currentValue}kWh', backgroundColor:"#ffffff")
         }
-        valueTile("kwhCosts", "device.kwhCosts", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
+        standardTile("kwhCosts", "device.kwhCosts", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
             state("default", label: 'Cost $${currentValue}', backgroundColor:"#ffffff")
         }
         standardTile("resetmin", "device.resetmin", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
