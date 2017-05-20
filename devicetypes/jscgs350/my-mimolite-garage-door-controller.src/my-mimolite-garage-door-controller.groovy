@@ -22,7 +22,7 @@
  *  03-11-2017 : Cleaned up code.
  *  03-24-2017 : Changed color schema to match ST's new format.
  *  04-08-2017 : Updated the updated() section to call configuration().
- *  05-19-2017 : Added additional attributeStates to match ST's DTH which make this work with ActionTiles.
+ *  05-19-2017 : Added additional attributeStates to match ST's DTH which make this work with ActionTiles, and to use contact as the main tile instead of switch due to personal preference.
  *
  */
 metadata {
@@ -86,7 +86,7 @@ metadata {
         standardTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}        
-		main (["switch","contact"])
+		main (["contact"])
 		details(["switch", "blankTile", "statusText", "powered", "refresh", "configure"])
     }
 }
