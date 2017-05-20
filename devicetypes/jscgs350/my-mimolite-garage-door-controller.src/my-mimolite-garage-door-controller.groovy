@@ -67,8 +67,8 @@ metadata {
             }
 		}
         standardTile("contact", "device.contact", inactiveLabel: false) {
-			state "open", label: '${name}', icon: "st.doors.garage.garage-open", backgroundColor: "#ffa81e"
-			state "closed", label: '${name}', icon: "st.doors.garage.garage-closed", backgroundColor: "#79b821"
+			state "open", label: '${name}', icon: "st.doors.garage.garage-open", backgroundColor: "#e86d13"
+			state "closed", label: '${name}', icon: "st.doors.garage.garage-closed", backgroundColor: "#00A0DC"
 		}
         standardTile("refresh", "device.switch", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "default", label:'Refresh', action:"refresh.refresh", icon:"st.secondary.refresh-icon"
