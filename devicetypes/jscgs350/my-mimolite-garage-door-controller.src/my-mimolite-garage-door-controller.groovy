@@ -86,7 +86,7 @@ metadata {
         standardTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}        
-		main (["contact"])
+		main (["switch","contact"])
 		details(["switch", "blankTile", "statusText", "powered", "refresh", "configure"])
     }
 }
