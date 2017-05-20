@@ -22,6 +22,7 @@
  *  03-11-2017 : Cleaned up code.
  *  03-24-2017 : Changed color schema to match ST's new format.
  *  04-08-2017 : Updated the updated() section to call configuration().
+ *  05-19-2017 : Added additional attributeStates to match ST's DTH which make this work with ActionTiles.
  *
  */
 metadata {
@@ -58,6 +59,8 @@ metadata {
             	attributeState "doorOpen", label: "Open", action: "push", icon: "st.doors.garage.garage-open", backgroundColor: "#e86d13", nextState:"closingdoor"
                 attributeState "closingdoor", label:'Closing', icon:"st.doors.garage.garage-closing", backgroundColor:"#ffd700"
                 attributeState "openingdoor", label:'Opening', icon:"st.doors.garage.garage-opening", backgroundColor:"#ffd700"
+                attributeState "on", label: "Open", action: "close", icon: "st.doors.garage.garage-open", backgroundColor: "#e86d13", nextState:"closingdoor"
+				attributeState "off", label: 'Closed', action: "open", icon: "st.doors.garage.garage-closed", backgroundColor: "#00A0DC", nextState:"openingdoor"
 			}
             tileAttribute ("device.contactState", key: "SECONDARY_CONTROL") {
                 attributeState("default", label:'${currentValue}', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/icon-garage1.png")
@@ -135,7 +138,7 @@ def sensorValueEvent(Short value) {
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicReport cmd) {
-//	[name: "switch", value: cmd.value ? "on" : "off", type: "physical"]
+	[name: "switch", value: cmd.value ? "on" : "off", type: "physical"]
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicSet cmd)
@@ -144,11 +147,11 @@ def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicSet cmd)
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.switchbinaryv1.SwitchBinaryReport cmd) {
-//	def doorState = device.currentValue('contact')
-//    if ( doorState == "closed")
-//		[name: "switch", value: cmd.value ? "on" : "doorOpening", type: "digital"]
-//    else
-//    	[name: "switch", value: cmd.value ? "on" : "doorClosing", type: "digital"]
+	def doorState = device.currentValue('contact')
+    if ( doorState == "closed")
+		[name: "switch", value: cmd.value ? "on" : "doorOpening", type: "digital"]
+    else
+    	[name: "switch", value: cmd.value ? "on" : "doorClosing", type: "digital"]
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.sensorbinaryv1.SensorBinaryReport cmd)
