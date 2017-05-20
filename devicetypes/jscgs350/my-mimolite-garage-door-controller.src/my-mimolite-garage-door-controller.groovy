@@ -22,7 +22,8 @@
  *  03-11-2017 : Cleaned up code.
  *  03-24-2017 : Changed color schema to match ST's new format.
  *  04-08-2017 : Updated the updated() section to call configuration().
- *  05-19-2017 : Added additional attributeStates to match ST's DTH which make this work with ActionTiles, and to use contact as the main tile instead of switch due to personal preference.
+ *  05-19-2017 : Added additional attributeStates to match ST's DTH which should make this work with ActionTiles, and to use contact as the main tile instead of switch due to personal preference.
+ *  05-20-2017 : Redefined tiles/names to be similar to the Linear-type opener DTH's, which should make this work with ActionTiles.
  *
  */
 metadata {
@@ -53,19 +54,30 @@ metadata {
 
 	// UI tile definitions 
 	tiles(scale: 2) {
-		multiAttributeTile(name:"switch", type: "generic", width: 6, height: 4){
-			tileAttribute ("device.switch", key: "PRIMARY_CONTROL") {
-            	attributeState "doorClosed", label: "Closed", action: "push", icon: "st.doors.garage.garage-closed", backgroundColor: "#00A0DC", nextState:"openingdoor"
-            	attributeState "doorOpen", label: "Open", action: "push", icon: "st.doors.garage.garage-open", backgroundColor: "#e86d13", nextState:"closingdoor"
-                attributeState "closingdoor", label:'Closing', icon:"st.doors.garage.garage-closing", backgroundColor:"#ffd700"
-                attributeState "openingdoor", label:'Opening', icon:"st.doors.garage.garage-opening", backgroundColor:"#ffd700"
-                attributeState "on", label: "Open", action: "close", icon: "st.doors.garage.garage-open", backgroundColor: "#e86d13", nextState:"closingdoor"
-				attributeState "off", label: 'Closed', action: "open", icon: "st.doors.garage.garage-closed", backgroundColor: "#00A0DC", nextState:"openingdoor"
-			}
+		multiAttributeTile(name:"actuate", type: "generic", width: 6, height: 4){
+			tileAttribute ("device.door", key: "PRIMARY_CONTROL") {
+                attributeState("unknown", label:'${name}', action:"refresh.refresh", icon:"st.doors.garage.garage-open", backgroundColor:"#e86d13")
+                attributeState("closed", label:'${name}', action:"door control.open", icon:"st.doors.garage.garage-closed", backgroundColor:"#00a0dc", nextState:"opening")
+                attributeState("open", label:'${name}', action:"door control.close", icon:"st.doors.garage.garage-open", backgroundColor:"#e86d13", nextState:"closing")
+                attributeState("opening", label:'${name}', icon:"st.doors.garage.garage-opening", backgroundColor:"#e86d13")
+                attributeState("closing", label:'${name}', icon:"st.doors.garage.garage-closing", backgroundColor:"#00a0dc")
+            }
             tileAttribute ("device.contactState", key: "SECONDARY_CONTROL") {
                 attributeState("default", label:'${currentValue}', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/icon-garage1.png")
             }
 		}
+
+        standardTile("open", "device.door", inactiveLabel: false, decoration: "flat") {
+            state "default", label: 'open', action: "door control.open", icon: "st.doors.garage.garage-opening"
+        }
+        standardTile("close", "device.door", inactiveLabel: false, decoration: "flat") {
+            state "default", label: 'close', action: "door control.close", icon: "st.doors.garage.garage-closing"
+        }
+        standardTile("button", "device.switch", width: 1, height: 1, canChangeIcon: true) {
+            state "off", label: 'Off', action: "switch.on", icon: "st.switches.switch.off", backgroundColor: "#ffffff", nextState: "on"
+            state "on", label: 'On', action: "switch.off", icon: "st.switches.switch.on", backgroundColor: "#79b821", nextState: "off"
+        }
+
         standardTile("contact", "device.contact", inactiveLabel: false) {
 			state "open", label: '${name}', icon: "st.doors.garage.garage-open", backgroundColor: "#e86d13"
 			state "closed", label: '${name}', icon: "st.doors.garage.garage-closed", backgroundColor: "#00A0DC"
@@ -82,12 +94,12 @@ metadata {
 		}
         standardTile("blankTile", "statusText", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
 			state "default", label:'', icon:"http://cdn.device-icons.smartthings.com/secondary/device-activity-tile@2x.png"
-		}         
+		}  
         standardTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
-		}        
+		} 
 		main (["contact"])
-		details(["switch", "blankTile", "statusText", "powered", "refresh", "configure"])
+		details(["actuate", "blankTile", "statusText", "powered", "refresh", "configure"])
     }
 }
 
@@ -98,47 +110,43 @@ def updated(){
 }
 
 def parse(String description) {
-	log.debug "description is: ${description}"
-
+	// log.debug "description is: ${description}"
 	def result = null
     def cmd = zwave.parse(description, [0x72: 1, 0x86: 1, 0x71: 1, 0x30: 1, 0x31: 3, 0x35: 1, 0x70: 1, 0x85: 1, 0x25: 1, 0x03: 1, 0x20: 1, 0x84: 1])
-    
-    log.debug "command value is: $cmd.CMD"
-    
+    //log.debug "command value is: $cmd.CMD"
     if (cmd.CMD == "7105") {				//Mimo sent a power loss report
     	log.debug "Device lost power"
     	sendEvent(name: "powered", value: "powerOff", descriptionText: "$device.displayName lost power")
     } else {
     	sendEvent(name: "powered", value: "powerOn", descriptionText: "$device.displayName regained power")
     }
-    
 	if (cmd) {
 		result = createEvent(zwaveEvent(cmd))
 	}
-	log.debug "Parse returned ${result?.descriptionText}"
-    
+	// log.debug "Parse returned ${result?.descriptionText}"
     def statusTextmsg = ""
     def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
     statusTextmsg = "Last updated: "+timeString
     sendEvent("name":"statusText", "value":statusTextmsg)
-    
 	return result
 }
 
 def sensorValueEvent(Short value) {
 	if (value) {
         sendEvent(name: "contact", value: "open")
-        sendEvent(name: "switch", value: "doorOpen")
+        sendEvent(name: "door", value: "open")
+        sendEvent(name: "switch", value: "on")
         sendEvent(name: "contactState", value: "Tap to close")
 	} else {
         sendEvent(name: "contact", value: "closed")
-        sendEvent(name: "switch", value: "doorClosed")
+        sendEvent(name: "door", value: "closed")
+        sendEvent(name: "switch", value: "off")
         sendEvent(name: "contactState", value: "Tap to open")
 	}
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicReport cmd) {
-	[name: "switch", value: cmd.value ? "on" : "off", type: "physical"]
+//	[name: "switch", value: cmd.value ? "on" : "off", type: "physical"]
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicSet cmd)
@@ -147,11 +155,11 @@ def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicSet cmd)
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.switchbinaryv1.SwitchBinaryReport cmd) {
-	def doorState = device.currentValue('contact')
-    if ( doorState == "closed")
-		[name: "switch", value: cmd.value ? "on" : "doorOpening", type: "digital"]
-    else
-    	[name: "switch", value: cmd.value ? "on" : "doorClosing", type: "digital"]
+//	def doorState = device.currentValue('contact')
+//    if ( doorState == "closed")
+//		[name: "switch", value: cmd.value ? "on" : "doorOpening", type: "digital"]
+//    else
+//    	[name: "switch", value: cmd.value ? "on" : "doorClosing", type: "digital"]
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.sensorbinaryv1.SensorBinaryReport cmd)
