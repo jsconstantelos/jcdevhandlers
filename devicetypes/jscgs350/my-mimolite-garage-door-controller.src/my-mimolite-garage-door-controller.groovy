@@ -59,8 +59,8 @@ metadata {
                 attributeState("unknown", label:'${name}', action:"refresh.refresh", icon:"st.doors.garage.garage-open", backgroundColor:"#e86d13")
                 attributeState("closed", label:'${name}', action:"door control.open", icon:"st.doors.garage.garage-closed", backgroundColor:"#00a0dc", nextState:"opening")
                 attributeState("open", label:'${name}', action:"door control.close", icon:"st.doors.garage.garage-open", backgroundColor:"#e86d13", nextState:"closing")
-                attributeState("opening", label:'${name}', icon:"st.doors.garage.garage-opening", backgroundColor:"#e86d13")
-                attributeState("closing", label:'${name}', icon:"st.doors.garage.garage-closing", backgroundColor:"#00a0dc")
+                attributeState("opening", label:'${name}', icon:"st.doors.garage.garage-opening", backgroundColor:"#FFD700")
+                attributeState("closing", label:'${name}', icon:"st.doors.garage.garage-closing", backgroundColor:"#FFD700")
             }
             tileAttribute ("device.contactState", key: "SECONDARY_CONTROL") {
                 attributeState("default", label:'${currentValue}', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/icon-garage1.png")
