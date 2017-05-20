@@ -136,12 +136,12 @@ def sensorValueEvent(Short value) {
         sendEvent(name: "contact", value: "open")
         sendEvent(name: "door", value: "open")
         sendEvent(name: "switch", value: "on")
-        sendEvent(name: "contactState", value: "Tap to close")
+        sendEvent(name: "contactState", value: "Door is open, tap to close")
 	} else {
         sendEvent(name: "contact", value: "closed")
         sendEvent(name: "door", value: "closed")
         sendEvent(name: "switch", value: "off")
-        sendEvent(name: "contactState", value: "Tap to open")
+        sendEvent(name: "contactState", value: "Door is closed, tap to open")
 	}
 }
 
