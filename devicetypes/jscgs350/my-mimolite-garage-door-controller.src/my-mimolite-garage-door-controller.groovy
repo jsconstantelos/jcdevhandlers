@@ -11,8 +11,6 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
- *  Version: v4.1
- *
  *  Updates:
  *  -------
  *  02-18-2016 : Initial commit
@@ -24,7 +22,6 @@
  *  03-11-2017 : Cleaned up code.
  *  03-24-2017 : Changed color schema to match ST's new format.
  *  04-08-2017 : Updated the updated() section to call configuration().
- *  05-18-2017 : Changed the main tile to be contact instead of switch primarily due to personal functionality preference and not accidentally actuating the door while in the Room view.
  *
  */
 metadata {
