@@ -66,18 +66,10 @@ metadata {
                 attributeState("default", label:'${currentValue}', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/icon-garage1.png")
             }
 		}
-
-        standardTile("open", "device.door", inactiveLabel: false, decoration: "flat") {
-            state "default", label: 'open', action: "door control.open", icon: "st.doors.garage.garage-opening"
-        }
-        standardTile("close", "device.door", inactiveLabel: false, decoration: "flat") {
-            state "default", label: 'close', action: "door control.close", icon: "st.doors.garage.garage-closing"
-        }
-        standardTile("button", "device.switch", width: 1, height: 1, canChangeIcon: true) {
+        standardTile("switch", "device.switch", width: 1, height: 1, canChangeIcon: true) {
             state "off", label: 'Off', action: "switch.on", icon: "st.switches.switch.off", backgroundColor: "#ffffff", nextState: "on"
             state "on", label: 'On', action: "switch.off", icon: "st.switches.switch.on", backgroundColor: "#79b821", nextState: "off"
         }
-
         standardTile("contact", "device.contact", inactiveLabel: false) {
 			state "open", label: '${name}', icon: "st.doors.garage.garage-open", backgroundColor: "#e86d13"
 			state "closed", label: '${name}', icon: "st.doors.garage.garage-closed", backgroundColor: "#00A0DC"
