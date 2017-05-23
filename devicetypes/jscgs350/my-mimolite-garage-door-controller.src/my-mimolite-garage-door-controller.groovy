@@ -24,6 +24,7 @@
  *  04-08-2017 : Updated the updated() section to call configuration().
  *  05-19-2017 : Added additional attributeStates to match ST's DTH which should make this work with ActionTiles, and to use contact as the main tile instead of switch due to personal preference.
  *  05-20-2017 : Redefined tiles/names to be similar to the Linear-type opener DTH's, which should make this work with ActionTiles.
+ *  05-23-2017 : Made the delay longer for retreiving device info (gets) after the main tile or the refresh tile is tapped.
  *
  */
 metadata {
@@ -147,11 +148,11 @@ def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicSet cmd)
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.switchbinaryv1.SwitchBinaryReport cmd) {
-//	def doorState = device.currentValue('contact')
-//    if ( doorState == "closed")
-//		[name: "switch", value: cmd.value ? "on" : "doorOpening", type: "digital"]
-//    else
-//    	[name: "switch", value: cmd.value ? "on" : "doorClosing", type: "digital"]
+	def doorState = device.currentValue('contact')
+    if ( doorState == "closed")
+		[name: "switch", value: cmd.value ? "on" : "opening", type: "digital"]
+    else
+    	[name: "switch", value: cmd.value ? "on" : "closing", type: "digital"]
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.sensorbinaryv1.SensorBinaryReport cmd)
@@ -205,7 +206,7 @@ def push() {
 		zwave.sensorBinaryV1.sensorBinaryGet().format(),
         zwave.basicV1.basicGet().format(),
 		zwave.alarmV1.alarmGet().format() 
-	],100)
+	],1000)
 }
 
 def poll() {
@@ -224,7 +225,7 @@ def refresh() {
 		zwave.sensorBinaryV1.sensorBinaryGet().format(),
         zwave.basicV1.basicGet().format(),
 		zwave.alarmV1.alarmGet().format() 
-	],100)
+	],500)
 }
 
 def configure() {
