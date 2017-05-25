@@ -18,6 +18,7 @@ import physicalgraph.zigbee.clusters.iaszone.ZoneStatus
 metadata {
 	definition(name: "My SmartSense Lock Sensor", namespace: "jscgs350", author: "SmartThings") {
 		capability "Battery"
+        capability "Lock"
 		capability "Configuration"
 		capability "Contact Sensor"
 		capability "Refresh"
