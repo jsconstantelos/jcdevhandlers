@@ -47,6 +47,7 @@
  *  03-29-2017 : Made changes to account for ST v2.3.1 bugs with text rendering.
  *  04-28-2017 : Cleaned up code, and some formatting/tile layout changes for my liking.
  *  05-18-2017 : Changed valueTile to standardTile to resolve font/rendering issues.
+ *  05-28-2017 : Sometimes the HEM will send a super low reading, like 0.04672386; which in that case the decimal position setting would not get applied if you used 3.  I fixed that.
  *
  */
 metadata {
@@ -234,7 +235,8 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
             if (newValue != state.energyValue) {
                 dispValue = newValue
                 if (decimalPositions == 3) {
-                    dispValue = newValue
+                	def decimalDisplay = String.format("%3.3f",newValue)
+                    dispValue = decimalDisplay
                 } else if (decimalPositions == 2) {
                     def decimalDisplay = String.format("%3.2f",newValue)
                     dispValue = decimalDisplay
@@ -276,7 +278,8 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
 			if (newValue < wattsLimit) {								// don't handle any wildly large readings due to firmware issues	
 	            if (newValue != state.powerValue) {						// Only process a meter reading if it isn't the same as the last one
 	                if (decimalPositions == 3) {
-                    	dispValue = newValue
+                    	def decimalDisplay = String.format("%3.3f",newValue)
+                    	dispValue = decimalDisplay
                     } else if (decimalPositions == 2) {
                     	def decimalDisplay = String.format("%3.2f",newValue)
                     	dispValue = decimalDisplay

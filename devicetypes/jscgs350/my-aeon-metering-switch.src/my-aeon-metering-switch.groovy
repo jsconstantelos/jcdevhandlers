@@ -30,6 +30,7 @@
  *  03-11-2017 : Changed from valueTile to standardTile for a few tiles since ST's mobile app v2.3.x changed something between the two.
  *  03-24-2017 : Changed color schema to match ST's new format.
  *  03-26-2017 : Added a new device Preference that allows for selecting how many decimal positions should be used to display for WATTS and kWh.  Min/max values still use 3 positions, as well as what's stored for the actual meter reading that's seen in the IDE for Power and what's sent to SmartApps.
+ *  05-28-2017 : Sometimes the HEM will send a super low reading, like 0.04672386; which in that case the decimal position setting would not get applied if you used 3.  I fixed that.
  *
  */
 metadata {
@@ -216,7 +217,8 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
         if (newValue != state.energyValue) {
             dispValue = newValue
             if (decimalPositions == 3) {
-                dispValue = newValue
+            	def decimalDisplay = String.format("%3.3f",newValue)
+                dispValue = decimalDisplay
             } else if (decimalPositions == 2) {
                 def decimalDisplay = String.format("%3.2f",newValue)
                 dispValue = decimalDisplay
@@ -257,7 +259,8 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
 	            if (newValue != state.powerValue) {
 	                dispValue = newValue
 	                if (decimalPositions == 3) {
-                    	dispValue = newValue
+		            	def decimalDisplay = String.format("%3.3f",newValue)
+		                dispValue = decimalDisplay
                     } else if (decimalPositions == 2) {
                     	def decimalDisplay = String.format("%3.2f",newValue)
                     	dispValue = decimalDisplay
