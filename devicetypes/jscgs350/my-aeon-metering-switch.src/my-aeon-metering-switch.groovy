@@ -29,7 +29,7 @@
  *  02-11-2017 : Cleaned up code and added an icon to the secondary_control section of the main tile.
  *  03-11-2017 : Changed from valueTile to standardTile for a few tiles since ST's mobile app v2.3.x changed something between the two.
  *  03-24-2017 : Changed color schema to match ST's new format.
- *  03-26-2017 : Added a new device Preference that allows for selecting how many decimal positions should be used to display for WATTS and kWh.  Min/max values still use 3 positions, as well as what's stored for the actual meter reading that's seen in the IDE for Power and what's sent to SmartApps.
+ *  03-26-2017 : Added a new device Preference that allows for selecting how many decimal positions should be used to display for WATTS and kWh.  What's stored for the actual meter reading that's seen in the IDE for Power, and what's sent to SmartApps, did not change.
  *  05-28-2017 : Sometimes the HEM will send a super low reading, like 0.04672386; which in that case the decimal position setting would not get applied if you used 3.  I fixed that.
  *
  */
@@ -210,6 +210,8 @@ def parse(String description) {
 def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
     if (state.debug) log.debug "zwaveEvent received ${cmd}"
     def dispValue
+    def dispLowValue
+    def dispHighValue
     def newValue
     def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
 	if (cmd.scale == 0) {
@@ -274,13 +276,13 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
                     }
 	                sendEvent(name: "powerDisp", value: dispValue, unit: "", displayed: false)
 	                if (newValue < state.powerLow) {
-	                    dispValue = newValue+"w"+"on "+timeString
-	                    sendEvent(name: "powerOne", value: dispValue as String, unit: "", displayed: false)
+	                    dispLowValue = dispValue+"w"+"on "+timeString
+	                    sendEvent(name: "powerOne", value: dispLowValue as String, unit: "", displayed: false)
 	                    state.powerLow = newValue
 	                }
 	                if (newValue > state.powerHigh) {
-	                    dispValue = newValue+"w "+"on "+timeString
-	                    sendEvent(name: "powerTwo", value: dispValue as String, unit: "", displayed: false)
+	                    dispHighValue = dispValue+"w "+"on "+timeString
+	                    sendEvent(name: "powerTwo", value: dispHighValue as String, unit: "", displayed: false)
 	                    state.powerHigh = newValue
 	                }
 	                state.powerValue = newValue
