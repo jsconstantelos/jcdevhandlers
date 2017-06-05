@@ -25,6 +25,7 @@
  *  01-08-2017 : Added code for Health Check capabilities/functions, and cleaned up code.
  *  01-13-2017 : Added a couple debug lines in the Configure section.
  *  03-21-2017 : Added THERMOSTAT_SETPOINT to the multiAttributeTile to properly reflect mode and setpoint.
+ *  06-05-2017 : Added "switch" capablity to allow automations to manipulate the fan from/to auto or circulate.
  *
 */
 metadata {
@@ -41,6 +42,7 @@ metadata {
 		capability "Polling"
 		capability "Sensor"
         capability "Health Check"
+        capability "Switch"
        
 		command "setLevelUp"
 		command "setLevelDown"
@@ -51,6 +53,7 @@ metadata {
 		command "coolLevelUp"
 		command "coolLevelDown"
         command "quickSetCool"
+        command "offmode"
         
 		attribute "thermostatFanState", "string"
         attribute "currentState", "string"
@@ -112,7 +115,7 @@ metadata {
             state "heatemrgcy", label:'', action:"emergencyHeat", icon:"st.thermostat.emergency-heat"
         }         
         standardTile("modeoff", "device.thermostatMode", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
-            state "off", label: '', action:"off", icon:"st.thermostat.heating-cooling-off"
+            state "off", label: '', action:"offmode", icon:"st.thermostat.heating-cooling-off"
         }        
         
 //Slider Set Point Controls
@@ -553,7 +556,7 @@ def setCoolingSetpoint(Double degrees, Integer delay = 5000) {
 	], delay)
 }
 
-def off() {
+def offmode() {
 	log.debug "Switching to off mode..."
     sendEvent(name: "currentMode", value: "Off" as String)
 	delayBetween([
@@ -561,6 +564,16 @@ def off() {
 		zwave.thermostatModeV2.thermostatModeGet().format(),
         zwave.thermostatOperatingStateV1.thermostatOperatingStateGet().format()
 	], 3000)
+}
+
+def on() {
+	log.debug "Setting thermostat fan mode to circulate..."
+    fanCirculate()
+}
+
+def off() {
+	log.debug "Setting thermostat fan mode to auto..."
+    fanAuto()
 }
 
 def heat() {
