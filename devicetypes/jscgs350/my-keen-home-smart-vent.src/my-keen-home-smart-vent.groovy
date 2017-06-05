@@ -16,6 +16,7 @@
  *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.
  *  03-24-2017 : Changed color schema to match ST's new format.
  *  04-27-2017 : Changed to standardTile instead of valueTile to workaround an ST bug breaking how valueTile worked with versions prior to v2.3.x of the mobile app.
+ *  06-05-2017 : Changed to standardTile instead of valueTile for the remaining 3 tiles now that text formatting with v2.4.0 works right again.
  *
  */
 metadata {
@@ -77,7 +78,7 @@ metadata {
             state "ventLevelDown", label:'5%', action:"ventLevelDown", icon:"st.thermostat.thermostat-down"
         }
         
-        valueTile("temperature", "device.temperature", inactiveLabel: false, width: 2, height: 2) {
+        standardTile("temperature", "device.temperature", inactiveLabel: false, width: 2, height: 2) {
             state "temperature", label:'${currentValue}°',
             backgroundColors:[
                 [value: 31, color: "#153591"],
@@ -89,10 +90,10 @@ metadata {
                 [value: 96, color: "#bc2323"]
             ]
         }
-        valueTile("pressure", "device.pressure", inactiveLabel: false, width: 2, height: 2, decoration: "flat") {
-            state "pressure", label: 'Pressure\n${currentValue}Pa', backgroundColor:"#ffffff"
+        standardTile("pressure", "device.pressure", inactiveLabel: false, width: 2, height: 2, decoration: "flat") {
+            state "pressure", label: 'Pressure ${currentValue}Pa', backgroundColor:"#ffffff"
         }
-        valueTile("battery", "device.battery", inactiveLabel: false, width: 2, height: 2, decoration: "flat") {
+        standardTile("battery", "device.battery", inactiveLabel: false, width: 2, height: 2, decoration: "flat") {
             state "battery", label: 'Battery \n${currentValue}%', backgroundColor:"#ffffff"
         }
         standardTile("refresh", "device.power", inactiveLabel: false, width: 3, height: 2, decoration: "flat") {
