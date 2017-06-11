@@ -41,6 +41,7 @@
  *  03-11-2017 : Changed from valueTile to standardTile for three tiles since ST's mobile app v2.3.x broke the ability for valueTiles to initiate an action.
  *  03-29-2017 : Made changes to account for ST v2.3.1 bugs with text rendering.
  *  05-10-2017 : Updated code to use different attribute names from what FortrezZ is using, and to revert to their original purpose so that their SmartApps will work with this DTH.
+ *  06-10-2017 : Changed to "http" from "https" for the URL for post/get functions because of certificate issues FortrezZ's site is having.  Will change back once fixed.
  *
  */
 metadata {
@@ -97,13 +98,13 @@ metadata {
 
 		// Tile Row 2
 		standardTile("dayChart", "device.chartMode", width: 2, height: 1, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
-			state "day", label:'', action: 'take1', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/24-hour-clockv2.png"
+			state "day", label:'', action: 'take1', icon: "http://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/24-hour-clockv2.png"
 		}
 		standardTile("weekChart", "device.chartMode", width: 2, height: 1, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
-			state "week", label:'', action: 'take7', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/7day.png"
+			state "week", label:'', action: 'take7', icon: "http://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/7day.png"
 		}
 		standardTile("monthChart", "device.chartMode", width: 2, height: 1, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
-			state "month", label:'', action: 'take28', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/monthv2.png"
+			state "month", label:'', action: 'take28', icon: "http://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/monthv2.png"
 		}
         
 		// Tile Row 3
@@ -405,7 +406,7 @@ def sendDataToCloud(double data) {
     }
     log.debug meterID
     def params = [
-        uri: "https://iot.swiftlet.technology",
+        uri: "http://iot.swiftlet.technology",
         path: "/fortrezz/post.php",
         body: [
             id: meterID,
@@ -449,9 +450,9 @@ def api(method, args = [], success = {}) {
     	meterID = device.id+state.meterResetDate
     }
     def methods = [
-      "24hrs":      [uri: "https://iot.swiftlet.technology/fortrezz/chart.php?uuid=${meterID}&tz=${location.timeZone.ID}&type=1", type: "get"],
-      "7days":      [uri: "https://iot.swiftlet.technology/fortrezz/chart.php?uuid=${meterID}&tz=${location.timeZone.ID}&type=2", type: "get"],
-      "4weeks":     [uri: "https://iot.swiftlet.technology/fortrezz/chart.php?uuid=${meterID}&tz=${location.timeZone.ID}&type=3", type: "get"],
+      "24hrs":      [uri: "http://iot.swiftlet.technology/fortrezz/chart.php?uuid=${meterID}&tz=${location.timeZone.ID}&type=1", type: "get"],
+      "7days":      [uri: "http://iot.swiftlet.technology/fortrezz/chart.php?uuid=${meterID}&tz=${location.timeZone.ID}&type=2", type: "get"],
+      "4weeks":     [uri: "http://iot.swiftlet.technology/fortrezz/chart.php?uuid=${meterID}&tz=${location.timeZone.ID}&type=3", type: "get"],
     ]
     def request = methods.getAt(method)
     return doRequest(request.uri, request.type, success)
