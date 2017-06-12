@@ -385,6 +385,7 @@ def resetenergy() {
     sendEvent(name: "energyOne", value: "Energy Data (kWh/Cost) Reset On:\n"+timeString, unit: "")       
     sendEvent(name: "energyDisp", value: "", unit: "")
     sendEvent(name: "energyTwo", value: "Cost\n--", unit: "")
+    state.energyValue = 0
     def cmd = delayBetween( [
         zwave.meterV2.meterReset().format(),
         zwave.meterV2.meterGet(scale: 0).format()
@@ -395,6 +396,7 @@ def resetenergy() {
 def resetMeter() {
 	log.debug "Resetting all metering switch values..."
     state.powerHigh = 0
+    state.energyValue = 0
     sendEvent(name: "powerOne", value: "", unit: "")
 	sendEvent(name: "powerTwo", value: "", unit: "")
     sendEvent(name: "energyDisp", value: "", unit: "")

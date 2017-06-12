@@ -362,6 +362,7 @@ def resetkwh() {
 	sendEvent(name: "resetMessage", value: "Energy Data (kWh/Cost) Reset On:\n"+timeString, unit: "")
 	sendEvent(name: "currentKWH", value: "", unit: "")
 	sendEvent(name: "kwhCosts", value: "Cost\n--", unit: "")
+    state.energyValue = 0
 	def cmd = delayBetween( [
 		zwave.meterV2.meterReset().format(),
 		zwave.meterV2.meterGet(scale: 0).format(),
