@@ -42,6 +42,7 @@
  *  03-29-2017 : Made changes to account for ST v2.3.1 bugs with text rendering.
  *  05-10-2017 : Updated code to use different attribute names from what FortrezZ is using, and to revert to their original purpose so that their SmartApps will work with this DTH.
  *  06-10-2017 : Changed to "http" from "https" for the URL for post/get functions because of certificate issues FortrezZ's site is having.  Will change back once fixed.
+ *  06-12-2017 : Updated the updated() section to automatically run Configure after tapping on Done in the Preferences page.
  *
  */
 metadata {
@@ -180,6 +181,7 @@ def installed() {
 def updated(){
 	// Device-Watch simply pings if no device events received for 32min(checkInterval)
 	sendEvent(name: "checkInterval", value: 2 * 15 * 60 + 2 * 60, displayed: false, data: [protocol: "zwave", hubHardwareId: device.hub.hardwareID])
+    response(configure())
 }
 
 // parse events into attributes
