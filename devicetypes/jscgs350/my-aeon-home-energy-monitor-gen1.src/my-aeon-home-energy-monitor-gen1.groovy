@@ -401,6 +401,7 @@ def resetMeter() {
 	log.debug "Resetting all home energy meter values..."
 	state.powerHigh = 0
 	state.powerLow = 99999
+    state.energyValue = 0
 	sendEvent(name: "minWATTS", value: "", unit: "")
 	sendEvent(name: "maxWATTS", value: "", unit: "")
 	sendEvent(name: "currentKWH", value: "", unit: "")
