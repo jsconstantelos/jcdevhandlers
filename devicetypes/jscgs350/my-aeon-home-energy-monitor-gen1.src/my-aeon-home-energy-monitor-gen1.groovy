@@ -50,6 +50,7 @@
  *	05-28-2017 : Sometimes the HEM will send a super low reading, like 0.04672386; which in that case the decimal position setting would not get applied if you used 3.	 That's been fixed.
  *  05-30-2017 : Thanks to @barkis for the following changes: fixed number of decimal points display on iPhone app; fixed problem with kVAh units display; changed refresh() to immediately update values; reworked decimal place selection to remove 'else' branch that never executes; removed some un-needed temporary variables; code cleanup (trailing whitespace/converted leading spaces to tabs to shrink file size)
  *  06-05-2017 : Some tweaks for the 2.4.0 release of the mobile app.
+ *  06-12-2017 : Updated code to make sure kWh or kVAh readings from the reader are larger that the previous reading.  There should never be a smaller reading from the previous reading.
  *
  */
 metadata {
@@ -231,7 +232,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
 	if (cmd.meterType == 33) {
 		if (cmd.scale == 0) {
 			newValue = cmd.scaledMeterValue
-			if (newValue != state.energyValue) {
+			if (newValue > state.energyValue) {
 				if (decimalPositions == 2) {
 					dispValue = String.format("%3.2f",newValue)
 				} else if (decimalPositions == 1) {
@@ -257,7 +258,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
 			}
 		} else if (cmd.scale == 1) {
 			newValue = cmd.scaledMeterValue
-			if (newValue != state.energyValue) {
+			if (newValue > state.energyValue) {
 				dispValue = newValue + " kVAh"
 				sendEvent(name: "currentKWH", value: dispValue as String, unit: "", displayed: false)
 				state.energyValue = newValue
