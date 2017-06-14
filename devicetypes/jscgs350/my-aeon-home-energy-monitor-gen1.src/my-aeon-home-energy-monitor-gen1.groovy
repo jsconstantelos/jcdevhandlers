@@ -51,6 +51,7 @@
  *  05-30-2017 : Thanks to @barkis for the following changes: fixed number of decimal points display on iPhone app; fixed problem with kVAh units display; changed refresh() to immediately update values; reworked decimal place selection to remove 'else' branch that never executes; removed some un-needed temporary variables; code cleanup (trailing whitespace/converted leading spaces to tabs to shrink file size)
  *  06-05-2017 : Some tweaks for the 2.4.0 release of the mobile app.
  *  06-12-2017 : Updated code to make sure kWh or kVAh readings from the reader are larger that the previous reading.  There should never be a smaller reading from the previous reading.
+ *  06-14-2017 : Updated to fix battery reports showing up in the Recently tab when they shouldn't.
  *
  */
 metadata {
@@ -128,12 +129,12 @@ metadata {
 
 	preferences {
 		input "displayEvents", "boolean",
-			title: "Display all events in the Recently tab and the device's event log?",
+			title: "Display all power and energy events in the Recently tab and the device's event log?",
 			defaultValue: false,
 			required: false,
 			displayDuringSetup: true
 		input "displayBatteryLevel", "boolean",
-			title: "Display battery level on main tile?",
+			title: "Display battery level on main tile and Recently tab?",
 			defaultValue: true,
 			required: false,
 			displayDuringSetup: true
@@ -232,6 +233,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
 	if (cmd.meterType == 33) {
 		if (cmd.scale == 0) {
 			newValue = cmd.scaledMeterValue
+//            log.debug "newValue is ${newValue} and prevValue is ${state.energyValue}"
 			if (newValue > state.energyValue) {
 				if (decimalPositions == 2) {
 					dispValue = String.format("%3.2f",newValue)
@@ -319,15 +321,7 @@ def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
 			map.isStateChange = true
 		}
 		return map
-		sendEvent(name: "battery", value: map.value as String, displayed: false)
-	} else {
-		def map = [:]
-		map.name = "battery"
-		map.unit = "%"
-		map.value = 999
-		map.isStateChange = true
-		return map
-		sendEvent(name: "battery", value: map.value as String, displayed: false)
+		sendEvent(name: "battery", value: map.value as String, displayed: true)
 	}
 }
 
