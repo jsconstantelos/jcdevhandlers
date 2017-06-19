@@ -52,6 +52,7 @@
  *  06-05-2017 : Some tweaks for the 2.4.0 release of the mobile app.
  *  06-12-2017 : Updated code to make sure kWh or kVAh readings from the reader are larger that the previous reading.  There should never be a smaller reading from the previous reading.
  *  06-14-2017 : Updated to fix battery reports showing up in the Recently tab when they shouldn't.
+ *  06-19-2017 : Cleaned up code in the resetkwh() section.
  *
  */
 metadata {
@@ -355,7 +356,7 @@ def resetkwh() {
 	def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
 	sendEvent(name: "resetMessage", value: "Energy Data (kWh/Cost) Reset On:\n"+timeString, unit: "")
 	sendEvent(name: "currentKWH", value: "", unit: "")
-	sendEvent(name: "kwhCosts", value: "Cost\n--", unit: "")
+	sendEvent(name: "kwhCosts", value: "", unit: "")
     state.energyValue = 0
 	def cmd = delayBetween( [
 		zwave.meterV2.meterReset().format(),
