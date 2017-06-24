@@ -235,7 +235,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
 		if (cmd.scale == 0) {
 			newValue = cmd.scaledMeterValue
 //            log.debug "newValue is ${newValue} and prevValue is ${state.energyValue}"
-			if (newValue > state.energyValue) {
+			if (newValue != state.energyValue) {
 				if (decimalPositions == 2) {
 					dispValue = String.format("%3.2f",newValue)
 				} else if (decimalPositions == 1) {
@@ -261,7 +261,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
 			}
 		} else if (cmd.scale == 1) {
 			newValue = cmd.scaledMeterValue
-			if (newValue > state.energyValue) {
+			if (newValue != state.energyValue) {
 				dispValue = newValue + " kVAh"
 				sendEvent(name: "currentKWH", value: dispValue as String, unit: "", displayed: false)
 				state.energyValue = newValue
