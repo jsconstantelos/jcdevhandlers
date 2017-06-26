@@ -11,7 +11,7 @@
  *  for the specific language governing permissions and limitations under the License.
  *
  *  06-24-2017 : Added Absolute Humidity value to a new tile and the main tile.
- *  06-26-2017 : Added a new tile that's the "main" tile which is used whenviewign a Room andseeing summary info for a device.
+ *  06-26-2017 : Added a new tile that's the "main" tile which is used when viewing a Room and seeing summary info for a device.
  */
 metadata {
 	definition (name: "Xiaomi Temperature Sensor with Abs Humidity", namespace: "jscgs350", author: "jscgs350") {
