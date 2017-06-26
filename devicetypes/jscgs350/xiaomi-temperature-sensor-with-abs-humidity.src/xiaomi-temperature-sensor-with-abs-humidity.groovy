@@ -10,7 +10,8 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
- *  06-24-2006 : Added Absolute Humidity value to a new tile and the main tile.
+ *  06-24-2017 : Added Absolute Humidity value to a new tile and the main tile.
+ *  06-26-2017 : Added a new tile that's the "main" tile which is used whenviewign a Room andseeing summary info for a device.
  */
 metadata {
 	definition (name: "Xiaomi Temperature Sensor with Abs Humidity", namespace: "jscgs350", author: "jscgs350") {
@@ -23,6 +24,7 @@ metadata {
 		capability "Sensor"
 
 		attribute "absoluteHumidity", "number"
+        attribute "tempAndHumidity", "string"
 
 		fingerprint endpointId: "01", inClusters: "0001,0003,0020,0402,0B05,FC45", outClusters: "0019,0003"
 	}
@@ -67,14 +69,16 @@ metadata {
         valueTile("absoluteHumidity", "device.absoluteHumidity", inactiveLabel: false, width: 2, height: 2) {
 			state "absoluteHumidity", label:'${currentValue} g/m3', unit:""
 		}
-
+		valueTile("tempAndHumidity", "device.tempAndHumidity", inactiveLabel: false, width: 2, height: 2) {
+			state "tempAndHumidity", label: '${currentValue}', unit: ""
+		}
         /*
 		standardTile("refresh", "device.refresh", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
 			state "default", action:"refresh.refresh", icon:"st.secondary.refresh"
 		}
 		*/
         
-		main "temperature", "humidity"
+		main "tempAndHumidity"
 		details(["temperature", "humidity", "absoluteHumidity", "battery", "refresh"])
 	}
 }
@@ -108,7 +112,10 @@ def parse(String description) {
     def absHumidity = numerator / denominator
     def dispValue = String.format("%3.2f",absHumidity)
 	sendEvent("name": "absoluteHumidity", "value": dispValue) 
-    
+
+    def tempAndHumidityString = device.currentValue('temperature')+"° ("+device.currentValue("humidity")+"%)"
+    sendEvent("name": "tempAndHumidity", "value": tempAndHumidityString)
+
 	return map ? createEvent(map) : [:]
 }
 
