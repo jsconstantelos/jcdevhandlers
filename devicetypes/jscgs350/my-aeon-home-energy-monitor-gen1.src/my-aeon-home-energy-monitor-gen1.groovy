@@ -53,6 +53,7 @@
  *  06-12-2017 : Updated code to make sure kWh or kVAh readings from the reader are larger that the previous reading.  There should never be a smaller reading from the previous reading.
  *  06-14-2017 : Updated to fix battery reports showing up in the Recently tab when they shouldn't.
  *  06-19-2017 : Cleaned up code in the resetkwh() section.
+ *  06-29-2017 : Rolled back change from 6-12-2017 until I find a better method of checking.
  *
  */
 metadata {
