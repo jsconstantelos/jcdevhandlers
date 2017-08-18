@@ -26,6 +26,7 @@
  *  01-13-2017 : Added a couple debug lines in the Configure section.
  *  03-21-2017 : Added THERMOSTAT_SETPOINT to the multiAttributeTile to properly reflect mode and setpoint.
  *  06-05-2017 : Added "switch" capablity to allow automations to manipulate the fan from/to auto or circulate.
+ *  08-18-2017 : Fixed value inbetween the up and down arrows on the main tile.
  *
 */
 metadata {
@@ -67,7 +68,7 @@ metadata {
             tileAttribute("device.temperature", key: "PRIMARY_CONTROL") {
                 attributeState("default", label:'${currentValue}°', unit:"dF")
             }
-			tileAttribute("device.temperature", key: "VALUE_CONTROL") {
+			tileAttribute("device.thermostatSetpoint", key: "VALUE_CONTROL") {
 				attributeState("VALUE_UP", action: "setLevelUp")
 				attributeState("VALUE_DOWN", action: "setLevelDown")
 			}
