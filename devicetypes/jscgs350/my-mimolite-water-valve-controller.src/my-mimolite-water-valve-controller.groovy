@@ -48,8 +48,8 @@ metadata {
 			tileAttribute ("device.switch", key: "PRIMARY_CONTROL") {
 				attributeState "on", label: 'Closed', action: "switch.off", icon: "st.valves.water.closed", backgroundColor: "#ff0000", nextState:"openingvalve"
 				attributeState "off", label: 'Open', action: "switch.on", icon: "st.valves.water.open", backgroundColor: "#53a7c0", nextState:"closingvalve"
-				attributeState "closingvalve", label:'Closing', icon:"st.valves.water.closed", backgroundColor:"#ffd700"
-				attributeState "openingvalve", label:'Opening', icon:"st.valves.water.open", backgroundColor:"#ffd700"
+				attributeState "closingvalve", label:'Closing', icon:"st.valves.water.closed", backgroundColor:"#f0b823"
+				attributeState "openingvalve", label:'Opening', icon:"st.valves.water.open", backgroundColor:"#f0b823"
 			}
             tileAttribute ("device.valveState", key: "SECONDARY_CONTROL") {
                 attributeState("default", label:'${currentValue}', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/watervalve1.png")
