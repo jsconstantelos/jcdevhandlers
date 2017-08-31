@@ -44,7 +44,7 @@ metadata {
 	tiles(scale: 2) {
 		multiAttributeTile(name: "temperature", type: "generic", width: 6, height: 4) {
 			tileAttribute("device.temperature", key: "PRIMARY_CONTROL") {
-				attributeState "temperature", icon:"st.Weather.weather2", label: '${currentValue}°',
+				attributeState "temperature", action:"refresh", icon:"st.Weather.weather2", label: '${currentValue}°',
 						backgroundColors: [
 								[value: 31, color: "#153591"],
 								[value: 44, color: "#1e9cbb"],
@@ -177,6 +177,16 @@ def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicSet cmd) {
 def zwaveEvent(physicalgraph.zwave.Command cmd) {
 	log.debug "Catchall reached for cmd: ${cmd.toString()}}"
 	[:]
+}
+
+def refresh() {
+	log.debug "Executing Refresh per user request"
+	delayBetween([
+		zwave.switchBinaryV1.switchBinaryGet().format(),
+		zwave.sensorBinaryV1.sensorBinaryGet().format(),
+        zwave.basicV1.basicGet().format(),
+		zwave.alarmV1.alarmGet().format() 
+	],100)
 }
 
 def configure() {
