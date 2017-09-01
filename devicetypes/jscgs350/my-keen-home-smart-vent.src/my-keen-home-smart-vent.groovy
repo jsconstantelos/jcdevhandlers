@@ -17,6 +17,7 @@
  *  03-24-2017 : Changed color schema to match ST's new format.
  *  04-27-2017 : Changed to standardTile instead of valueTile to workaround an ST bug breaking how valueTile worked with versions prior to v2.3.x of the mobile app.
  *  06-05-2017 : Changed to standardTile instead of valueTile for the remaining 3 tiles now that text formatting with v2.4.0 works right again.
+ *  09-01-2017 : Changes color value for "clearing" to Caterpillar yellow.
  *
  */
 metadata {
@@ -52,7 +53,7 @@ metadata {
                 attributeState "on", action: "switch.off", label: "OPEN", icon: "st.vents.vent-open", backgroundColor: "#00A0DC"
                 attributeState "off", action: "switch.on", label: "CLOSED", icon: "st.vents.vent", backgroundColor: "#ffffff"
                 attributeState "obstructed", action: "clearObstruction", label: "OBSTRUCTION", icon: "st.vents.vent-open", backgroundColor: "#ff0000"
-                attributeState "clearing", action: "", label: "CLEARING", icon: "st.vents.vent-open", backgroundColor: "#ffff33"
+                attributeState "clearing", action: "", label: "CLEARING", icon: "st.vents.vent-open", backgroundColor: "#f0b823"
             }
             tileAttribute ("device.level", key: "SLIDER_CONTROL") {
                 attributeState "level", action:"switch level.setLevel"
