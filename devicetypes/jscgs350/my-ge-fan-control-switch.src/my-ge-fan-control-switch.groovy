@@ -19,6 +19,7 @@
  *  01-08-2017 : Added code for Health Check capabilities/functions, and cleaned up code.
  *  03-11-2017 : Changed from valueTile to standardTile for a few tiles since ST's mobile app v2.3.x changed something between the two.
  *  08-31-2017 : Changed to ST's color scheme.
+ *  09-01-2017 : Updated to use ST's latest version of the dimmer switch code.
  *
  */
  
@@ -39,6 +40,8 @@ metadata {
 
 		attribute "currentState", "string"
         attribute "currentSpeed", "string"
+        
+        fingerprint mfr:"0063", prod:"4944", model:"3034", deviceJoinName: "GE In-Wall Smart Fan Control"
 	}
 
 	preferences {
@@ -55,8 +58,8 @@ metadata {
 			tileAttribute ("device.switch", key: "PRIMARY_CONTROL") {    
 				attributeState "on", action:"switch.off", label:'ON', icon:"st.Lighting.light24", backgroundColor:"#00A0DC", nextState:"turningOff"
 				attributeState "off", action:"switch.on", label:'OFF', icon:"st.Lighting.light24", backgroundColor:"#ffffff", nextState:"turningOn"
-				attributeState "turningOn", label:'TURNINGON', icon:"st.Lighting.light24", backgroundColor:"#2179b8", nextState: "turningOn"
-				attributeState "turningOff", label:'TURNINGOFF', icon:"st.Lighting.light24", backgroundColor:"#2179b8", nextState: "turningOff"
+				attributeState "turningOn", label:'TURNINGON', icon:"st.Lighting.light24", backgroundColor:"#f0b823", nextState: "turningOn"
+				attributeState "turningOff", label:'TURNINGOFF', icon:"st.Lighting.light24", backgroundColor:"#f0b823", nextState: "turningOff"
 			}   
             tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
            		attributeState "statusText", label:'${currentValue}', icon:"st.Lighting.light24"
@@ -87,6 +90,11 @@ metadata {
 	}
 }
 
+def installed() {
+	// Device-Watch simply pings if no device events received for 32min(checkInterval)
+	sendEvent(name: "checkInterval", value: 2 * 15 * 60 + 2 * 60, displayed: false, data: [protocol: "zwave", hubHardwareId: device.hub.hardwareID])
+}
+
 def updated(){
 	// Device-Watch simply pings if no device events received for 32min(checkInterval)
 	sendEvent(name: "checkInterval", value: 2 * 15 * 60 + 2 * 60, displayed: false, data: [protocol: "zwave", hubHardwareId: device.hub.hardwareID])
@@ -106,11 +114,21 @@ def updated(){
     }
 }
 
+def getCommandClassVersions() {
+	[
+		0x20: 1,  // Basic
+		0x26: 1,  // SwitchMultilevel
+		0x56: 1,  // Crc16Encap
+		0x70: 1,  // Configuration
+	]
+}
+
 def parse(String description) {
 	def result = null
 	if (description != "updated") {
 		log.debug "parse() >> zwave.parse($description)"
-		def cmd = zwave.parse(description, [0x20: 1, 0x26: 1, 0x70: 1])
+//		def cmd = zwave.parse(description, [0x20: 1, 0x26: 1, 0x70: 1])
+        def cmd = zwave.parse(description, commandClassVersions)
 		if (cmd) {
             if (cmd.value > 0) {
                 if (cmd.value <= lowThreshold) {
@@ -191,6 +209,16 @@ def zwaveEvent(physicalgraph.zwave.commands.manufacturerspecificv2.ManufacturerS
 
 def zwaveEvent(physicalgraph.zwave.commands.switchmultilevelv1.SwitchMultilevelStopLevelChange cmd) {
 	[createEvent(name:"switch", value:"on"), response(zwave.switchMultilevelV1.switchMultilevelGet().format())]
+}
+
+def zwaveEvent(physicalgraph.zwave.commands.crc16encapv1.Crc16Encap cmd) {
+	def versions = commandClassVersions
+	def version = versions[cmd.commandClass as Integer]
+	def ccObj = version ? zwave.commandClass(cmd.commandClass, version) : zwave.commandClass(cmd.commandClass)
+	def encapsulatedCommand = ccObj?.command(cmd.command)?.parse(cmd.data)
+	if (encapsulatedCommand) {
+		zwaveEvent(encapsulatedCommand)
+	}
 }
 
 def zwaveEvent(physicalgraph.zwave.Command cmd) {
@@ -274,17 +302,17 @@ def refresh() {
 }
 
 void indicatorWhenOn() {
-	sendEvent(name: "indicatorStatus", value: "when on", display: false)
+	sendEvent(name: "indicatorStatus", value: "when on", displayed: false)
 	sendHubCommand(new physicalgraph.device.HubAction(zwave.configurationV1.configurationSet(configurationValue: [1], parameterNumber: 3, size: 1).format()))
 }
 
 void indicatorWhenOff() {
-	sendEvent(name: "indicatorStatus", value: "when off", display: false)
+	sendEvent(name: "indicatorStatus", value: "when off", displayed: false)
 	sendHubCommand(new physicalgraph.device.HubAction(zwave.configurationV1.configurationSet(configurationValue: [0], parameterNumber: 3, size: 1).format()))
 }
 
 void indicatorNever() {
-	sendEvent(name: "indicatorStatus", value: "never", display: false)
+	sendEvent(name: "indicatorStatus", value: "never", displayed: false)
 	sendHubCommand(new physicalgraph.device.HubAction(zwave.configurationV1.configurationSet(configurationValue: [2], parameterNumber: 3, size: 1).format()))
 }
 
