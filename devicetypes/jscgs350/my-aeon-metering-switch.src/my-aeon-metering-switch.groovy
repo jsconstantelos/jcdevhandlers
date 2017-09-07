@@ -135,7 +135,7 @@ metadata {
 // Watts row
 
         valueTile("powerDisp", "device.powerDisp", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
-            state ("default", icon: "st.secondary.activity", label:'Now ${currentValue}W')
+            state ("default", icon: "st.secondary.activity", label:'${currentValue}W')
         }
         standardTile("powerOne", "device.powerOne", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
             state("default", label:'Low ${currentValue}')
