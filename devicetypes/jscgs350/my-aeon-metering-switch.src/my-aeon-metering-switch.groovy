@@ -41,6 +41,7 @@ metadata {
 		capability "Energy Meter"
 		capability "Actuator"
 		capability "Switch"
+        capability "Outlet"
 		capability "Power Meter"
 		capability "Polling"
 		capability "Refresh"
