@@ -27,6 +27,7 @@
  *  03-21-2017 : Added THERMOSTAT_SETPOINT to the multiAttributeTile to properly reflect mode and setpoint.
  *  06-05-2017 : Added "switch" capablity to allow automations to manipulate the fan from/to auto or circulate.
  *  08-18-2017 : Fixed value inbetween the up and down arrows on the main tile.
+ *  09-09-2017 : Changed the UI for ST's new slider format (went back to individuals sliders for cool/heat vs one slider), changed icons, colors, and format.
  *
 */
 metadata {
@@ -47,7 +48,6 @@ metadata {
        
 		command "setLevelUp"
 		command "setLevelDown"
-        command "setThermoSetpoint"
 		command "heatLevelUp"
 		command "heatLevelDown"
         command "quickSetHeat"
@@ -103,78 +103,67 @@ metadata {
 		}       
 
 //Thermostat Mode Control
-        standardTile("modeheat", "device.thermostatMode", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
-            state "heat", label:'', action:"heat", icon:"st.thermostat.heat"
+        standardTile("modeheat", "device.thermostatMode", width: 2, height: 1, inactiveLabel: false, decoration: "flat") {
+            state "heat", label:'Heat Mode', action:"heat", icon:"https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/heat@2x.png"
         }
-        standardTile("modecool", "device.thermostatMode", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
-            state "cool", label:'', action:"cool", icon:"st.thermostat.cool"
+        standardTile("modecool", "device.thermostatMode", width: 2, height: 1, inactiveLabel: false, decoration: "flat") {
+            state "cool", label:'Cool Mode', action:"cool", icon:"https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/cool@2x.png"
         }
-        standardTile("modeauto", "device.thermostatMode", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
-            state "auto", label:'', action:"auto", icon:"st.thermostat.auto"
+        standardTile("modeauto", "device.thermostatMode", width: 2, height: 1, inactiveLabel: false, decoration: "flat") {
+            state "auto", label:'Auto Mode', action:"auto", icon:"https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/auto@2x.png"
         }
-        standardTile("modeheatemrgcy", "device.thermostatMode", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
+        standardTile("modeheatemrgcy", "device.thermostatMode", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
             state "heatemrgcy", label:'', action:"emergencyHeat", icon:"st.thermostat.emergency-heat"
         }         
-        standardTile("modeoff", "device.thermostatMode", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
+        standardTile("modeoff", "device.thermostatMode", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
             state "off", label: '', action:"offmode", icon:"st.thermostat.heating-cooling-off"
         }        
-        
-//Slider Set Point Controls
-		controlTile("thermoSliderControl", "device.thermostatSetpoint", "slider", height: 1, width: 6, inactiveLabel: false, range:"(60..80)") {
-			state "thermostatSetpoint", label:'${currentValue}', action:"setThermoSetpoint", backgroundColor: "#a6a6a6"
-		}
 
 //Heating Set Point Controls
-        standardTile("heatLevelUp", "device.heatingSetpoint", width: 1, height: 1, inactiveLabel: false, decoration: "flat") {
-            state "heatLevelUp", label:'', action:"heatLevelUp", icon:"st.thermostat.thermostat-up"
-        }
-        standardTile("heatTile", "device.heatingSetpoint", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
-			state "default", label:'', action:"heat", icon:"st.thermostat.heat"
+        standardTile("heatTile", "device.heatingSetpoint", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
+			state "default", label:'', action:"heat", icon:"st.thermostat.heat", backgroundColor: "#ea5462"
 		}
-		standardTile("heatLevelDown", "device.heatingSetpoint", width: 1, height: 1, inactiveLabel: false, decoration: "flat") {
-            state "heatLevelDown", label:'', action:"heatLevelDown", icon:"st.thermostat.thermostat-down"
-        }
+		controlTile("heatSliderControl", "device.heatingSetpoint", "slider", width: 1, height: 2, inactiveLabel: false, range:"(60..80)") {
+			state "default", label:'${currentValue}', action:"quickSetHeat", backgroundColor: "#ea5462"
+		}
 
 //Cooling Set Point Controls
-        standardTile("coolLevelUp", "device.coolingSetpoint", width: 1, height: 1, inactiveLabel: false, decoration: "flat") {
-            state "coolLevelUp", label:'', action:"coolLevelUp", icon:"st.thermostat.thermostat-up"
-        }
-        standardTile("coolTile", "device.coolingSetpoint", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
-			state "default", label:'', action:"cool", icon:"st.thermostat.cool"
+        standardTile("coolTile", "device.coolingSetpoint", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
+			state "default", label:'', action:"cool", icon:"st.thermostat.cool", backgroundColor: "#269bd2"
 		}
-		standardTile("coolLevelDown", "device.coolingSetpoint", width: 1, height: 1, inactiveLabel: false, decoration: "flat") {
-            state "coolLevelDown", label:'', action:"coolLevelDown", icon:"st.thermostat.thermostat-down"
-        }
+		controlTile("coolSliderControl", "device.coolingSetpoint", "slider", width: 1, height: 2, inactiveLabel: false, range:"(60..80)") {
+			state "default", label:'${currentValue}', action:"quickSetCool", backgroundColor: "#269bd2"
+		}
 
 //Fan Mode Control        
-        standardTile("fanauto", "device.thermostatFanMode", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
-            state "fanauto", label:'', action:"fanAuto", icon:"st.thermostat.fan-auto"
+        standardTile("fanauto", "device.thermostatFanMode", width: 2, height: 1, inactiveLabel: false, decoration: "flat") {
+            state "fanauto", label:'Set Fan To Auto', action:"fanAuto", icon:"https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/fan-auto@2x.png"
         }
-        standardTile("fanon", "device.thermostatFanMode", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
-            state "fanon", label:'', action:"fanOn", icon:"st.thermostat.fan-on"
+        standardTile("fanon", "device.thermostatFanMode", width: 2, height: 1, inactiveLabel: false, decoration: "flat") {
+            state "fanon", label:'Turn On Fan', action:"fanOn", icon:"https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/fan-on@2x.png"
         }
-        standardTile("fancir", "device.thermostatFanMode", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
-            state "fancir", label:'', action:"fanCirculate", icon:"st.thermostat.fan-circulate"
+        standardTile("fancir", "device.thermostatFanMode", width: 2, height: 1, inactiveLabel: false, decoration: "flat") {
+            state "fancir", label:'Circulate Fan', action:"fanCirculate", icon:"https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/fan-on@2x.png"
         }
 
 //Refresh and Config Controls
-		standardTile("refresh", "device.refresh", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
+		standardTile("refresh", "device.refresh", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
 			state "default", label:'Refresh', action:"polling.poll", icon:"st.secondary.refresh-icon"
 		}
-		standardTile("configure", "device.configure", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
+		standardTile("configure", "device.configure", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
 			state "configure", label:'', action:"configuration.configure", icon:"st.secondary.configure"
 		}
 
 //Miscellaneous tiles used in this DH
-        standardTile("statusL1Text", "statusL1Text", inactiveLabel: false, decoration: "flat", width: 3, height: 2) {
+        standardTile("statusL1Text", "statusL1Text", inactiveLabel: false, decoration: "flat", width: 3, height: 1) {
 			state "default", label:'${currentValue}', icon:"st.Home.home1"
 		}
-        standardTile("statusL2Text", "statusL2Text", inactiveLabel: false, decoration: "flat", width: 3, height: 2) {
-			state "default", label:'${currentValue}', icon:"st.Appliances.appliances11"
+        standardTile("statusL2Text", "statusL2Text", inactiveLabel: false, decoration: "flat", width: 3, height: 1) {
+			state "default", label:'${currentValue}', icon:"https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/fan-on@2x.png"
 		}
 
 		main (["temperature"])
-		details(["temperature", "heatLevelUp", "heatTile", "heatLevelDown", "coolLevelUp", "coolTile", "coolLevelDown", "thermoSliderControl", "statusL1Text", "statusL2Text", "fanon", "fanauto", "fancir", "modeheat", "modecool", "modeauto", "modeheatemrgcy", "modeoff", "refresh", "configure"])
+		details(["temperature", "heatTile", "heatSliderControl", "coolTile", "coolSliderControl", "statusL1Text", "statusL2Text", "fanon", "fanauto", "fancir", "modeheat", "modecool", "modeauto", "modeheatemrgcy", "refresh", "modeoff", "configure"])
 	}
 }
 
@@ -475,14 +464,6 @@ def setLevelDown(){
 	}    
 }
 
-def setThermoSetpoint(degrees) {
-    if (device.latestValue("thermostatMode") == "heat") {
-    	setHeatingSetpoint(degrees)
-	} else if (device.latestValue("thermostatMode") == "cool") {    
-        setCoolingSetpoint(degrees)
-	}
-}
-
 def heatLevelUp(){
     int nextLevel = device.currentValue("heatingSetpoint") + 1
     setHeatingSetpoint(nextLevel)
@@ -648,7 +629,7 @@ def fanCirculate() {
 }
 
 def poll() {
-//	log.debug "Executing poll/refresh...."
+	log.debug "Executing poll/refresh...."
 	delayBetween([
 		zwave.sensorMultilevelV3.sensorMultilevelGet().format(), // current temperature
 		zwave.thermostatSetpointV1.thermostatSetpointGet(setpointType: 1).format(),
