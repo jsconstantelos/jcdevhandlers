@@ -62,12 +62,7 @@ def pageStatus() {
 		settings.powerdevices.each() {
 			def lastPower = it.currentValue('power')
 			try {
-				if (lastPower) {
-					goodlist += "$lastPower : $it.displayName\n"
-				} else {
-					badlist += "$it.displayName\n"	
-				}
-
+					goodlist += "$lastPower Watts : $it.displayName\n"
 			} catch (e) {
 					log.trace "Caught error checking a device."
 					log.trace e
