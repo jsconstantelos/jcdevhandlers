@@ -28,6 +28,7 @@
  *  06-05-2017 : Added "switch" capablity to allow automations to manipulate the fan from/to auto or circulate.
  *  08-18-2017 : Fixed value inbetween the up and down arrows on the main tile.
  *  09-09-2017 : Changed the UI for ST's new slider format (went back to individuals sliders for cool/heat vs one slider), changed icons, colors, and format.
+ *  09-12-2017 : Added another tile specifically used for the Things view for the device (temperature2).
  *
 */
 metadata {
@@ -64,7 +65,7 @@ metadata {
 
 //Thermostat Temp and State
 	tiles(scale: 2) {
-		multiAttributeTile(name:"temperature", type: "thermostat", width: 6, height: 4, canChangeIcon: true, decoration: "flat"){
+		multiAttributeTile(name:"temperature", type: "thermostat", width: 6, height: 4, decoration: "flat"){
             tileAttribute("device.temperature", key: "PRIMARY_CONTROL") {
                 attributeState("default", label:'${currentValue}°', unit:"dF")
             }
@@ -161,8 +162,20 @@ metadata {
         standardTile("statusL2Text", "statusL2Text", inactiveLabel: false, decoration: "flat", width: 3, height: 1) {
 			state "default", label:'${currentValue}', icon:"https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/fan-on@2x.png"
 		}
-
-		main (["temperature"])
+        valueTile("temperature2", "device.temperature", width: 1, height: 1, canChangeIcon: true) {
+            state "temperature", label: '${currentValue}°', icon:"st.thermostat.ac.air-conditioning",
+				backgroundColors:[
+					[value: 32, color: "#153591"],
+					[value: 44, color: "#1e9cbb"],
+					[value: 59, color: "#90d2a7"],
+					[value: 74, color: "#44b621"],
+					[value: 84, color: "#f1d801"],
+					[value: 92, color: "#d04e00"],
+					[value: 98, color: "#bc2323"]
+            ]
+        }
+        
+		main (["temperature2"])
 		details(["temperature", "heatTile", "heatSliderControl", "coolSliderControl", "coolTile", "statusL1Text", "statusL2Text", "fanon", "fanauto", "fancir", "modeheat", "modecool", "modeauto", "modeheatemrgcy", "refresh", "modeoff", "configure"])
 	}
 }
