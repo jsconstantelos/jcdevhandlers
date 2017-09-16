@@ -1,5 +1,6 @@
 /**
- *  Aeon Metering Switch gen-1
+ *  Aeon Smart Energy Switch gen-1
+ *  Aeon Micro Smart Switch (G2)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  *  in compliance with the License. You may obtain a copy of the License at:
@@ -33,6 +34,7 @@
  *  05-28-2017 : Sometimes the HEM will send a super low reading, like 0.04672386; which in that case the decimal position setting would not get applied if you used 3.  I fixed that.
  *  06-12-2017 : Updated code to make sure kWh or kVAh readings from the reader are larger that the previous reading.  There should never be a smaller reading from the previous reading.
  *  09-06-2017 : Removed fingerprint.  Checking to see if this helps in joining the device since it doesn't have to go through all the configuration steps when included.
+ *  09-15-2017 : Changed tile layout, made tiles smaller, and removed the reset info messages since you can find them in the Recently tab or the device's event log.
  *
  */
 metadata {
@@ -61,8 +63,7 @@ metadata {
         command "resetmax"
         command "configure"
         command "resetMeter"
-        
-//		fingerprint inClusters: "0x25,0x32"
+
 	}
 
     preferences {
@@ -159,23 +160,23 @@ metadata {
             state("default", label: 'Cost $${currentValue}', backgroundColor:"#ffffff")
         }    
         
-        standardTile("resetenergy", "device.energy", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
+        standardTile("resetenergy", "device.energy", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
 			state "default", label:'Reset Energy Use', action:"resetenergy", icon:"st.secondary.refresh-icon"
 		}        
-        standardTile("resetmax", "device.energy", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
+        standardTile("resetmax", "device.energy", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
 			state "default", label:'Reset Maximum', action:"resetmax", icon:"st.secondary.refresh-icon"
 		}
-		standardTile("configure", "device.power", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
+		standardTile("configure", "device.power", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
 			state "configure", label:'', action:"configuration.configure", icon:"st.secondary.configure"
 		}
-		standardTile("refresh", "device.power", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
+		standardTile("refresh", "device.power", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
 			state "default", label:'Refresh', action:"refresh.refresh", icon:"st.secondary.refresh-icon"
 		}
         standardTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}
 		main "powerDisp"
-		details(["switch", "iconTile", "statusText", "iconTile", "energyOne", "energyDisp", "energyTwo", "resetmax", "resetenergy", "refresh","configure"])
+		details(["switch", "energyDisp", "energyTwo", "iconTile", "statusText", "resetmax", "resetenergy", "refresh","configure"])
 	}
 }
 
@@ -198,7 +199,7 @@ def parse(String description) {
 	}
         
     def statusTextmsg = ""
-    statusTextmsg = "Maximum of ${device.currentState('powerTwo')?.value}"
+    statusTextmsg = "Max of ${device.currentState('powerTwo')?.value}"
     sendEvent(name: "statusText", value: statusTextmsg)
     if (state.debug) log.debug statusTextmsg
     
