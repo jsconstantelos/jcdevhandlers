@@ -181,18 +181,19 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
                     def dispLowValue = dispValue+" watts on "+timeString
                     sendEvent(name: "powerLow", value: dispLowValue as String, unit: "", displayed: false)
                     state.powerLowVal = cmd.scaledMeterValue
+                    response(refreshHistory())
                 }
                 if (cmd.scaledMeterValue > state.powerHighVal) {
                     def dispHighValue = dispValue+" watts on "+timeString
                     sendEvent(name: "powerHigh", value: dispHighValue as String, unit: "", displayed: false)
                     state.powerHighVal = cmd.scaledMeterValue
+                    response(refreshHistory())
                 }
                 if (state.displayDisabled) {
                 	sendEvent(name: "power", value: dispValue, unit: "watts", displayed: true)
                 } else {
                     sendEvent(name: "power", value: dispValue, unit: "watts", displayed: false)
                 }
-                response(refreshHistory())
             }
         }
     } else if (cmd.scale==4) {
@@ -211,18 +212,19 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
                 def dispLowValue = dispValue+" volts on "+timeString
                 sendEvent(name: "voltageLow", value: dispLowValue as String, unit: "", displayed: false)
                 state.voltageLowVal = cmd.scaledMeterValue
+                response(refreshHistory())
             }
             if (cmd.scaledMeterValue > state.voltageHighVal) {
                 def dispHighValue = dispValue+" volts on "+timeString
                 sendEvent(name: "voltageHigh", value: dispHighValue as String, unit: "", displayed: false)
                 state.voltageHighVal = cmd.scaledMeterValue
+                response(refreshHistory())
             }
             if (state.displayDisabled) {
                 sendEvent(name: "voltage", value: dispValue, unit: "volts", displayed: true)
             } else {
                 sendEvent(name: "voltage", value: dispValue, unit: "volts", displayed: false)
             }
-            response(refreshHistory())
         }
     } else if (cmd.scale==5) {
         if (cmd.scaledMeterValue != state.ampsValue) {
@@ -240,18 +242,19 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
                 def dispLowValue = dispValue+" amps on "+timeString
                 sendEvent(name: "currentLow", value: dispLowValue as String, unit: "", displayed: false)
                 state.currentLowVal = cmd.scaledMeterValue
+                response(refreshHistory())
             }
             if (cmd.scaledMeterValue > state.currentHighVal) {
                 def dispHighValue = dispValue+" amps on "+timeString
                 sendEvent(name: "currentHigh", value: dispHighValue as String, unit: "", displayed: false)
                 state.currentHighVal = cmd.scaledMeterValue
+                response(refreshHistory())
             }
             if (state.displayDisabled) {
                 sendEvent(name: "current", value: dispValue, unit: "amps", displayed: true)
             } else {
                 sendEvent(name: "current", value: dispValue, unit: "amps", displayed: false)
             }
-            response(refreshHistory())
         }
     }
 }
@@ -326,7 +329,6 @@ def refresh() {
         zwave.meterV3.meterGet(scale: 4).format(),
         zwave.meterV3.meterGet(scale: 5).format()
 	])
-    response(refreshHistory())
 }
 
 def resetWatts() {
@@ -340,7 +342,7 @@ def resetWatts() {
         zwave.meterV3.meterGet(scale: 2).format()
     ])
     cmd
-	response(refreshHistory())
+    response(refreshHistory())
 }
 
 def resetEnergy() {
