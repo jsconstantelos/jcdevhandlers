@@ -349,6 +349,8 @@ def resetEnergy() {
     if (state.debug) log.debug "${device.label} reset kWh/Cost values"
 	def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
     sendEvent(name: "kwhCosts", value: "(reset)", unit: "", displayed: false)
+    sendEvent(name: "energy", value: 0, unit: "kWh", displayed: false)
+    state.energyValue = 0
     def cmd = delayBetween( [
         zwave.meterV3.meterReset().format(),
         zwave.meterV3.meterGet(scale: 0).format()

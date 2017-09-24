@@ -35,10 +35,10 @@
  *  06-12-2017 : Updated code to make sure kWh or kVAh readings from the reader are larger that the previous reading.  There should never be a smaller reading from the previous reading.
  *  09-06-2017 : Removed fingerprint.  Checking to see if this helps in joining the device since it doesn't have to go through all the configuration steps when included.
  *  09-15-2017 : Changed tile layout, made tiles smaller, and removed the reset info messages since you can find them in the Recently tab or the device's event log.
+ *  09-23-2017 : Changed layout to look like my Zooz DTH, cleaned up code a lot.
  *
  */
 metadata {
-	// Automatically generated. Make future change here.
 	definition (name: "My Aeon Metering Switch", namespace: "jscgs350", author: "SmartThings") {
 		capability "Energy Meter"
 		capability "Actuator"
@@ -51,76 +51,27 @@ metadata {
         capability "Configuration"
         capability "Health Check"
 
-        attribute "energyDisp", "string"
-        attribute "energyOne", "string"
-        attribute "energyTwo", "string"
+		attribute "kwhCosts", "string"
+		attribute "history", "string"
+        attribute "powerLow", "string"
+        attribute "powerHigh", "string"
 
-        attribute "powerDisp", "string"
-        attribute "powerOne", "string"
-        attribute "powerTwo", "string"
-
-        command "resetenergy"
-        command "resetmax"
-        command "configure"
-        command "resetMeter"
-
+		command "resetWatts"
+		command "resetEnergy"
+        command "refreshHistory"
 	}
 
     preferences {
-        input "disableOnOff", "boolean", 
-            title: "Disable On/Off switch?", 
-            defaultValue: false, 
-            displayDuringSetup: true
-        input "debugOutput", "boolean", 
-            title: "Enable debug logging?", 
-            defaultValue: false, 
-            displayDuringSetup: true
-        input "displayEvents", "boolean",
-            title: "Display all events in the Recently tab and the device's event log?", 
-            defaultValue: false,
-            required: false,
-            displayDuringSetup: true
-        input "kWhCost", "string",
-            title: "Enter your cost per kWh (or just use the default, or use 0 to not calculate):",
-            defaultValue: 0.16,
-            required: false,                
-            displayDuringSetup: true            
-        input "reportType", "number", 
-            title: "ReportType: Send watts/kWh data on a time interval (0), or on a change in wattage (1)? Enter a 0 or 1:",  
-            defaultValue: 1,
-            range: "0..1",
-            required: false, 
-            displayDuringSetup: true
-        input "wattsChanged", "number", 
-            title: "For ReportType = 1, Don't send unless watts have changed by this many watts: (range 0 - 32,000W)",  
-            defaultValue: 50,
-            range: "0..32000",
-            required: false, 
-            displayDuringSetup: true
-        input "wattsPercent", "number", 
-            title: "For ReportType = 1, Don't send unless watts have changed by this percent: (range 0 - 99%)",  
-            defaultValue: 10,
-            range: "0..99",
-            required: false, 
-            displayDuringSetup: true
-        input "secondsWatts", "number", 
-            title: "For ReportType = 0, Send Watts data every how many seconds? (range 0 - 65,000 seconds)",  
-            defaultValue: 10,
-            range: "0..65000",
-            required: false, 
-            displayDuringSetup: true
-        input "secondsKwh", "number", 
-            title: "For ReportType = 0, Send kWh data every how many seconds? (range 0 - 65,000 seconds)",  
-            defaultValue: 60,
-            range: "0..65000",
-            required: false, 
-            displayDuringSetup: true 
-        input "decimalPositions", "number", 
-            title: "How many decimal positions do you want watts AND kWh to display? (range 0 - 3)",  
-            defaultValue: 3,
-            range: "0..3",
-            required: false, 
-            displayDuringSetup: true
+        input "disableOnOff", "boolean", title: "Disable On/Off switch?", defaultValue: false, displayDuringSetup: true
+        input "debugOutput", "boolean", title: "Enable debug logging?", defaultValue: false, displayDuringSetup: true
+        input "displayEvents", "boolean", title: "Display all events in the Recently tab and the device's event log?", defaultValue: false, required: false, displayDuringSetup: true
+        input "kWhCost", "string", title: "Enter your cost per kWh (or just use the default, or use 0 to not calculate):", defaultValue: 0.16, required: false, displayDuringSetup: true            
+        input "reportType", "number", title: "ReportType: Send watts/kWh data on a time interval (0), or on a change in wattage (1)? Enter a 0 or 1:", defaultValue: 1, range: "0..1", required: false, displayDuringSetup: true
+        input "wattsChanged", "number", title: "For ReportType = 1, Don't send unless watts have changed by this many watts: (range 0 - 32,000W)", defaultValue: 50, range: "0..32000", required: false, displayDuringSetup: true
+        input "wattsPercent", "number", title: "For ReportType = 1, Don't send unless watts have changed by this percent: (range 0 - 99%)", defaultValue: 10, range: "0..99", required: false, displayDuringSetup: true
+        input "secondsWatts", "number", title: "For ReportType = 0, Send Watts data every how many seconds? (range 0 - 65,000 seconds)", defaultValue: 10, range: "0..65000", required: false, displayDuringSetup: true
+        input "secondsKwh", "number", title: "For ReportType = 0, Send kWh data every how many seconds? (range 0 - 65,000 seconds)", defaultValue: 60, range: "0..65000", required: false, displayDuringSetup: true 
+        input "decimalPositions", "number", title: "How many decimal positions do you want watts AND kWh to display? (range 0 - 3)", defaultValue: 3, range: "0..3", required: false, displayDuringSetup: true
     }
 
 	tiles(scale: 2) {
@@ -129,54 +80,34 @@ metadata {
 				attributeState "on", label: '${name}', action: "switch.off", icon: "st.switches.switch.on", backgroundColor: "#00A0DC"
 				attributeState "off", label: '${name}', action: "switch.on", icon: "st.switches.switch.off", backgroundColor: "#ffffff"
 			}
-            tileAttribute ("secondaryText", key: "SECONDARY_CONTROL") {
-           		attributeState "secondaryText", label:'${currentValue}', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/device-activity-tile@2x.png"
+            tileAttribute ("power", key: "SECONDARY_CONTROL") {
+           		attributeState "device.power", label:'Currently using ${currentValue} watts', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/device-activity-tile@2x.png"
             }
 		}
-
-// Watts row
-
-        valueTile("powerDisp", "device.powerDisp", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
-            state ("default", icon: "st.secondary.activity", label:'${currentValue}W')
-        }
-        standardTile("powerOne", "device.powerOne", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
-            state("default", label:'Low ${currentValue}')
-        }
-        standardTile("powerTwo", "device.powerTwo", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
-            state("default", label:'High ${currentValue}')
-        }
-        
-        standardTile("iconTile", "statusText", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
-			state "default", label:'', icon:"http://cdn.device-icons.smartthings.com/secondary/device-activity-tile@2x.png"
+		standardTile("energy", "device.energy", width: 3, height: 1, decoration: "flat") {
+			state "energy", label:'${currentValue} kWh'
 		}
-
-        valueTile("energyDisp", "device.energyDisp", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
-            state("default", label: '${currentValue}kWh', backgroundColor:"#ffffff")
-        }
-        standardTile("energyOne", "device.energyOne", width: 5, height: 1, inactiveLabel: false, decoration: "flat") {
-            state("default", label: '${currentValue}', backgroundColor:"#ffffff")
-        }
-        valueTile("energyTwo", "device.energyTwo", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
-            state("default", label: 'Cost $${currentValue}', backgroundColor:"#ffffff")
-        }    
-        
-        standardTile("resetenergy", "device.energy", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
-			state "default", label:'Reset Energy Use', action:"resetenergy", icon:"st.secondary.refresh-icon"
-		}        
-        standardTile("resetmax", "device.energy", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
-			state "default", label:'Reset Maximum', action:"resetmax", icon:"st.secondary.refresh-icon"
+		valueTile("kwhCosts", "device.kwhCosts", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
+			state("default", label: 'Cost ${currentValue}', backgroundColor:"#ffffff")
 		}
-		standardTile("configure", "device.power", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
-			state "configure", label:'', action:"configuration.configure", icon:"st.secondary.configure"
+		standardTile("history", "device.history", decoration:"flat",width: 6, height: 2) {
+			state "history", label:'${currentValue}', action: "refreshHistory"
 		}
-		standardTile("refresh", "device.power", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
+		standardTile("resetWatts", "device.resetWatts", width: 3, height: 2, decoration: "flat") {
+			state "default", label:'Reset Watts Min/Max', action: "resetWatts", icon:"st.secondary.refresh-icon"
+		}
+		standardTile("resetEnergy", "device.resetEnergy", width: 3, height: 2, decoration: "flat") {
+			state "default", label:'Reset kWh/Costs', action: "resetEnergy", icon:"st.secondary.refresh-icon"
+		}
+		standardTile("refresh", "device.power", width: 6, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "default", label:'Refresh', action:"refresh.refresh", icon:"st.secondary.refresh-icon"
 		}
-        standardTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
-			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
+		standardTile("power2", "device.power", width: 3, height: 1, decoration: "flat") {
+			state "power", icon: "st.secondary.activity", label:'${currentValue} W'
 		}
-		main "powerDisp"
-		details(["switch", "energyDisp", "energyTwo", "iconTile", "statusText", "resetmax", "resetenergy", "refresh","configure"])
+
+		main "power2"
+		details(["switch", "energy", "kwhCosts", "history", "resetWatts", "resetEnergy", "refresh"])
 	}
 }
 
@@ -197,107 +128,67 @@ def parse(String description) {
 	if (cmd) {
 		result = createEvent(zwaveEvent(cmd))
 	}
-        
-    def statusTextmsg = ""
-    statusTextmsg = "Max of ${device.currentState('powerTwo')?.value}"
-    sendEvent(name: "statusText", value: statusTextmsg)
-    if (state.debug) log.debug statusTextmsg
-    
-    def secondaryTextmsg = ""
-    secondaryTextmsg = "Currently using ${device.currentState('powerDisp')?.value}W"
-    sendEvent(name: "secondaryText", value: secondaryTextmsg, displayed: false)
-    if (state.debug) log.debug secondaryTextmsg    
-
 	return result
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
-    if (state.debug) log.debug "zwaveEvent received ${cmd}"
     def dispValue
-    def dispLowValue
-    def dispHighValue
-    def newValue
-    def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
-	if (cmd.scale == 0) {
-        newValue = cmd.scaledMeterValue
-        if (newValue > state.energyValue) {
-            dispValue = newValue
-            if (decimalPositions == 3) {
-            	def decimalDisplay = String.format("%3.3f",newValue)
-                dispValue = decimalDisplay
-            } else if (decimalPositions == 2) {
-                def decimalDisplay = String.format("%3.2f",newValue)
-                dispValue = decimalDisplay
+	def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
+    if (cmd.scale == 0) {
+        if (cmd.scaledMeterValue != state.energyValue) {
+            state.energyValue = cmd.scaledMeterValue
+            if (decimalPositions == 2) {
+                dispValue = String.format("%3.2f",cmd.scaledMeterValue)
             } else if (decimalPositions == 1) {
-                def decimalDisplay = String.format("%3.1f",newValue)
-                dispValue = decimalDisplay
+                dispValue = String.format("%3.1f",cmd.scaledMeterValue)
             } else if (decimalPositions == 0) {
                 dispValue = Math.round(cmd.scaledMeterValue)
             } else {
-                dispValue = newValue
+                dispValue = String.format("%3.3f",cmd.scaledMeterValue)
             }
-            sendEvent(name: "energyDisp", value: dispValue as String, unit: "", displayed: false)
-            state.energyValue = newValue
-            BigDecimal costDecimal = newValue * ( kWhCost as BigDecimal)
-            def costDisplay = String.format("%3.2f",costDecimal)
-            sendEvent(name: "energyTwo", value: "${costDisplay}", unit: "", displayed: false)
+            BigDecimal costDecimal = cmd.scaledMeterValue * (kWhCost as BigDecimal)
+            def costDisplay = "\$"
+            costDisplay += String.format("%3.2f",costDecimal)
+            sendEvent(name: "kwhCosts", value: costDisplay as String, unit: "", displayed: false)
             if (state.displayDisabled) {
-                [name: "energy", value: newValue, unit: "kWh", displayed: true]
+                sendEvent(name: "energy", value: dispValue, unit: "kWh", displayed: true)
             } else {
-                [name: "energy", value: newValue, unit: "kWh", displayed: false]
-            }
-		}
-	} else if (cmd.scale == 1) {
-        newValue = cmd.scaledMeterValue
-        if (newValue > state.energyValue) {
-            dispValue = newValue+"\nkVAh"
-            sendEvent(name: "energyDisp", value: dispValue as String, unit: "", displayed: false)
-            state.energyValue = newValue
-            if (state.displayDisabled) {
-                [name: "energy", value: newValue, unit: "kVAh", displayed: true]
-            } else {
-                [name: "energy", value: newValue, unit: "kVAh", displayed: false]
+            	sendEvent(name: "energy", value: dispValue, unit: "kWh", displayed: false)
             }
         }
-    } else {
-			newValue = cmd.scaledMeterValue
-            if (newValue < 3000) {								  // don't handle any wildly large readings due to firmware issues
-	            if (newValue != state.powerValue) {
-	                dispValue = newValue
-	                if (decimalPositions == 3) {
-		            	def decimalDisplay = String.format("%3.3f",newValue)
-		                dispValue = decimalDisplay
-                    } else if (decimalPositions == 2) {
-                    	def decimalDisplay = String.format("%3.2f",newValue)
-                    	dispValue = decimalDisplay
-                    } else if (decimalPositions == 1) {
-						def decimalDisplay = String.format("%3.1f",newValue)
-                    	dispValue = decimalDisplay
-                    } else if (decimalPositions == 0) {
-                    	dispValue = Math.round(cmd.scaledMeterValue)
-                    } else {
-                    	dispValue = newValue
-                    }
-	                sendEvent(name: "powerDisp", value: dispValue, unit: "", displayed: false)
-	                if (newValue < state.powerLow) {
-	                    dispLowValue = dispValue+"w"+"on "+timeString
-	                    sendEvent(name: "powerOne", value: dispLowValue as String, unit: "", displayed: false)
-	                    state.powerLow = newValue
-	                }
-	                if (newValue > state.powerHigh) {
-	                    dispHighValue = dispValue+"w "+"on "+timeString
-	                    sendEvent(name: "powerTwo", value: dispHighValue as String, unit: "", displayed: false)
-	                    state.powerHigh = newValue
-	                }
-	                state.powerValue = newValue
-                    if (state.displayDisabled) {
-                        [name: "power", value: newValue, unit: "W", displayed: true]
-                    } else {
-                        [name: "power", value: newValue, unit: "W", displayed: false]
-                    }                    
-	            }
-			}
-	}
+    } else if (cmd.scale==2) {
+        if (cmd.scaledMeterValue < 2000) {
+            if (cmd.scaledMeterValue != state.powerValue) {
+                state.powerValue = cmd.scaledMeterValue
+                if (decimalPositions == 2) {
+                    dispValue = String.format("%3.2f",cmd.scaledMeterValue)
+                } else if (decimalPositions == 1) {
+                    dispValue = String.format("%3.1f",cmd.scaledMeterValue)
+                } else if (decimalPositions == 0) {
+                    dispValue = Math.round(cmd.scaledMeterValue)
+                } else {
+                    dispValue = String.format("%3.3f",cmd.scaledMeterValue)
+                }
+                if (cmd.scaledMeterValue < state.powerLowVal) {
+                    def dispLowValue = dispValue+" watts on "+timeString
+                    sendEvent(name: "powerLow", value: dispLowValue as String, unit: "", displayed: false)
+                    state.powerLowVal = cmd.scaledMeterValue
+                    response(refreshHistory())
+                }
+                if (cmd.scaledMeterValue > state.powerHighVal) {
+                    def dispHighValue = dispValue+" watts on "+timeString
+                    sendEvent(name: "powerHigh", value: dispHighValue as String, unit: "", displayed: false)
+                    state.powerHighVal = cmd.scaledMeterValue
+                    response(refreshHistory())
+                }
+                if (state.displayDisabled) {
+                	sendEvent(name: "power", value: dispValue, unit: "watts", displayed: true)
+                } else {
+                    sendEvent(name: "power", value: dispValue, unit: "watts", displayed: false)
+                }
+            }
+        }
+    }
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicReport cmd)
@@ -370,132 +261,61 @@ def refresh() {
 	])
 }
 
-def resetmax() {
-    if (state.debug) log.debug "${device.name} reset"
-    state.powerHigh = 0   
+def resetWatts() {
+    if (state.debug) log.debug "${device.label} watts min/max reset"
+    state.powerHighVal = 0
+    state.powerLowVal = 999999
 	def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
-    sendEvent(name: "energyOne", value: "Watts Data Maximum Value Reset On:\n"+timeString, unit: "")    
-    sendEvent(name: "powerTwo", value: "", unit: "")
+    sendEvent(name: "powerLow", value: "Value reset on "+timeString, unit: "")    
+    sendEvent(name: "powerHigh", value: "Value reset on "+timeString, unit: "")
     def cmd = delayBetween( [
-        zwave.meterV2.meterGet(scale: 0).format()
+        zwave.meterV2.meterGet(scale: 2).format()
     ])
     cmd
+    response(refreshHistory())
 }
 
-def resetenergy() {
-    log.debug "${device.name} reset kWh/Cost values"
+def resetEnergy() {
+    if (state.debug) log.debug "${device.label} reset kWh/Cost values"
 	def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
-    sendEvent(name: "energyOne", value: "Energy Data (kWh/Cost) Reset On:\n"+timeString, unit: "")       
-    sendEvent(name: "energyDisp", value: "", unit: "")
-    sendEvent(name: "energyTwo", value: "Cost\n--", unit: "")
+    sendEvent(name: "kwhCosts", value: "(reset)", unit: "", displayed: false)
+    sendEvent(name: "energy", value: 0, unit: "kWh", displayed: false)
     state.energyValue = 0
     def cmd = delayBetween( [
         zwave.meterV2.meterReset().format(),
         zwave.meterV2.meterGet(scale: 0).format()
     ])
     cmd
+    response(refreshHistory())
 }
 
-def resetMeter() {
-	log.debug "Resetting all metering switch values..."
-    state.powerHigh = 0
-    state.energyValue = 0
-    sendEvent(name: "powerOne", value: "", unit: "")
-	sendEvent(name: "powerTwo", value: "", unit: "")
-    sendEvent(name: "energyDisp", value: "", unit: "")
-    sendEvent(name: "energyTwo", value: "Cost\n--", unit: "")
-	def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
-    sendEvent(name: "energyOne", value: "Metering switch was reset on "+timeString, unit: "")
-    def cmd = delayBetween( [
-        zwave.meterV2.meterReset().format(),
-        zwave.meterV2.meterGet(scale: 0).format(),
-    	zwave.meterV2.meterGet(scale: 2).format()
-    ])
-    cmd
+def refreshHistory() {
+	if (state.debug) log.debug "${device.label} mix/max history values refreshed"
+    def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
+	def historyDisp = ""
+    historyDisp = "Minimum/Maximum Readings as of ${timeString}\n-------------------------------------------------------------------------\nPower Low : ${device.currentState('powerLow')?.value}\nPower High : ${device.currentState('powerHigh')?.value}"
+    sendEvent(name: "history", value: historyDisp, displayed: false)
 }
 
 def configure() {
     log.debug "${device.name} configuring..."
-    
-    if (reportType == 0) {
-		log.debug "Setting reportType to ${reportType} per user request."
-	} else if (reportType == 1) {
-		log.debug "Setting reportType to ${reportType} per user request."
-	}
-    else {
-        def reportType = 1
-        log.debug "Setting reportType to ${reportType} because an invalid value was provided."
-    }
-    
-    if (wattsChanged < 0) {
-        def wattsChanged = 50
-        log.debug "Setting wattsChanged to ${wattsChanged} (device default) because an invalid value was provided."
-	} else if (wattsChanged < 32001) {
-		log.debug "Setting wattsChanged to ${wattsChanged} per user request."
-	}
-    else {
-        def wattsChanged = 50
-        log.debug "Setting wattsChanged to ${wattsChanged} (device default) because an invalid value was provided."
-    }    
-
-    if (wattsPercent < 0) {
-        def wattsPercent = 10
-        log.debug "Setting wattsPercent to ${wattsPercent} (device default) because an invalid value was provided."
-	} else if (wattsPercent < 100) {
-		log.debug "Setting wattsPercent to ${wattsPercent} per user request."
-	}
-    else {
-        def wattsPercent = 10
-        log.debug "Setting wattsPercent to ${wattsPercent} (device default) because an invalid value was provided."
-    } 
-
-    if (secondsWatts < 0) {
-        def secondsWatts = 600
-        log.debug "Setting secondsWatts to ${secondsWatts} (device default) because an invalid value was provided."
-	} else if (secondsWatts < 65000) {
-		log.debug "Setting secondsWatts to ${secondsWatts} per user request."
-	}
-    else {
-        def secondsWatts = 600
-        log.debug "Setting secondsWatts to ${secondsWatts} (device default) because an invalid value was provided."
-    } 
-
-    if (secondsKwh < 0) {
-        def secondsKwh = 600
-        log.debug "Setting secondsKwh to ${secondsKwh} (device default) because an invalid value was provided."
-	} else if (secondsKwh < 65000) {
-		log.debug "Setting secondsKwh to ${secondsKwh} per user request."
-	}
-    else {
-        def secondsKwh = 600
-        log.debug "Setting secondsKwh to ${secondsKwh} (device default) because an invalid value was provided."
-    }
-
 	delayBetween([
-    
-    // Send data based on a time interval (0), or based on a change in wattage (1).  0 is default. 1 enables parameters 91 and 92.
-    zwave.configurationV1.configurationSet(parameterNumber: 90, size: 1, scaledConfigurationValue: reportType).format(),
-    
-    // If parameter 90 is 1, don't send unless watts have changed by 50 <default>
-    zwave.configurationV1.configurationSet(parameterNumber: 91, size: 2, scaledConfigurationValue: wattsChanged).format(),
-    
-    // If parameter 90 is 1, don't send unless watts have changed by 10% <default>
-    zwave.configurationV1.configurationSet(parameterNumber: 92, size: 1, scaledConfigurationValue: wattsPercent).format(),
-    
-	// Defines the type of report sent for Reporting Group 1.  2->MultiSensor Report, 4->Meter Report for Watt, 8->Meter Report for kWh
-	zwave.configurationV1.configurationSet(parameterNumber: 101, size: 4, scaledConfigurationValue: 4).format(),
-    
-    // If parameter 90 is 0, report every XX Seconds (for Watts) for Reporting Group 1.
-    zwave.configurationV1.configurationSet(parameterNumber: 111, size: 4, scaledConfigurationValue: secondsWatts).format(),
-    
-    // Defines the type of report sent for Reporting Group 2.  2->MultiSensor Report, 4->Meter Report for Watt, 8->Meter Report for kWh
-    zwave.configurationV1.configurationSet(parameterNumber: 102, size: 4, scaledConfigurationValue: 8).format(),
-    
-    // If parameter 90 is 0, report every XX seconds (for kWh) for Reporting Group 2.
-    zwave.configurationV1.configurationSet(parameterNumber: 112, size: 4, scaledConfigurationValue: secondsKwh).format(),
-    
-    // Disable Reporting Group 3 parameters
-    zwave.configurationV1.configurationSet(parameterNumber: 103, size: 4, scaledConfigurationValue: 0).format(),
-    zwave.configurationV1.configurationSet(parameterNumber: 113, size: 4, scaledConfigurationValue: 0).format()
+        // Send data based on a time interval (0), or based on a change in wattage (1).  0 is default. 1 enables parameters 91 and 92.
+        zwave.configurationV1.configurationSet(parameterNumber: 90, size: 1, scaledConfigurationValue: reportType).format(),
+        // If parameter 90 is 1, don't send unless watts have changed by 50 <default>
+        zwave.configurationV1.configurationSet(parameterNumber: 91, size: 2, scaledConfigurationValue: wattsChanged).format(),
+        // If parameter 90 is 1, don't send unless watts have changed by 10% <default>
+        zwave.configurationV1.configurationSet(parameterNumber: 92, size: 1, scaledConfigurationValue: wattsPercent).format(),
+        // Defines the type of report sent for Reporting Group 1.  2->MultiSensor Report, 4->Meter Report for Watt, 8->Meter Report for kWh
+        zwave.configurationV1.configurationSet(parameterNumber: 101, size: 4, scaledConfigurationValue: 4).format(),
+        // If parameter 90 is 0, report every XX Seconds (for Watts) for Reporting Group 1.
+        zwave.configurationV1.configurationSet(parameterNumber: 111, size: 4, scaledConfigurationValue: secondsWatts).format(),
+        // Defines the type of report sent for Reporting Group 2.  2->MultiSensor Report, 4->Meter Report for Watt, 8->Meter Report for kWh
+        zwave.configurationV1.configurationSet(parameterNumber: 102, size: 4, scaledConfigurationValue: 8).format(),
+        // If parameter 90 is 0, report every XX seconds (for kWh) for Reporting Group 2.
+        zwave.configurationV1.configurationSet(parameterNumber: 112, size: 4, scaledConfigurationValue: secondsKwh).format(),
+        // Disable Reporting Group 3 parameters
+        zwave.configurationV1.configurationSet(parameterNumber: 103, size: 4, scaledConfigurationValue: 0).format(),
+        zwave.configurationV1.configurationSet(parameterNumber: 113, size: 4, scaledConfigurationValue: 0).format()
 	])
 }
