@@ -259,18 +259,13 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
     }
 }
 
-def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicReport cmd)
-{
-	def result = []
-	result << createSwitchEvent(cmd.value, "physical")
-	return result
+def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicReport cmd){
+	log.warn "${device.displayName}: $cmd"
+	[name: "switch", value: cmd.value ? "on" : "off", type: "physical"]
 }
 
-def zwaveEvent(physicalgraph.zwave.commands.switchbinaryv1.SwitchBinaryReport cmd)
-{
-	def result = []
-	result << createSwitchEvent(cmd.value, "digital")
-	return result
+def zwaveEvent(physicalgraph.zwave.commands.switchbinaryv1.SwitchBinaryReport cmd){
+	[name: "switch", value: cmd.value ? "on" : "off", type: "digital"]
 }
 
 def zwaveEvent(physicalgraph.zwave.Command cmd) {
