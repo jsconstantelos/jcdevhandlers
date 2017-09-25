@@ -192,11 +192,12 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicReport cmd){
-	log.warn "${device.displayName}: $cmd"
+	if (state.debug) log.debug "${device.label}: $cmd"
 	[name: "switch", value: cmd.value ? "on" : "off", type: "physical"]
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.switchbinaryv1.SwitchBinaryReport cmd){
+	if (state.debug) log.debug "${device.label}: $cmd"
 	[name: "switch", value: cmd.value ? "on" : "off", type: "digital"]
 }
 
