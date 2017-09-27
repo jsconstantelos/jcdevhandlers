@@ -43,6 +43,7 @@
  *  05-10-2017 : Updated code to use different attribute names from what FortrezZ is using, and to revert to their original purpose so that their SmartApps will work with this DTH.
  *  06-10-2017 : Changed to "http" from "https" for the URL for post/get functions because of certificate issues FortrezZ's site is having.  Will change back once fixed.
  *  06-12-2017 : Updated the updated() section to automatically run Configure after tapping on Done in the Preferences page.
+ *  09-27-2017 : Changed Ping (health Check) to refresh temperature instead of updating charts.
  *
  */
 metadata {
@@ -115,7 +116,7 @@ metadata {
 			state "overflow", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#ff0000", label: "High"
 		}
 		valueTile("temperature", "device.temperature", width: 3, height: 2) {
-            state("temperature", label:'${currentValue}°',
+            state("temperature", label:'${currentValue}°', action:"refresh.refresh",
                 backgroundColors:[
                     [value: 31, color: "#153591"],
                     [value: 44, color: "#1e9cbb"],
@@ -235,6 +236,10 @@ def take28() {
     }
 }
 
+def poll() {
+    refresh()
+}
+
 def resetMeter() {
 	log.debug "Resetting water meter..."
     def dispValue
@@ -274,7 +279,8 @@ def resetgallonHigh() {
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv5.SensorMultilevelReport cmd) {
-	log.debug cmd
+	log.debug "Getting temperature data..."
+//	log.debug cmd
 	def map = [:]
 	if(cmd.sensorType == 1) {
 		map = [name: "temperature"]
@@ -289,7 +295,7 @@ def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv5.SensorMultilevelR
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
-	log.debug cmd
+//	log.debug cmd.scaledMeterValue
     def dispValue
     def dispGallon
     def prevCumulative
@@ -318,7 +324,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
         	}
 			sendEvent(name: "power", value: prevCumulative, displayed: false)  // This is only used for SmartApps that need power capabilities to capture and log data to places like Google Sheets.
     	} else {
-        	log.debug "Flow detected..."
+//        	log.debug "Flow detected..."
             sendEvent(name: "gpm", value: delta)
     		map.value = "Flow detected\n"+delta+" gpm"
             if (delta > state.deltaHigh) {
@@ -476,7 +482,14 @@ def sendAlarm(text) {
 
 // PING is used by Device-Watch in attempt to reach the Device
 def ping() {
-	take1()
+	refresh()
+}
+
+def refresh() {
+    log.debug "${device.label} refresh"
+	delayBetween([
+        zwave.sensorMultilevelV5.sensorMultilevelGet().format()
+	])
 }
 
 def configure() {
