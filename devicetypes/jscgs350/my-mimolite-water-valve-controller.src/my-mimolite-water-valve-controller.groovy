@@ -197,14 +197,7 @@ def open() {
 }
 
 def poll() {
-	log.debug "Executing Poll for Main Water Valve"
-	delayBetween([
-		zwave.switchBinaryV1.switchBinaryGet().format(),
-		zwave.sensorBinaryV1.sensorBinaryGet().format(),
-        zwave.basicV1.basicGet().format(),
-		zwave.alarmV1.alarmGet().format() 
-	],100)
-    response(refreshHistory())
+	refresh()
 }
 
 // PING is used by Device-Watch in attempt to reach the Device
@@ -214,6 +207,10 @@ def ping() {
 
 def refresh() {
 	log.debug "Executing Refresh for Main Water Valve per user request"
+    def statusTextmsg = ""
+    def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
+    statusTextmsg = "Last refreshed at "+timeString+"."
+    sendEvent(name:"statusText", value:statusTextmsg)
 	delayBetween([
 		zwave.switchBinaryV1.switchBinaryGet().format(),
 		zwave.sensorBinaryV1.sensorBinaryGet().format(),
