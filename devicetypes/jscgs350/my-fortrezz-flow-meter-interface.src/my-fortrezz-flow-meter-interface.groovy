@@ -44,6 +44,7 @@
  *  06-10-2017 : Changed to "http" from "https" for the URL for post/get functions because of certificate issues FortrezZ's site is having.  Will change back once fixed.
  *  06-12-2017 : Updated the updated() section to automatically run Configure after tapping on Done in the Preferences page.
  *  09-27-2017 : Changed Ping (health Check) to refresh temperature instead of updating charts.
+ *  09-23-2017 : Changed layout to look like my Zooz DTH, cleaned up code a lot.
  *
  */
 metadata {
@@ -83,6 +84,7 @@ metadata {
         command "resetgallonHigh"
         command "resetMeter"
         command "fixChart"
+        command "refreshHistory"
 
 	    fingerprint deviceId: "0x2101", inClusters: "0x5E, 0x86, 0x72, 0x5A, 0x73, 0x71, 0x85, 0x59, 0x32, 0x31, 0x70, 0x80, 0x7A"
 	}
@@ -95,27 +97,27 @@ metadata {
     }
 
 	tiles(scale: 2) {
-		// Tile Row 1
+		multiAttributeTile(name:"waterState", type: "generic", width: 6, height: 4, canChangeIcon: true, decoration: "flat"){
+			tileAttribute ("device.waterState", key: "PRIMARY_CONTROL") {
+				attributeState "none", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", label: "None"
+				attributeState "flow", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#01AAE8", label: "Flow"
+				attributeState "overflow", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#ff0000", label: "High"
+			}
+            tileAttribute ("device.gpmInfo", key: "SECONDARY_CONTROL") {
+                attributeState("gpmInfo", label:'${currentValue}', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/watervalve1.png")
+            }
+        }
         carouselTile("chartCycle", "device.image", width: 6, height: 3) { }
-
-		// Tile Row 2
 		standardTile("dayChart", "device.chartMode", width: 2, height: 1, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
-			state "day", label:'', action: 'take1', icon: "http://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/24-hour-clockv2.png"
+			state "day", label:'Tap to show', action: 'take1', icon: "http://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/24-hour-clockv2.png"
 		}
 		standardTile("weekChart", "device.chartMode", width: 2, height: 1, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
-			state "week", label:'', action: 'take7', icon: "http://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/7day.png"
+			state "week", label:'Tap to show', action: 'take7', icon: "http://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/7day.png"
 		}
 		standardTile("monthChart", "device.chartMode", width: 2, height: 1, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
-			state "month", label:'', action: 'take28', icon: "http://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/monthv2.png"
+			state "month", label:'Tap to show', action: 'take28', icon: "http://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/monthv2.png"
 		}
-        
-		// Tile Row 3
-		standardTile("waterState", "device.waterState", width: 3, height: 2, decoration: "flat") {
-			state "none", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#cccccc", label: "None"
-			state "flow", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#01AAE8", label: "Flow"
-			state "overflow", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#ff0000", label: "High"
-		}
-		valueTile("temperature", "device.temperature", width: 3, height: 2) {
+		valueTile("temperature", "device.temperature", width: 2, height: 2) {
             state("temperature", label:'${currentValue}°', action:"refresh.refresh",
                 backgroundColors:[
                     [value: 31, color: "#153591"],
@@ -127,48 +129,39 @@ metadata {
                     [value: 96, color: "#bc2323"]
                 ]
             )
-        }       
-
-		// Tile Row 4
-        valueTile("gpmInfo", "device.gpmInfo", inactiveLabel: false, width: 2, height: 1) {
-			state "gpmInfo", label:'${currentValue}', unit:""
-		}        
-        standardTile("gpmHigh", "device.gpmHigh", inactiveLabel: false, width: 2, height: 1, decoration: "flat") {
+        }             
+        standardTile("gpmHigh", "device.gpmHigh", inactiveLabel: false, width: 3, height: 1, decoration: "flat") {
 			state "default", label:'Highest flow:\n${currentValue}', action: 'resetgpmHigh'
 		}
-        standardTile("gallonHigh", "device.gallonHigh", inactiveLabel: false, width: 2, height: 1, decoration: "flat") {
+        standardTile("gallonHigh", "device.gallonHigh", inactiveLabel: false, width: 3, height: 1, decoration: "flat") {
 			state "default", label:'Highest usage:\n${currentValue}', action: 'resetgallonHigh'
 		} 
-
-		// Tile Row 5
         valueTile("blankTile", "statusText", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
 			state "default", label:'', icon:"http://cdn.device-icons.smartthings.com/secondary/device-activity-tile@2x.png"
 		}    
         valueTile("lastReset", "lastReset", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
 			state "lastReset", label:'${currentValue}'
 		}
-
-		// Tile Row 6
-		standardTile("powerState", "device.powerState", width: 3, height: 2) { 
+		standardTile("powerState", "device.powerState", width: 2, height: 2) { 
 			state "reconnected", label: "Power On", icon: "st.switches.switch.on", backgroundColor: "#79b821"
 			state "disconnected", label: "Power Off", icon: "st.switches.switch.off", backgroundColor: "#ffa81e"
 			state "batteryReplaced", icon:"http://swiftlet.technology/wp-content/uploads/2016/04/Full-Battery-96.png", backgroundColor:"#cccccc"
 			state "noBattery", icon:"http://swiftlet.technology/wp-content/uploads/2016/04/No-Battery-96.png", backgroundColor:"#cc0000"
 		}
-		standardTile("battery", "device.battery", inactiveLabel: false, width: 3, height: 2) {
+		standardTile("battery", "device.battery", inactiveLabel: false, width: 2, height: 2) {
 			state "battery", label:'${currentValue}%\n Battery', unit:"", icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/battery-icon-614x460.png"
 		}
-        
-		// Tile Row 7
         standardTile("zeroTile", "device.zero", width: 3, height: 2, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
 			state "zero", label:'Reset Meter', action: 'resetMeter', icon: "st.secondary.refresh-icon"
 		}
 		standardTile("configure", "device.configure", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "configure", label: "Configure\nDevice", action: "configuration.configure", icon: "st.secondary.tools"
 		}
-        
+		standardTile("history", "device.history", decoration:"flat",width: 6, height: 2) {
+			state "history", label:'${currentValue}', action: "refreshHistory"
+		}        
 		main (["waterState"])
-		details(["chartCycle", "dayChart", "weekChart", "monthChart", "waterState", "temperature", "gpmInfo", "gallonHigh", "gpmHigh", "blankTile", "lastReset", "powerState", "battery", "zeroTile", "configure"])
+		details(["waterState", "gallonHigh", "gpmHigh", "dayChart", "weekChart", "monthChart", "chartCycle", "history", "powerState", "temperature", "battery", "zeroTile", "configure"])
 	}
 }
 
@@ -243,7 +236,7 @@ def poll() {
 def resetMeter() {
 	log.debug "Resetting water meter..."
     def dispValue
-    def timeString = new Date().format("MM-dd-yy h:mm:ss a", location.timeZone)
+    def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
     if (customID != null) {
     	state.meterResetDate = new Date().format("MMddyyhmmssa", location.timeZone)
     } else {
@@ -259,6 +252,7 @@ def resetMeter() {
     resetgallonHigh()
     dispValue = "Meter was reset on "+timeString
     sendEvent(name: "lastReset", value: dispValue as String, displayed: false)
+    response(refreshHistory())
     return cmds
 }
 
@@ -316,7 +310,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
     		prevCumulative = cmd.scaledMeterValue - state.lastCumulative
         	state.lastCumulative = cmd.scaledMeterValue
         	sendDataToCloud(prevCumulative)
-    		map.value = "Cumulative:\n"+cmd.scaledMeterValue+" gallons"+"\n(last used "+prevCumulative+")"
+    		map.value = "Cumulative: "+cmd.scaledMeterValue+" gallons "+"(last used "+prevCumulative+")"
         	if (prevCumulative > state.lastGallon) {
             	dispGallon = prevCumulative+" gallons on"+"\n"+timeString
             	sendEvent(name: "gallonHigh", value: dispGallon as String, displayed: false)
@@ -326,7 +320,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
     	} else {
 //        	log.debug "Flow detected..."
             sendEvent(name: "gpm", value: delta)
-    		map.value = "Flow detected\n"+delta+" gpm"
+    		map.value = "Flow detected "+delta+" gpm"
             if (delta > state.deltaHigh) {
                 dispValue = delta+" gpm on"+"\n"+timeString
                 sendEvent(name: "gpmHigh", value: dispValue as String, displayed: false)
@@ -490,6 +484,17 @@ def refresh() {
 	delayBetween([
         zwave.sensorMultilevelV5.sensorMultilevelGet().format()
 	])
+    def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
+    def statusTextmsg = ""
+    statusTextmsg = "Last refreshed at "+timeString+"."
+    sendEvent(name:"statusText", value:statusTextmsg)
+    response(refreshHistory())
+}
+
+def refreshHistory() {
+	def historyDisp = ""
+    historyDisp = "Important Device Messages\n-------------------------------------------------------------------\n${device.currentState('statusText')?.value}\n${device.currentState('lastReset')?.value}"
+    sendEvent(name: "history", value: historyDisp, displayed: false)
 }
 
 def configure() {

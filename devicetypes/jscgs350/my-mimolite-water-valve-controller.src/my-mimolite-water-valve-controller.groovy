@@ -93,7 +93,6 @@ def updated(){
 }
 
 def parse(String description) {
-    def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
     def result = null
     def cmd = zwave.parse(description, [0x72: 1, 0x86: 1, 0x71: 1, 0x30: 1, 0x31: 3, 0x35: 1, 0x70: 1, 0x85: 1, 0x25: 1, 0x03: 1, 0x20: 1, 0x84: 1])
 	log.debug cmd
@@ -107,11 +106,10 @@ def parse(String description) {
 	if (cmd) {
         result = createEvent(zwaveEvent(cmd))
     }
-    
+    def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
     def statusTextmsg = ""
     statusTextmsg = "Last refreshed at "+timeString+"."
     sendEvent(name:"statusText", value:statusTextmsg)
-
     return result
 }
 
