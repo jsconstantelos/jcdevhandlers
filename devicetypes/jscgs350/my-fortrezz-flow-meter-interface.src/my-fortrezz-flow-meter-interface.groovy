@@ -484,8 +484,8 @@ def refresh() {
 	delayBetween([
         zwave.sensorMultilevelV5.sensorMultilevelGet().format()
 	])
-    def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
     def statusTextmsg = ""
+    def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
     statusTextmsg = "Last refreshed at "+timeString+"."
     sendEvent(name:"statusText", value:statusTextmsg)
     response(refreshHistory())

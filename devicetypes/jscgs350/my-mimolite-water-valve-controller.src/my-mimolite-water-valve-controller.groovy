@@ -225,6 +225,10 @@ def refresh() {
 
 def refreshHistory() {
 	def historyDisp = ""
+    def statusTextmsg = ""
+    def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
+    statusTextmsg = "Last refreshed at "+timeString+"."
+    sendEvent(name:"statusText", value:statusTextmsg)
     historyDisp = "Important Device Messages\n-------------------------------------------------------------------\n${device.currentState('statusText')?.value}"
     sendEvent(name: "history", value: historyDisp, displayed: false)
 }

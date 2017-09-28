@@ -55,6 +55,7 @@
  *  06-19-2017 : Cleaned up code in the resetkwh() section.
  *  06-29-2017 : Rolled back change from 6-12-2017 until I find a better method of checking.
  *  09-27-2017 : Changed tile format for device min/max history to look like my Aeon and Zooz DTH's.
+ *  09-28-2017 : Changed history tile from "standard" to "value", and reduced the number of dashes so it works better for iOS.
  *
  */
 metadata {
@@ -126,7 +127,7 @@ metadata {
 		standardTile("configure", "device.configure", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "configure", label:'', action:"configure", icon:"st.secondary.configure"
 		}
-		standardTile("history", "device.history", decoration:"flat",width: 6, height: 2) {
+		valueTile("history", "device.history", decoration:"flat",width: 6, height: 2) {
 			state "history", label:'${currentValue}', action: "refreshHistory"
 		}
 
@@ -372,7 +373,7 @@ def resetMeter() {
 def refreshHistory() {
     def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
 	def historyDisp = ""
-    historyDisp = "Minimum/Maximum Readings as of ${timeString}\n-------------------------------------------------------------------------\nPower Low : ${device.currentState('minWATTS')?.value}\nPower High : ${device.currentState('maxWATTS')?.value}\nMessages : ${device.currentState('resetMessage')?.value}"
+    historyDisp = "Minimum/Maximum Readings as of ${timeString}\n------------------------------------------------------\nPower Low : ${device.currentState('minWATTS')?.value}\nPower High : ${device.currentState('maxWATTS')?.value}\nMessages : ${device.currentState('resetMessage')?.value}"
     sendEvent(name: "history", value: historyDisp, displayed: false)
 }
 
