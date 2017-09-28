@@ -157,7 +157,7 @@ metadata {
 		standardTile("configure", "device.configure", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "configure", label: "Configure\nDevice", action: "configuration.configure", icon: "st.secondary.tools"
 		}
-		standardTile("history", "device.history", decoration:"flat",width: 6, height: 2) {
+		standardTile("history", "device.history", decoration:"flat",width: 6, height: 5) {
 			state "history", label:'${currentValue}', action: "refreshHistory"
 		}        
 		main (["waterState"])
@@ -267,7 +267,7 @@ def resetgpmHigh() {
 def resetgallonHigh() {
 	log.debug "Resetting high value for gallons used..."
     def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
-    sendEvent(name: "gallonHighLastReset", value: state.lastGallon+" gpm on"+"\n"+timeString, displayed: false)
+    sendEvent(name: "gallonHighLastReset", value: state.lastGallon+" gals on"+"\n"+timeString, displayed: false)
     state.lastGallon = 0
     sendEvent(name: "gallonHigh", value: "(resently reset)")
 }
@@ -493,7 +493,7 @@ def refresh() {
 
 def refreshHistory() {
 	def historyDisp = ""
-    historyDisp = "Important Device Messages\n-------------------------------------------------------------------\n${device.currentState('statusText')?.value}\n${device.currentState('lastReset')?.value}"
+    historyDisp = "Important Device Messages\n-------------------------------------------------------------------\n${device.currentState('statusText')?.value}\n${device.currentState('lastReset')?.value}\nCummulative at last reset: ${device.currentState('cumulativeLastReset')?.value}\nHighest gallons used at last reset: ${device.currentState('gallonHighLastReset')?.value}\nHighest GPM at last reset: ${device.currentState('gpmHighLastReset')?.value}"
     sendEvent(name: "history", value: historyDisp, displayed: false)
 }
 
