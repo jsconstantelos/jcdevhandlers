@@ -22,6 +22,7 @@
  *  03-11-2017 : Changed from valueTile to standardTile for a few tiles since ST's mobile app v2.3.x changed something between the two.
  *  04-08-2017 : Updated the updated() section to call configuration().
  *  05-18-2017 : Changed the main tile to be contact instead of switch primarily due to personal functionality preference and not accidentally actuating the valve while in the Room view.
+ *  09-23-2017 : Changed layout to look like my Zooz DTH, cleaned up code a lot.
  *
  */
 metadata {
@@ -39,6 +40,8 @@ metadata {
         
         attribute "powered", "string"
         attribute "valveState", "string"
+        
+        command "refreshHistory"
         
 }
 
@@ -75,8 +78,11 @@ metadata {
         standardTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}
+		standardTile("history", "device.history", decoration:"flat",width: 6, height: 2) {
+			state "history", label:'${currentValue}', action: "refreshHistory"
+		}
         main (["contact"])
-        details(["switch", "blankTile", "statusText", "powered", "refresh", "configure"])
+        details(["switch", "history", "powered", "refresh", "configure"])
     }
 }
 
@@ -87,7 +93,7 @@ def updated(){
 }
 
 def parse(String description) {
-
+    def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
     def result = null
     def cmd = zwave.parse(description, [0x72: 1, 0x86: 1, 0x71: 1, 0x30: 1, 0x31: 3, 0x35: 1, 0x70: 1, 0x85: 1, 0x25: 1, 0x03: 1, 0x20: 1, 0x84: 1])
 	log.debug cmd
@@ -103,10 +109,8 @@ def parse(String description) {
     }
     
     def statusTextmsg = ""
-    def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
     statusTextmsg = "Last refreshed at "+timeString+"."
     sendEvent(name:"statusText", value:statusTextmsg)
-    log.debug statusTextmsg
 
     return result
 }
@@ -202,6 +206,7 @@ def poll() {
         zwave.basicV1.basicGet().format(),
 		zwave.alarmV1.alarmGet().format() 
 	],100)
+    response(refreshHistory())
 }
 
 // PING is used by Device-Watch in attempt to reach the Device
@@ -217,6 +222,13 @@ def refresh() {
         zwave.basicV1.basicGet().format(),
 		zwave.alarmV1.alarmGet().format() 
 	],100)
+    response(refreshHistory())
+}
+
+def refreshHistory() {
+	def historyDisp = ""
+    historyDisp = "Important Device Messages\n-------------------------------------------------------------------\n${device.currentState('statusText')?.value}"
+    sendEvent(name: "history", value: historyDisp, displayed: false)
 }
 
 def configure() {
