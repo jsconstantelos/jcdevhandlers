@@ -278,7 +278,15 @@ def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
 		}
 		return map
 		sendEvent(name: "battery", value: map.value as String, displayed: true)
-	}
+	} else {
+		def map = [:]
+		map.name = "battery"
+		map.unit = "%"
+        map.value = 99
+        map.isStateChange = true
+		return map
+		sendEvent(name: "battery", value: map.value as String, displayed: false)
+    }
 }
 
 def zwaveEvent(physicalgraph.zwave.Command cmd) {
