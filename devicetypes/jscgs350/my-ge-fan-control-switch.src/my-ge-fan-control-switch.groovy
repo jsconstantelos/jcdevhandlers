@@ -40,8 +40,7 @@ metadata {
 
 		attribute "currentState", "string"
         attribute "currentSpeed", "string"
-        
-        fingerprint mfr:"0063", prod:"4944", model:"3034", deviceJoinName: "GE In-Wall Smart Fan Control"
+
 	}
 
 	preferences {
