@@ -45,6 +45,7 @@
  *  06-12-2017 : Updated the updated() section to automatically run Configure after tapping on Done in the Preferences page.
  *  09-27-2017 : Changed Ping (health Check) to refresh temperature instead of updating charts.
  *  09-23-2017 : Changed layout to look like my Zooz DTH, cleaned up code a lot.
+ *  10-03-2017 : More cosmetic changes to the main tile.
  *
  */
 metadata {
@@ -99,8 +100,8 @@ metadata {
 	tiles(scale: 2) {
 		multiAttributeTile(name:"waterState", type: "generic", width: 6, height: 4, canChangeIcon: true, decoration: "flat"){
 			tileAttribute ("device.waterState", key: "PRIMARY_CONTROL") {
-				attributeState "none", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", label: "No Flow"
-				attributeState "flow", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#01AAE8", label: "Flow"
+				attributeState "none", icon:"http://cdn.device-icons.smartthings.com/valves/water/closed@2x.png", label: "No Flow"
+				attributeState "flow", icon:"http://cdn.device-icons.smartthings.com/valves/water/open@2x.png", backgroundColor:"#01AAE8", label: "Flow"
 				attributeState "overflow", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#ff0000", label: "High"
 			}
             tileAttribute ("device.gpmInfo", key: "SECONDARY_CONTROL") {
