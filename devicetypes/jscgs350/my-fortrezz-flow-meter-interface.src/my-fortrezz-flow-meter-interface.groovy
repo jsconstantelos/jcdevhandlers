@@ -99,7 +99,7 @@ metadata {
 	tiles(scale: 2) {
 		multiAttributeTile(name:"waterState", type: "generic", width: 6, height: 4, canChangeIcon: true, decoration: "flat"){
 			tileAttribute ("device.waterState", key: "PRIMARY_CONTROL") {
-				attributeState "none", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", label: "None"
+				attributeState "none", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", label: "No Flow"
 				attributeState "flow", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#01AAE8", label: "Flow"
 				attributeState "overflow", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#ff0000", label: "High"
 			}
@@ -310,7 +310,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
     		prevCumulative = cmd.scaledMeterValue - state.lastCumulative
         	state.lastCumulative = cmd.scaledMeterValue
         	sendDataToCloud(prevCumulative)
-    		map.value = "Cumulative: "+cmd.scaledMeterValue+" gallons "+"(last used "+prevCumulative+")"
+    		map.value = "Cumulative: "+cmd.scaledMeterValue+" gallons\n"+"Last used : "+prevCumulative+" gallons at "+timeString
         	if (prevCumulative > state.lastGallon) {
             	dispGallon = prevCumulative+" gallons on"+"\n"+timeString
             	sendEvent(name: "gallonHigh", value: dispGallon as String, displayed: false)
@@ -428,6 +428,7 @@ def sendDataToCloud(double data) {
     } catch (e) {
         log.debug "something went wrong: $e"
     }
+    take1()
 }
 
 def getTemperature(value) {
@@ -486,7 +487,7 @@ def refresh() {
 	])
     def statusTextmsg = ""
     def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
-    statusTextmsg = "Last refreshed at "+timeString+"."
+    statusTextmsg = "Last refreshed at "+timeString
     sendEvent(name:"statusText", value:statusTextmsg)
     response(refreshHistory())
 }
