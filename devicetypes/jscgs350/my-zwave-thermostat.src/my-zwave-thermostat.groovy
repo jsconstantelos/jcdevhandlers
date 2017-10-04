@@ -29,6 +29,7 @@
  *  08-18-2017 : Fixed value inbetween the up and down arrows on the main tile.
  *  09-09-2017 : Changed the UI for ST's new slider format (went back to individuals sliders for cool/heat vs one slider), changed icons, colors, and format.
  *  09-12-2017 : Added another tile specifically used for the Things view for the device (temperature2).
+ *  10-03-2017 : Cosmetic changes and removed actions for the Heat and Cool colored tiles right below the main tile.
  *
 */
 metadata {
@@ -122,18 +123,18 @@ metadata {
 
 //Heating Set Point Controls
         standardTile("heatTile", "device.heatingSetpoint", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
-			state "default", label:'', action:"heat", icon:"st.thermostat.heat", backgroundColor: "#ea5462"
+			state "default", label:'', icon:"st.thermostat.heat", backgroundColor: "#ee7681"
 		}
 		controlTile("heatSliderControl", "device.heatingSetpoint", "slider", width: 1, height: 2, inactiveLabel: false, range:"(60..80)") {
-			state "default", label:'${currentValue}', action:"quickSetHeat", backgroundColor: "#ea5462"
+			state "default", label:'${currentValue}', action:"quickSetHeat", backgroundColor: "#bb434e"
 		}
 
 //Cooling Set Point Controls
         standardTile("coolTile", "device.coolingSetpoint", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
-			state "default", label:'', action:"cool", icon:"st.thermostat.cool", backgroundColor: "#269bd2"
+			state "default", label:'', icon:"st.thermostat.cool", backgroundColor: "#51afdb"
 		}
 		controlTile("coolSliderControl", "device.coolingSetpoint", "slider", width: 1, height: 2, inactiveLabel: false, range:"(60..80)") {
-			state "default", label:'${currentValue}', action:"quickSetCool", backgroundColor: "#269bd2"
+			state "default", label:'${currentValue}', action:"quickSetCool", backgroundColor: "#1e7ca8"
 		}
 
 //Fan Mode Control        
