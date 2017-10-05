@@ -13,6 +13,7 @@
  *  Updates:
  *  -------
  *  09-23-2016 : Initial Commit.
+ *  10-04-2017 : Fixed reset issues with energy/kWh not resetting properly.  (more of a workaround for now)
  *
  */
 metadata {
@@ -46,7 +47,6 @@ metadata {
         command "resetAmps"
 		command "resetMeter"
         command "configure"
-        command "refreshHistory"
 	}
 
     preferences {
@@ -105,7 +105,7 @@ metadata {
 			state "default", label:'Reset Amps Min/Max', action: "resetAmps", icon:"st.secondary.refresh-icon"
 		}
 		standardTile("history", "device.history", decoration:"flat",width: 6, height: 3) {
-			state "history", label:'${currentValue}', action: "refreshHistory"
+			state "history", label:'${currentValue}'
 		}
 		standardTile("power2", "device.power", width: 3, height: 1, decoration: "flat") {
 			state "power", icon: "st.secondary.activity", label:'${currentValue} W'
@@ -181,13 +181,17 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
                     def dispLowValue = dispValue+" watts on "+timeString
                     sendEvent(name: "powerLow", value: dispLowValue as String, unit: "", displayed: false)
                     state.powerLowVal = cmd.scaledMeterValue
-                    response(refreshHistory())
+                    def historyDisp = ""
+					historyDisp = "Minimum/Maximum Readings as of ${timeString}\n-------------------------------------------------------------------------\nPower Low : ${device.currentState('powerLow')?.value}\nPower High : ${device.currentState('powerHigh')?.value}\nVoltage Low : ${device.currentState('voltageLow')?.value}\nVoltage High : ${device.currentState('voltageHigh')?.value}\nCurrent Low : ${device.currentState('currentLow')?.value}\nCurrent High : ${device.currentState('currentHigh')?.value}\n"
+					sendEvent(name: "history", value: historyDisp, displayed: false)
                 }
                 if (cmd.scaledMeterValue > state.powerHighVal) {
                     def dispHighValue = dispValue+" watts on "+timeString
                     sendEvent(name: "powerHigh", value: dispHighValue as String, unit: "", displayed: false)
                     state.powerHighVal = cmd.scaledMeterValue
-                    response(refreshHistory())
+                    def historyDisp = ""
+					historyDisp = "Minimum/Maximum Readings as of ${timeString}\n-------------------------------------------------------------------------\nPower Low : ${device.currentState('powerLow')?.value}\nPower High : ${device.currentState('powerHigh')?.value}\nVoltage Low : ${device.currentState('voltageLow')?.value}\nVoltage High : ${device.currentState('voltageHigh')?.value}\nCurrent Low : ${device.currentState('currentLow')?.value}\nCurrent High : ${device.currentState('currentHigh')?.value}\n"
+					sendEvent(name: "history", value: historyDisp, displayed: false)
                 }
                 if (state.displayDisabled) {
                 	sendEvent(name: "power", value: dispValue, unit: "watts", displayed: true)
@@ -329,66 +333,66 @@ def refresh() {
 
 def resetWatts() {
     if (state.debug) log.debug "${device.label} watts min/max reset"
+	def historyDisp = ""
     state.powerHighVal = 0
     state.powerLowVal = 999999
 	def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
     sendEvent(name: "powerLow", value: "Value reset on "+timeString, unit: "")    
     sendEvent(name: "powerHigh", value: "Value reset on "+timeString, unit: "")
+    historyDisp = "Minimum/Maximum Readings as of ${timeString}\n-------------------------------------------------------------------------\nPower Low : ${device.currentState('powerLow')?.value}\nPower High : ${device.currentState('powerHigh')?.value}\nVoltage Low : ${device.currentState('voltageLow')?.value}\nVoltage High : ${device.currentState('voltageHigh')?.value}\nCurrent Low : ${device.currentState('currentLow')?.value}\nCurrent High : ${device.currentState('currentHigh')?.value}\n"
+    sendEvent(name: "history", value: historyDisp, displayed: false)
     def cmd = delayBetween( [
         zwave.meterV3.meterGet(scale: 2).format()
     ])
     cmd
-    response(refreshHistory())
 }
 
 def resetEnergy() {
     if (state.debug) log.debug "${device.label} reset kWh/Cost values"
+	def historyDisp = ""
 	def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
     sendEvent(name: "kwhCosts", value: "(reset)", unit: "", displayed: false)
     sendEvent(name: "energy", value: 0, unit: "kWh", displayed: false)
+    historyDisp = "Minimum/Maximum Readings as of ${timeString}\n-------------------------------------------------------------------------\nPower Low : ${device.currentState('powerLow')?.value}\nPower High : ${device.currentState('powerHigh')?.value}\nVoltage Low : ${device.currentState('voltageLow')?.value}\nVoltage High : ${device.currentState('voltageHigh')?.value}\nCurrent Low : ${device.currentState('currentLow')?.value}\nCurrent High : ${device.currentState('currentHigh')?.value}\n"
+    sendEvent(name: "history", value: historyDisp, displayed: false)
     state.energyValue = 0
     def cmd = delayBetween( [
         zwave.meterV3.meterReset().format(),
         zwave.meterV3.meterGet(scale: 0).format()
     ])
     cmd
-    response(refreshHistory())
 }
 
 def resetVolts() {
     if (state.debug) log.debug "${device.label} volts min/max reset"
+	def historyDisp = ""
     state.voltageHighVal = 0
     state.voltageLowVal = 999999
 	def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
     sendEvent(name: "voltageLow", value: "Value reset on "+timeString, unit: "")    
     sendEvent(name: "voltageHigh", value: "Value reset on "+timeString, unit: "")
+    historyDisp = "Minimum/Maximum Readings as of ${timeString}\n-------------------------------------------------------------------------\nPower Low : ${device.currentState('powerLow')?.value}\nPower High : ${device.currentState('powerHigh')?.value}\nVoltage Low : ${device.currentState('voltageLow')?.value}\nVoltage High : ${device.currentState('voltageHigh')?.value}\nCurrent Low : ${device.currentState('currentLow')?.value}\nCurrent High : ${device.currentState('currentHigh')?.value}\n"
+    sendEvent(name: "history", value: historyDisp, displayed: false)
     def cmd = delayBetween( [
         zwave.meterV3.meterGet(scale: 4).format()
     ])
     cmd
-    response(refreshHistory())
 }
 
 def resetAmps() {
     if (state.debug) log.debug "${device.label} amps min/max reset"
+	def historyDisp = ""
     state.currentHighVal = 0
     state.currentLowVal = 999999
 	def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
     sendEvent(name: "currentLow", value: "Value reset on "+timeString, unit: "")    
     sendEvent(name: "currentHigh", value: "Value reset on "+timeString, unit: "")
+    historyDisp = "Minimum/Maximum Readings as of ${timeString}\n-------------------------------------------------------------------------\nPower Low : ${device.currentState('powerLow')?.value}\nPower High : ${device.currentState('powerHigh')?.value}\nVoltage Low : ${device.currentState('voltageLow')?.value}\nVoltage High : ${device.currentState('voltageHigh')?.value}\nCurrent Low : ${device.currentState('currentLow')?.value}\nCurrent High : ${device.currentState('currentHigh')?.value}\n"
+    sendEvent(name: "history", value: historyDisp, displayed: false)
     def cmd = delayBetween( [
         zwave.meterV3.meterGet(scale: 5).format()
     ])
     cmd
-    response(refreshHistory())
-}
-
-def refreshHistory() {
-	if (state.debug) log.debug "${device.label} mix/max history values refreshed"
-    def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
-	def historyDisp = ""
-    historyDisp = "Minimum/Maximum Readings as of ${timeString}\n-------------------------------------------------------------------------\nPower Low : ${device.currentState('powerLow')?.value}\nPower High : ${device.currentState('powerHigh')?.value}\nVoltage Low : ${device.currentState('voltageLow')?.value}\nVoltage High : ${device.currentState('voltageHigh')?.value}\nCurrent Low : ${device.currentState('currentLow')?.value}\nCurrent High : ${device.currentState('currentHigh')?.value}\n"
-    sendEvent(name: "history", value: historyDisp, displayed: false)
 }
 
 def configure() {

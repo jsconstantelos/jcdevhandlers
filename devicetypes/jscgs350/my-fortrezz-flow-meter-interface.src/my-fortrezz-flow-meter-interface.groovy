@@ -46,6 +46,7 @@
  *  09-27-2017 : Changed Ping (health Check) to refresh temperature instead of updating charts.
  *  09-23-2017 : Changed layout to look like my Zooz DTH, cleaned up code a lot.
  *  10-03-2017 : More cosmetic changes to the main tile.
+ *  10-04-2017 : Color changes on main tile, and fixed reset log messages and how they're processed.  (more of a workaround for now)
  *
  */
 metadata {
@@ -85,7 +86,6 @@ metadata {
         command "resetgallonHigh"
         command "resetMeter"
         command "fixChart"
-        command "refreshHistory"
 
 	    fingerprint deviceId: "0x2101", inClusters: "0x5E, 0x86, 0x72, 0x5A, 0x73, 0x71, 0x85, 0x59, 0x32, 0x31, 0x70, 0x80, 0x7A"
 	}
@@ -100,8 +100,8 @@ metadata {
 	tiles(scale: 2) {
 		multiAttributeTile(name:"waterState", type: "generic", width: 6, height: 4, canChangeIcon: true, decoration: "flat"){
 			tileAttribute ("device.waterState", key: "PRIMARY_CONTROL") {
-				attributeState "none", icon:"http://cdn.device-icons.smartthings.com/valves/water/closed@2x.png", label: "No Flow"
-				attributeState "flow", icon:"http://cdn.device-icons.smartthings.com/valves/water/open@2x.png", backgroundColor:"#01AAE8", label: "Flow"
+				attributeState "none", icon:"http://cdn.device-icons.smartthings.com/valves/water/closed@2x.png", backgroundColor:"#999999", label: "No Flow"
+				attributeState "flow", icon:"http://cdn.device-icons.smartthings.com/valves/water/open@2x.png", backgroundColor:"#51afdb", label: "Flow"
 				attributeState "overflow", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#ff0000", label: "High Flow"
 			}
             tileAttribute ("device.gpmInfo", key: "SECONDARY_CONTROL") {
@@ -159,7 +159,7 @@ metadata {
 			state "configure", label: "Configure\nDevice", action: "configuration.configure", icon: "st.secondary.tools"
 		}
 		standardTile("history", "device.history", decoration:"flat",width: 6, height: 5) {
-			state "history", label:'${currentValue}', action: "refreshHistory"
+			state "history", label:'${currentValue}'
 		}        
 		main (["waterState"])
 		details(["waterState", "gallonHigh", "gpmHigh", "dayChart", "weekChart", "monthChart", "chartCycle", "history", "powerState", "temperature", "battery", "zeroTile", "configure"])
@@ -253,7 +253,9 @@ def resetMeter() {
     resetgallonHigh()
     dispValue = "Meter was reset on "+timeString
     sendEvent(name: "lastReset", value: dispValue as String, displayed: false)
-    response(refreshHistory())
+	def historyDisp = ""
+    historyDisp = "Important Device Messages\n-------------------------------------------------------------------\n${device.currentState('statusText')?.value}\n${device.currentState('lastReset')?.value}\nCummulative at last reset: ${device.currentState('cumulativeLastReset')?.value}\nHighest gallons used at last reset: ${device.currentState('gallonHighLastReset')?.value}\nHighest GPM at last reset: ${device.currentState('gpmHighLastReset')?.value}"
+    sendEvent(name: "history", value: historyDisp, displayed: false)
     return cmds
 }
 
@@ -263,6 +265,9 @@ def resetgpmHigh() {
     sendEvent(name: "gpmHighLastReset", value: state.deltaHigh+" gpm on"+"\n"+timeString, displayed: false)
     state.deltaHigh = 0
     sendEvent(name: "gpmHigh", value: "(resently reset)")
+	def historyDisp = ""
+    historyDisp = "Important Device Messages\n-------------------------------------------------------------------\n${device.currentState('statusText')?.value}\n${device.currentState('lastReset')?.value}\nCummulative at last reset: ${device.currentState('cumulativeLastReset')?.value}\nHighest gallons used at last reset: ${device.currentState('gallonHighLastReset')?.value}\nHighest GPM at last reset: ${device.currentState('gpmHighLastReset')?.value}"
+    sendEvent(name: "history", value: historyDisp, displayed: false)
 }
 
 def resetgallonHigh() {
@@ -271,6 +276,9 @@ def resetgallonHigh() {
     sendEvent(name: "gallonHighLastReset", value: state.lastGallon+" gals on"+"\n"+timeString, displayed: false)
     state.lastGallon = 0
     sendEvent(name: "gallonHigh", value: "(resently reset)")
+	def historyDisp = ""
+    historyDisp = "Important Device Messages\n-------------------------------------------------------------------\n${device.currentState('statusText')?.value}\n${device.currentState('lastReset')?.value}\nCummulative at last reset: ${device.currentState('cumulativeLastReset')?.value}\nHighest gallons used at last reset: ${device.currentState('gallonHighLastReset')?.value}\nHighest GPM at last reset: ${device.currentState('gpmHighLastReset')?.value}"
+    sendEvent(name: "history", value: historyDisp, displayed: false)
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv5.SensorMultilevelReport cmd) {
@@ -490,10 +498,6 @@ def refresh() {
     def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
     statusTextmsg = "Last refreshed at "+timeString
     sendEvent(name:"statusText", value:statusTextmsg)
-    response(refreshHistory())
-}
-
-def refreshHistory() {
 	def historyDisp = ""
     historyDisp = "Important Device Messages\n-------------------------------------------------------------------\n${device.currentState('statusText')?.value}\n${device.currentState('lastReset')?.value}\nCummulative at last reset: ${device.currentState('cumulativeLastReset')?.value}\nHighest gallons used at last reset: ${device.currentState('gallonHighLastReset')?.value}\nHighest GPM at last reset: ${device.currentState('gpmHighLastReset')?.value}"
     sendEvent(name: "history", value: historyDisp, displayed: false)

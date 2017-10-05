@@ -36,6 +36,7 @@
  *  09-06-2017 : Removed fingerprint.  Checking to see if this helps in joining the device since it doesn't have to go through all the configuration steps when included.
  *  09-15-2017 : Changed tile layout, made tiles smaller, and removed the reset info messages since you can find them in the Recently tab or the device's event log.
  *  09-23-2017 : Changed layout to look like my Zooz DTH, cleaned up code a lot.
+ *  10-04-2017 : Fixed reset issues with energy/kWh not resetting properly.  (more of a workaround for now)
  *
  */
 metadata {
@@ -58,7 +59,6 @@ metadata {
 
 		command "resetWatts"
 		command "resetEnergy"
-        command "refreshHistory"
 	}
 
     preferences {
@@ -91,7 +91,7 @@ metadata {
 			state("default", label: 'Cost ${currentValue}', backgroundColor:"#ffffff")
 		}
 		standardTile("history", "device.history", decoration:"flat",width: 6, height: 2) {
-			state "history", label:'${currentValue}', action: "refreshHistory"
+			state "history", label:'${currentValue}'
 		}
 		standardTile("resetWatts", "device.resetWatts", width: 3, height: 2, decoration: "flat") {
 			state "default", label:'Reset Watts Min/Max', action: "resetWatts", icon:"st.secondary.refresh-icon"
@@ -173,13 +173,17 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
                     def dispLowValue = dispValue+" watts on "+timeString
                     sendEvent(name: "powerLow", value: dispLowValue as String, unit: "", displayed: false)
                     state.powerLowVal = cmd.scaledMeterValue
-                    response(refreshHistory())
+                    def historyDisp = ""
+					historyDisp = "Minimum/Maximum Readings as of ${timeString}\n-------------------------------------------------------------------------\nPower Low : ${device.currentState('powerLow')?.value}\nPower High : ${device.currentState('powerHigh')?.value}"
+					sendEvent(name: "history", value: historyDisp, displayed: false)
                 }
                 if (cmd.scaledMeterValue > state.powerHighVal) {
                     def dispHighValue = dispValue+" watts on "+timeString
                     sendEvent(name: "powerHigh", value: dispHighValue as String, unit: "", displayed: false)
                     state.powerHighVal = cmd.scaledMeterValue
-                    response(refreshHistory())
+                    def historyDisp = ""
+					historyDisp = "Minimum/Maximum Readings as of ${timeString}\n-------------------------------------------------------------------------\nPower Low : ${device.currentState('powerLow')?.value}\nPower High : ${device.currentState('powerHigh')?.value}"
+					sendEvent(name: "history", value: historyDisp, displayed: false)
                 }
                 if (state.displayDisabled) {
                 	sendEvent(name: "power", value: dispValue, unit: "watts", displayed: true)
@@ -259,16 +263,18 @@ def refresh() {
 
 def resetWatts() {
     if (state.debug) log.debug "${device.label} watts min/max reset"
+    def historyDisp = ""
     state.powerHighVal = 0
     state.powerLowVal = 999999
 	def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
     sendEvent(name: "powerLow", value: "Value reset on "+timeString, unit: "")    
     sendEvent(name: "powerHigh", value: "Value reset on "+timeString, unit: "")
+    historyDisp = "Minimum/Maximum Readings as of ${timeString}\n-------------------------------------------------------------------------\nPower Low : ${device.currentState('powerLow')?.value}\nPower High : ${device.currentState('powerHigh')?.value}"
+    sendEvent(name: "history", value: historyDisp, displayed: false)
     def cmd = delayBetween( [
         zwave.meterV2.meterGet(scale: 2).format()
     ])
     cmd
-    response(refreshHistory())
 }
 
 def resetEnergy() {
@@ -282,15 +288,6 @@ def resetEnergy() {
         zwave.meterV2.meterGet(scale: 0).format()
     ])
     cmd
-    response(refreshHistory())
-}
-
-def refreshHistory() {
-	if (state.debug) log.debug "${device.label} mix/max history values refreshed"
-    def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
-	def historyDisp = ""
-    historyDisp = "Minimum/Maximum Readings as of ${timeString}\n-------------------------------------------------------------------------\nPower Low : ${device.currentState('powerLow')?.value}\nPower High : ${device.currentState('powerHigh')?.value}"
-    sendEvent(name: "history", value: historyDisp, displayed: false)
 }
 
 def configure() {
