@@ -37,6 +37,7 @@
  *  09-15-2017 : Changed tile layout, made tiles smaller, and removed the reset info messages since you can find them in the Recently tab or the device's event log.
  *  09-23-2017 : Changed layout to look like my Zooz DTH, cleaned up code a lot.
  *  10-04-2017 : Fixed reset issues with energy/kWh not resetting properly.  (more of a workaround for now)
+ *  10-07-2017 : Changed history tile from standard to value to resolve iOS rendering issue.
  *
  */
 metadata {
@@ -90,7 +91,7 @@ metadata {
 		valueTile("kwhCosts", "device.kwhCosts", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
 			state("default", label: 'Cost ${currentValue}', backgroundColor:"#ffffff")
 		}
-		standardTile("history", "device.history", decoration:"flat",width: 6, height: 2) {
+		valueTile("history", "device.history", decoration:"flat",width: 6, height: 2) {
 			state "history", label:'${currentValue}'
 		}
 		standardTile("resetWatts", "device.resetWatts", width: 3, height: 2, decoration: "flat") {

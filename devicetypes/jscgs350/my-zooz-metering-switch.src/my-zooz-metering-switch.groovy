@@ -14,6 +14,7 @@
  *  -------
  *  09-23-2016 : Initial Commit.
  *  10-04-2017 : Fixed reset issues with energy/kWh not resetting properly.  (more of a workaround for now)
+ *  10-07-2017 : Changed history tile from standard to value to resolve iOS rendering issue.
  *
  */
 metadata {
@@ -104,7 +105,7 @@ metadata {
 		standardTile("resetAmps", "device.resetAmps", width: 3, height: 1, decoration: "flat") {
 			state "default", label:'Reset Amps Min/Max', action: "resetAmps", icon:"st.secondary.refresh-icon"
 		}
-		standardTile("history", "device.history", decoration:"flat",width: 6, height: 3) {
+		valueTile("history", "device.history", decoration:"flat",width: 6, height: 3) {
 			state "history", label:'${currentValue}'
 		}
 		standardTile("power2", "device.power", width: 3, height: 1, decoration: "flat") {

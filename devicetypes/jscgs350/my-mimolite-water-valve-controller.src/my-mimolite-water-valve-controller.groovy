@@ -24,6 +24,7 @@
  *  05-18-2017 : Changed the main tile to be contact instead of switch primarily due to personal functionality preference and not accidentally actuating the valve while in the Room view.
  *  09-23-2017 : Changed layout to look like my Zooz DTH, cleaned up code a lot.
  *  10-03-2017 : Cosmetic changes and fixed messages section.
+ *  10-07-2017 : Changed history tile from standard to value to resolve iOS rendering issue.
  *
  */
 metadata {
@@ -76,7 +77,7 @@ metadata {
         standardTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
 			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}
-		standardTile("history", "device.history", decoration:"flat",width: 6, height: 2) {
+		valueTile("history", "device.history", decoration:"flat",width: 6, height: 2) {
 			state "history", label:'${currentValue}'
 		}
         main (["contact"])

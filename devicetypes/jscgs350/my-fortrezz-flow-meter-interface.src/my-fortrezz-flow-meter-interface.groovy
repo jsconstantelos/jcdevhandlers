@@ -47,6 +47,7 @@
  *  09-23-2017 : Changed layout to look like my Zooz DTH, cleaned up code a lot.
  *  10-03-2017 : More cosmetic changes to the main tile.
  *  10-04-2017 : Color changes on main tile, and fixed reset log messages and how they're processed.  (more of a workaround for now)
+ *  10-07-2017 : Changed history tile from standard to value to resolve iOS rendering issue.
  *
  */
 metadata {
@@ -158,7 +159,7 @@ metadata {
 		standardTile("configure", "device.configure", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "configure", label: "Configure\nDevice", action: "configuration.configure", icon: "st.secondary.tools"
 		}
-		standardTile("history", "device.history", decoration:"flat",width: 6, height: 5) {
+		valueTile("history", "device.history", decoration:"flat", width: 6, height: 5) {
 			state "history", label:'${currentValue}'
 		}        
 		main (["waterState"])

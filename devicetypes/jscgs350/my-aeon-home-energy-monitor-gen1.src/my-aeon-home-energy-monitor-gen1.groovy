@@ -57,6 +57,7 @@
  *  09-27-2017 : Changed tile format for device min/max history to look like my Aeon and Zooz DTH's.
  *  09-28-2017 : Changed history tile from "standard" to "value", and reduced the number of dashes so it works better for iOS.
  *  10-04-2017 : Fixed reset issues with energy/kWh not resetting properly.  (more of a workaround for now)
+ *  10-07-2017 : Fixed code for battery reports still going to the Recently tab in the mobile app even though the option not to send messages was enabled.
  *
  */
 metadata {
@@ -273,6 +274,7 @@ def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
 		def map = [:]
 		map.name = "battery"
 		map.unit = "%"
+        map.displayed = true
 		if (cmd.batteryLevel == 0xFF) { // low battery message from device
 			map.value = 1
 			map.isStateChange = true
@@ -280,16 +282,17 @@ def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
 			map.value = cmd.batteryLevel
 			map.isStateChange = true
 		}
-		return map
-		sendEvent(name: "battery", value: map.value as String, displayed: true)
+	sendEvent(name: "battery", value: map.value as String, displayed: true)
+	return map
 	} else {
 		def map = [:]
 		map.name = "battery"
 		map.unit = "%"
         map.value = 99
+        map.displayed = false
         map.isStateChange = true
+        sendEvent(name: "battery", value: map.value as String, displayed: false)
 		return map
-		sendEvent(name: "battery", value: map.value as String, displayed: false)
     }
 }
 
