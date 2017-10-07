@@ -14,7 +14,7 @@
  *  -------
  *  09-23-2016 : Initial Commit.
  *  10-04-2017 : Fixed reset issues with energy/kWh not resetting properly.  (more of a workaround for now)
- *  10-07-2017 : Changed history tile from standard to value to resolve iOS rendering issue.
+ *  10-07-2017 : Changed several tilea from standard to value to resolve iOS rendering issue.
  *
  */
 metadata {
@@ -78,32 +78,32 @@ metadata {
            		attributeState "device.power", label:'Currently using ${currentValue} watts', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/device-activity-tile@2x.png"
             }
         }
-		standardTile("energy", "device.energy", width: 3, height: 1, decoration: "flat") {
+		valueTile("energy", "device.energy", width: 3, height: 1, decoration: "flat") {
 			state "energy", label:'${currentValue} kWh'
 		}
 		valueTile("kwhCosts", "device.kwhCosts", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
 			state("default", label: 'Cost ${currentValue}', backgroundColor:"#ffffff")
 		}
-		standardTile("voltage", "device.voltage", width: 3, height: 1, decoration: "flat") {
+		valueTile("voltage", "device.voltage", width: 3, height: 1, decoration: "flat") {
 			state "voltage", label:'${currentValue} volts'
 		}
-		standardTile("current", "device.current", width: 3, height: 1, decoration: "flat") {
+		valueTile("current", "device.current", width: 3, height: 1, decoration: "flat") {
 			state "current", label:'${currentValue} amps'
 		}
-		standardTile("refresh", "device.refresh", width: 6, height: 2, decoration: "flat") {
-			state "refresh", label:'Refresh', action: "refresh", icon:"st.secondary.refresh-icon"
+		valueTile("refresh", "device.refresh", width: 6, height: 2, decoration: "flat") {
+			state "refresh", label:'\nRefresh', action: "refresh", icon:"st.secondary.refresh-icon"
 		}
-		standardTile("resetWatts", "device.resetWatts", width: 3, height: 1, decoration: "flat") {
-			state "default", label:'Reset Watts Min/Max', action: "resetWatts", icon:"st.secondary.refresh-icon"
+		valueTile("resetWatts", "device.resetWatts", width: 3, height: 1, decoration: "flat") {
+			state "default", label:'\nReset Watts Min/Max', action: "resetWatts", icon:"st.secondary.refresh-icon"
 		}
-		standardTile("resetEnergy", "device.resetEnergy", width: 3, height: 1, decoration: "flat") {
-			state "default", label:'Reset kWh/Costs', action: "resetEnergy", icon:"st.secondary.refresh-icon"
+		valueTile("resetEnergy", "device.resetEnergy", width: 3, height: 1, decoration: "flat") {
+			state "default", label:'\nReset kWh/Costs', action: "resetEnergy", icon:"st.secondary.refresh-icon"
 		}
-		standardTile("resetVolts", "device.resetVolts", width: 3, height: 1, decoration: "flat") {
-			state "default", label:'Reset Volts Min/Max', action: "resetVolts", icon:"st.secondary.refresh-icon"
+		valueTile("resetVolts", "device.resetVolts", width: 3, height: 1, decoration: "flat") {
+			state "default", label:'\nReset Volts Min/Max', action: "resetVolts", icon:"st.secondary.refresh-icon"
 		}
-		standardTile("resetAmps", "device.resetAmps", width: 3, height: 1, decoration: "flat") {
-			state "default", label:'Reset Amps Min/Max', action: "resetAmps", icon:"st.secondary.refresh-icon"
+		valueTile("resetAmps", "device.resetAmps", width: 3, height: 1, decoration: "flat") {
+			state "default", label:'\nReset Amps Min/Max', action: "resetAmps", icon:"st.secondary.refresh-icon"
 		}
 		valueTile("history", "device.history", decoration:"flat",width: 6, height: 3) {
 			state "history", label:'${currentValue}'

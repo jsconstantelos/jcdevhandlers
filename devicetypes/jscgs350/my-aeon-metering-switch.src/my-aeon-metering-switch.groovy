@@ -37,7 +37,7 @@
  *  09-15-2017 : Changed tile layout, made tiles smaller, and removed the reset info messages since you can find them in the Recently tab or the device's event log.
  *  09-23-2017 : Changed layout to look like my Zooz DTH, cleaned up code a lot.
  *  10-04-2017 : Fixed reset issues with energy/kWh not resetting properly.  (more of a workaround for now)
- *  10-07-2017 : Changed history tile from standard to value to resolve iOS rendering issue.
+ *  10-07-2017 : Changed several tiles from standard to value to resolve iOS rendering issue.
  *
  */
 metadata {
@@ -85,7 +85,7 @@ metadata {
            		attributeState "device.power", label:'Currently using ${currentValue} watts', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/device-activity-tile@2x.png"
             }
 		}
-		standardTile("energy", "device.energy", width: 3, height: 1, decoration: "flat") {
+		valueTile("energy", "device.energy", width: 3, height: 1, decoration: "flat") {
 			state "energy", label:'${currentValue} kWh'
 		}
 		valueTile("kwhCosts", "device.kwhCosts", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
@@ -94,14 +94,14 @@ metadata {
 		valueTile("history", "device.history", decoration:"flat",width: 6, height: 2) {
 			state "history", label:'${currentValue}'
 		}
-		standardTile("resetWatts", "device.resetWatts", width: 3, height: 2, decoration: "flat") {
-			state "default", label:'Reset Watts Min/Max', action: "resetWatts", icon:"st.secondary.refresh-icon"
+		valueTile("resetWatts", "device.resetWatts", width: 3, height: 2, decoration: "flat") {
+			state "default", label:'\nReset Watts Min/Max', action: "resetWatts", icon:"st.secondary.refresh-icon"
 		}
-		standardTile("resetEnergy", "device.resetEnergy", width: 3, height: 2, decoration: "flat") {
-			state "default", label:'Reset kWh/Costs', action: "resetEnergy", icon:"st.secondary.refresh-icon"
+		valueTile("resetEnergy", "device.resetEnergy", width: 3, height: 2, decoration: "flat") {
+			state "default", label:'\nReset kWh/Costs', action: "resetEnergy", icon:"st.secondary.refresh-icon"
 		}
-		standardTile("refresh", "device.power", width: 6, height: 2, inactiveLabel: false, decoration: "flat") {
-			state "default", label:'Refresh', action:"refresh.refresh", icon:"st.secondary.refresh-icon"
+		valueTile("refresh", "device.power", width: 6, height: 2, inactiveLabel: false, decoration: "flat") {
+			state "default", label:'\nRefresh', action:"refresh.refresh", icon:"st.secondary.refresh-icon"
 		}
 		standardTile("power2", "device.power", width: 3, height: 1, decoration: "flat") {
 			state "power", icon: "st.secondary.activity", label:'${currentValue} W'
