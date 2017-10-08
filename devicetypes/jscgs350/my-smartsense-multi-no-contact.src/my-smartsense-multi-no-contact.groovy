@@ -20,14 +20,14 @@
 metadata {
 	definition (name: "My SmartSense Multi (no contact)", namespace: "jscgs350", author: "SmartThings") {
 		capability "Three Axis"
-		capability "Contact Sensor"
+//		capability "Contact Sensor"
 		capability "Acceleration Sensor"
 		capability "Signal Strength"
 		capability "Temperature Measurement"
 		capability "Sensor"
 		capability "Battery"
 
-		fingerprint profileId: "FC01", deviceId: "0139"
+//		fingerprint profileId: "FC01", deviceId: "0139"
 
 		attribute "status", "string"
 	}
@@ -40,8 +40,8 @@ metadata {
 	tiles(scale: 2) {
 		multiAttributeTile(name:"acceleration", type: "generic", width: 6, height: 4){
 			tileAttribute ("device.acceleration", key: "PRIMARY_CONTROL") {
-				attributeState "active", label:'${name}', icon:"st.motion.acceleration.active", backgroundColor:"#53a7c0"
-				attributeState "inactive", label:'${name}', icon:"st.motion.acceleration.inactive", backgroundColor:"#ffffff"
+				attributeState "active", label:'Activity!', icon:"st.motion.acceleration.active", backgroundColor:"#53a7c0"
+				attributeState "inactive", label:'No Activity', icon:"st.motion.acceleration.inactive", backgroundColor:"#ffffff"
 			}
             tileAttribute ("device.battery", key: "SECONDARY_CONTROL") {
                 attributeState("default", label:'${currentValue}% battery', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/battery-icon-614x460.png")
