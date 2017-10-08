@@ -320,7 +320,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
     		prevCumulative = cmd.scaledMeterValue - state.lastCumulative
         	state.lastCumulative = cmd.scaledMeterValue
         	sendDataToCloud(prevCumulative)
-    		map.value = "Cumulative: "+cmd.scaledMeterValue+" gallons\n"+"Last used : "+prevCumulative+" gallons at "+timeString
+    		map.value = "Total Usage : "+cmd.scaledMeterValue+" gallons\n"+"Last Used : "+prevCumulative+" gals at "+timeString
         	if (prevCumulative > state.lastGallon) {
             	dispGallon = prevCumulative+" gallons on"+"\n"+timeString
             	sendEvent(name: "gallonHigh", value: dispGallon as String, displayed: false)
