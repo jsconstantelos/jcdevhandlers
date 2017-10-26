@@ -58,6 +58,7 @@
  *  09-28-2017 : Changed history tile from "standard" to "value", and reduced the number of dashes so it works better for iOS.
  *  10-04-2017 : Fixed reset issues with energy/kWh not resetting properly.  (more of a workaround for now)
  *  10-07-2017 : Fixed code for battery reports still going to the Recently tab in the mobile app even though the option not to send messages was enabled.
+ *  10-26-2017 : Added 2 new attributes to capture kWh and cost data before they're reset in case someone needs to refer back to them for any reason.  These can be seen in the IDE and in the Recently Tab in the mobile app.
  *
  */
 metadata {
@@ -79,6 +80,8 @@ metadata {
 		attribute "resetMessage", "string"		// Used for messages of what was reset (min, max, energy, or all values)
 		attribute "kwhCosts", "string"			// Used to show energy costs since last reset
 		attribute "batteryStatus", "string"
+        attribute "kWhLastReset", "number"
+        attribute "CostLastReset", "number"
 
 		command "resetkwh"
 		command "resetmin"
@@ -323,11 +326,16 @@ def ping() {
 
 def resetkwh() {
 	log.debug "${device.name} reset kWh/Cost values"
-    def historyDisp = ""
 	def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
-	sendEvent(name: "resetMessage", value: "Energy Data (kWh/Cost) Reset On:\n"+timeString, unit: "")
-	sendEvent(name: "currentKWH", value: "", unit: "")
-	sendEvent(name: "kwhCosts", value: "", unit: "")
+    def resetDisp = ""
+    resetDisp = "kWh value at time of last reset was ${device.currentState('currentKWH')?.value}"
+    sendEvent(name: "kWhLastReset", value: resetDisp, displayed: true)
+    resetDisp = "Costs at time of last reset was ${device.currentState('kwhCosts')?.value}"
+    sendEvent(name: "CostLastReset", value: resetDisp, displayed: true)
+    def historyDisp = ""
+	sendEvent(name: "resetMessage", value: "Energy Data (kWh/Cost) Reset On:\n"+timeString, unit: "", displayed: true)
+	sendEvent(name: "currentKWH", value: "", unit: "", displayed: false)
+	sendEvent(name: "kwhCosts", value: "", unit: "", displayed: false)
     historyDisp = "Minimum/Maximum Readings as of ${timeString}\n------------------------------------------------------\nPower Low : ${device.currentState('minWATTS')?.value}\nPower High : ${device.currentState('maxWATTS')?.value}\nMessages : ${device.currentState('resetMessage')?.value}"
     sendEvent(name: "history", value: historyDisp, displayed: false)
     state.energyValue = 0
@@ -345,7 +353,7 @@ def resetmin() {
 	state.powerLow = 99999
 	def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
 	sendEvent(name: "resetMessage", value: "Watts Data Minimum Value Reset On:\n"+timeString, unit: "")
-	sendEvent(name: "minWATTS", value: "", unit: "")
+	sendEvent(name: "minWATTS", value: "", unit: "", displayed: false)
     historyDisp = "Minimum/Maximum Readings as of ${timeString}\n------------------------------------------------------\nPower Low : ${device.currentState('minWATTS')?.value}\nPower High : ${device.currentState('maxWATTS')?.value}\nMessages : ${device.currentState('resetMessage')?.value}"
     sendEvent(name: "history", value: historyDisp, displayed: false)
 	def cmd = delayBetween( [
@@ -361,7 +369,7 @@ def resetmax() {
 	state.powerHigh = 0
 	def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
 	sendEvent(name: "resetMessage", value: "Watts Data Maximum Value Reset On:\n"+timeString, unit: "")
-	sendEvent(name: "maxWATTS", value: "", unit: "")
+	sendEvent(name: "maxWATTS", value: "", unit: "", displayed: false)
     historyDisp = "Minimum/Maximum Readings as of ${timeString}\n------------------------------------------------------\nPower Low : ${device.currentState('minWATTS')?.value}\nPower High : ${device.currentState('maxWATTS')?.value}\nMessages : ${device.currentState('resetMessage')?.value}"
     sendEvent(name: "history", value: historyDisp, displayed: false)
 	def cmd = delayBetween( [
@@ -373,16 +381,21 @@ def resetmax() {
 
 def resetMeter() {
 	log.debug "Resetting all home energy meter values..."
+    def resetDisp = ""
+    resetDisp = "kWh value at time of last reset was ${device.currentState('currentKWH')?.value}"
+    sendEvent(name: "kWhLastReset", value: resetDisp, displayed: true)
+    resetDisp = "Costs at time of last reset was ${device.currentState('kwhCosts')?.value}"
+    sendEvent(name: "CostLastReset", value: resetDisp, displayed: true)
     def historyDisp = ""
 	state.powerHigh = 0
 	state.powerLow = 99999
     state.energyValue = 0
-	sendEvent(name: "minWATTS", value: "", unit: "")
-	sendEvent(name: "maxWATTS", value: "", unit: "")
-	sendEvent(name: "currentKWH", value: "", unit: "")
-	sendEvent(name: "kwhCosts", value: "Cost\n--", unit: "")
+	sendEvent(name: "minWATTS", value: "", unit: "", displayed: false)
+	sendEvent(name: "maxWATTS", value: "", unit: "", displayed: false)
+	sendEvent(name: "currentKWH", value: "", unit: "", displayed: false)
+	sendEvent(name: "kwhCosts", value: "Cost\n--", unit: "", displayed: false)
 	def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
-	sendEvent(name: "resetMessage", value: "HEM was reset on "+timeString, unit: "")
+	sendEvent(name: "resetMessage", value: "HEM was reset on "+timeString, unit: "", displayed: true)
     historyDisp = "Minimum/Maximum Readings as of ${timeString}\n------------------------------------------------------\nPower Low : ${device.currentState('minWATTS')?.value}\nPower High : ${device.currentState('maxWATTS')?.value}\nMessages : ${device.currentState('resetMessage')?.value}"
     sendEvent(name: "history", value: historyDisp, displayed: false)
 	def cmd = delayBetween( [
