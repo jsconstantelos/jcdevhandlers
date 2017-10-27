@@ -12,13 +12,11 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
- -------10/20/2015 Updates--------
- -Fix/add battery reporting interval to update
- -remove polling and/or refresh
- 
- -------5/2017 Updates--------
- -Add fingerprints for SLP
- -add device health, check every 60mins + 2mins
+ *  Updates:
+ *  -------
+ *  10-18-2017 : Initial commit.  Completely different layout than Spruce's original design.
+ *  10-28-2017 : Moved the reset of high/low values from Preferences to DTH tiles, and enabled each one to be resest individually.
+ *
  */
  
 metadata {
@@ -38,6 +36,8 @@ metadata {
         
         command "resetHumidity"
         command "refresh"
+        command "resetmin"
+        command "resetmax"
         
         fingerprint profileId: "0104", inClusters: "0000,0001,0003,0402,0405", outClusters: "0003, 0019", manufacturer: "PLAID SYSTEMS", model: "PS-SPRZMS-01", deviceJoinName: "Spruce Sensor"
         fingerprint profileId: "0104", inClusters: "0000,0001,0003,0402,0405", outClusters: "0003, 0019", manufacturer: "PLAID SYSTEMS", model: "PS-SPRZMS-SLP1", deviceJoinName: "Spruce Sensor"
@@ -47,7 +47,6 @@ metadata {
 		input description: "This feature allows you to correct any temperature variations by selecting an offset. Ex: If your sensor consistently reports a temp that's 5 degrees too warm, you'd enter \"-5\". If 3 degrees too cold, enter \"+3\".", displayDuringSetup: false, type: "paragraph", element: "paragraph", title: ""
 		input "tempOffset", "number", title: "Temperature Offset", description: "Adjust temperature by this many degrees", range: "*..*", displayDuringSetup: false
         input "interval", "number", title: "Measurement Interval 1-120 minutes (default: 10 minutes)", description: "Set how often you would like to check soil moisture in minutes", range: "1..120", defaultValue: 10, displayDuringSetup: false
-        input "resetMinMax", "bool", title: "Reset Humidity min and max", required: false, displayDuringSetup: false
       }
 
 	tiles {
@@ -105,11 +104,17 @@ metadata {
 		valueTile("battery", "device.battery", width: 3, height: 2, decoration: "flat", canChangeIcon: false, canChangeBackground: false) {
 			state "battery", label:'${currentValue}% battery'
 		}
-		standardTile("refresh", "device.refresh", inactiveLabel: false, decoration: "flat", width: 6, height: 2) {
-			state "default", action: "refresh.refresh", icon: "st.secondary.refresh"
+		standardTile("resetlow", "device.resetmin", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
+			state "default", label:'Reset Low', action:"resetmin", icon:"st.secondary.refresh-icon"
+		}
+		standardTile("resethigh", "device.resetmax", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
+			state "default", label:'Reset High', action:"resetmax", icon:"st.secondary.refresh-icon"
+		}
+		standardTile("refresh", "device.refresh", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
+			state "default", label:'Refresh', action: "refresh.refresh", icon: "st.secondary.refresh-icon"
 		}        
 		main  (["humidity"])
-		details(["humidity","maxHum","minHum","temperature","battery","refresh"])
+		details(["humidity","maxHum","minHum","temperature","battery","resethigh","resetlow","refresh"])
 	}
 }
 
@@ -290,13 +295,17 @@ private Map getBatteryResult(value) {
 	return result
 }
 
-def resetHumidity(){
+def resetmin(){
 	def linkText = getLinkText(device)
     def minHumValue = 0
-    def maxHumValue = 0
     sendEvent(name: 'minHum', value: minHumValue, unit: '%', descriptionText: "${linkText} min soil moisture reset to ${minHumValue}%")
-    sendEvent(name: 'maxHum', value: maxHumValue, unit: '%', descriptionText: "${linkText} max soil moisture reset to ${maxHumValue}%")
 }	
+
+def resetmax(){
+	def linkText = getLinkText(device)
+    def maxHumValue = 0
+    sendEvent(name: 'maxHum', value: maxHumValue, unit: '%', descriptionText: "${linkText} max soil moisture reset to ${maxHumValue}%")
+}
 
 def setConfig(){
 	def configInterval = 100
@@ -314,7 +323,6 @@ def updated(){
     log.debug "device updated"
     if (!device.latestValue('configuration')) configure()
     else{
-    	if (resetMinMax == true) resetHumidity()
         if (device.latestValue('configuration').toInteger() != interval && interval != null){    	
             sendEvent(name: 'configuration',value: 0, descriptionText: "Settings changed and will update at next report. Measure interval set to ${interval} mins")
     	}

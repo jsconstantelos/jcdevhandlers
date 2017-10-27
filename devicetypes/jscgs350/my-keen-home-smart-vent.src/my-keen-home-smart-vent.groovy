@@ -18,6 +18,7 @@
  *  04-27-2017 : Changed to standardTile instead of valueTile to workaround an ST bug breaking how valueTile worked with versions prior to v2.3.x of the mobile app.
  *  06-05-2017 : Changed to standardTile instead of valueTile for the remaining 3 tiles now that text formatting with v2.4.0 works right again.
  *  09-01-2017 : Changes color value for "clearing" to Caterpillar yellow.
+ *  10-28-2017 : Stopped the DTH from posting pressure readings to the event log and the Recently tab.
  *
  */
 metadata {
@@ -279,7 +280,8 @@ private Map makePressureResult(rawValue) {
     def result = [
         name: 'pressure',
         descriptionText: "${linkText} pressure is ${pascals}Pa",
-        value: pascals
+        value: pascals,
+        displayed: false
     ]
     return result
 }
@@ -314,6 +316,7 @@ private Map makeTemperatureResult(value) {
         name: 'temperature',
         value: "" + value,
         descriptionText: "${linkText} is ${value}°${temperatureScale}",
+        displayed: true
     ]
 }
 
