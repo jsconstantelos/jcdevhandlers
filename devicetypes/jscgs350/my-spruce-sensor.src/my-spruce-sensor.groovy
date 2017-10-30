@@ -16,6 +16,7 @@
  *  -------
  *  10-18-2017 : Initial commit.  Completely different layout than Spruce's original design.
  *  10-28-2017 : Moved the reset of high/low values from Preferences to DTH tiles, and enabled each one to be resest individually.
+ *  10-30-2017 : Mved battery reporting from a small tile to the main tile.
  *
  */
  
@@ -63,8 +64,11 @@ metadata {
                         [value: 96, color: "#0A50C2"]
                     ]
 			}
+            tileAttribute ("device.battery", key: "SECONDARY_CONTROL") {
+                attributeState("default", label:'${currentValue}% battery', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/battery-icon-614x460.png")
+            }
 		}
-		valueTile("temperature", "device.temperature", width: 3, height: 2, canChangeIcon: false, canChangeBackground: false) {
+		valueTile("temperature", "device.temperature", width: 2, height: 2, canChangeIcon: false, canChangeBackground: false) {
 			state "temperature", label:'${currentValue}°',
 				backgroundColors:[
 					[value: 31, color: "#153591"],
@@ -76,7 +80,7 @@ metadata {
 					[value: 96, color: "#bc2323"]
 				]
 		}
-        valueTile("maxHum", "device.maxHum", width: 3, height: 2, canChangeIcon: false, canChangeBackground: false) {
+        valueTile("maxHum", "device.maxHum", width: 2, height: 2, canChangeIcon: false, canChangeBackground: false) {
 			state "maxHum", label:'High ${currentValue}%', unit:"",
             	backgroundColors:[
 					[value: 0, color: "#635C0C"],
@@ -88,7 +92,7 @@ metadata {
 					[value: 96, color: "#0A50C2"]
 				]
 		}
-		valueTile("minHum", "device.minHum", width: 3, height: 2, canChangeIcon: false, canChangeBackground: false) {
+		valueTile("minHum", "device.minHum", width: 2, height: 2, canChangeIcon: false, canChangeBackground: false) {
 			state "minHum", label:'Low ${currentValue}%', unit:"",
             	backgroundColors:[
 					[value: 0, color: "#635C0C"],
@@ -100,10 +104,6 @@ metadata {
 					[value: 96, color: "#0A50C2"]
 				]
 		} 
- 
-		valueTile("battery", "device.battery", width: 3, height: 2, decoration: "flat", canChangeIcon: false, canChangeBackground: false) {
-			state "battery", label:'${currentValue}% battery'
-		}
 		standardTile("resetlow", "device.resetmin", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "default", label:'Reset Low', action:"resetmin", icon:"st.secondary.refresh-icon"
 		}
@@ -114,7 +114,7 @@ metadata {
 			state "default", label:'Refresh', action: "refresh.refresh", icon: "st.secondary.refresh-icon"
 		}        
 		main  (["humidity"])
-		details(["humidity","maxHum","minHum","temperature","battery","resethigh","resetlow","refresh"])
+		details(["humidity","maxHum","minHum","temperature","resethigh","resetlow","refresh"])
 	}
 }
 
