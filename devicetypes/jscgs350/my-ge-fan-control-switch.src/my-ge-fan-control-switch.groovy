@@ -20,6 +20,7 @@
  *  03-11-2017 : Changed from valueTile to standardTile for a few tiles since ST's mobile app v2.3.x changed something between the two.
  *  08-31-2017 : Changed to ST's color scheme.
  *  09-01-2017 : Updated to use ST's latest version of the dimmer switch code.
+ *  11-03-2017 : Cleaned up code for fan speed.
  *
  */
  
@@ -39,7 +40,6 @@ metadata {
 		command "highSpeed"
 
 		attribute "currentState", "string"
-        attribute "currentSpeed", "string"
 
 	}
 
@@ -60,8 +60,10 @@ metadata {
 				attributeState "turningOn", label:'TURNINGON', icon:"st.Lighting.light24", backgroundColor:"#f0b823", nextState: "turningOn"
 				attributeState "turningOff", label:'TURNINGOFF', icon:"st.Lighting.light24", backgroundColor:"#f0b823", nextState: "turningOff"
 			}   
-            tileAttribute ("statusText", key: "SECONDARY_CONTROL") {
-           		attributeState "statusText", label:'${currentValue}', icon:"st.Lighting.light24"
+            tileAttribute ("device.currentState", key: "SECONDARY_CONTROL") {
+           		attributeState "LOW", label:'Fan speed set to LOW', icon:"st.Lighting.light24"
+                attributeState "MED", label:'Fan speed set to MEDIUM', icon:"st.Lighting.light24"
+                attributeState "HIGH", label:'Fan speed set to HIGH', icon:"st.Lighting.light24"
             }
 		}
 		standardTile("lowSpeed", "device.currentState", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
@@ -80,9 +82,6 @@ metadata {
 		}
 		standardTile("refresh", "device.switch", width: 6, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "default", label:'Refresh', action:"refresh.refresh", icon:"st.secondary.refresh-icon"
-		}
-        standardTile("statusText", "statusText", inactiveLabel: false, decoration: "flat", width: 6, height: 2) {
-			state "statusText", label:'${currentValue}', backgroundColor:"#ffffff"
 		}
 		main(["switch"])
 		details(["switch", "lowSpeed", "medSpeed", "highSpeed", "refresh"])
@@ -131,15 +130,12 @@ def parse(String description) {
 		if (cmd) {
             if (cmd.value > 0) {
                 if (cmd.value <= lowThreshold) {
-                    sendEvent(name: "currentSpeed", value: "LOW" as String)
                     sendEvent(name: "currentState", value: "LOW" as String)
                 }
                 if (cmd.value > lowThreshold && cmd.value <= medThreshold) {
-                    sendEvent(name: "currentSpeed", value: "MEDIUM" as String)
                     sendEvent(name: "currentState", value: "MED" as String)
                 }
                 if (cmd.value > medThreshold) {
-                    sendEvent(name: "currentSpeed", value: "HIGH" as String)
                     sendEvent(name: "currentState", value: "HIGH" as String)
                 }
             }
@@ -152,9 +148,6 @@ def parse(String description) {
 	} else {
 		log.debug "Parse returned ${result?.descriptionText}"
 	}
-    def statusTextmsg = ""
-    statusTextmsg = "Fan speed is set to ${device.currentState('currentSpeed').value}"
-    sendEvent("name":"statusText", "value":statusTextmsg)
 	return result
 }
 
@@ -264,19 +257,16 @@ def setLevel(value, duration) {
 }
 
 def lowSpeed() {
-	sendEvent(name: "currentSpeed", value: "LOW" as String)
     sendEvent(name: "currentState", value: "LOW" as String)
 	setLevel(lowThreshold)
 }
 
 def medSpeed() {
-	sendEvent(name: "currentSpeed", value: "MEDIUM" as String)
     sendEvent(name: "currentState", value: "MED" as String)
 	setLevel(medThreshold)
 }
 
 def highSpeed() {
-	sendEvent(name: "currentSpeed", value: "HIGH" as String)
     sendEvent(name: "currentState", value: "HIGH" as String)
 	setLevel(highThreshold)
 }
