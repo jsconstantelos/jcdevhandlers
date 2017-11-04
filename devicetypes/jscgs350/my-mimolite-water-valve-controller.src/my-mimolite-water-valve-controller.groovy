@@ -25,6 +25,7 @@
  *  09-23-2017 : Changed layout to look like my Zooz DTH, cleaned up code a lot.
  *  10-03-2017 : Cosmetic changes and fixed messages section.
  *  10-07-2017 : Changed history tile from standard to value to resolve iOS rendering issue.
+ *  11-03-2017 : Cleaned up code.
  *
  */
 metadata {
@@ -40,8 +41,7 @@ metadata {
         capability "Actuator"
         capability "Health Check"
         
-        attribute "powered", "string"
-        attribute "valveState", "string"       
+        attribute "powered", "string"      
 }
 
     // UI tile definitions
@@ -53,8 +53,9 @@ metadata {
 				attributeState "closingvalve", label:'Closing', icon:"st.valves.water.closed", backgroundColor:"#f0b823"
 				attributeState "openingvalve", label:'Opening', icon:"st.valves.water.open", backgroundColor:"#f0b823"
 			}
-            tileAttribute ("device.valveState", key: "SECONDARY_CONTROL") {
-                attributeState("default", label:'${currentValue}', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/watervalve1.png")
+            tileAttribute ("device.contact", key: "SECONDARY_CONTROL") {
+                attributeState("open", label:'Valve is flowing water', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/watervalve1.png")
+                attributeState("closed", label:'Valve is NOT flowing water!', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/watervalve1.png")
             }
         }
         standardTile("contact", "device.contact", width: 3, height: 2, inactiveLabel: false) {
@@ -105,22 +106,16 @@ def parse(String description) {
 	if (cmd) {
         result = createEvent(zwaveEvent(cmd))
     }
-    def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
-    def statusTextmsg = ""
-    statusTextmsg = "Last refreshed at "+timeString+"."
-    sendEvent(name:"statusText", value:statusTextmsg)
     return result
 }
 
 def sensorValueEvent(Short value) {
     if (value) {
 		log.debug "Main Water Valve is Open"
-		sendEvent(name: "contact", value: "open", descriptionText: "$device.displayName is open")
-        sendEvent(name: "valveState", value: "Valve is flowing water (tap to close)")
+		sendEvent(name: "contact", value: "open")
     } else {
     	log.debug "Main Water Valve is Closed"
-        sendEvent(name: "contact", value: "closed", descriptionText: "$device.displayName is closed")
-        sendEvent(name: "valveState", value: "Valve is NOT flowing water (tap to open)")
+        sendEvent(name: "contact", value: "closed")
     }
 }
 
