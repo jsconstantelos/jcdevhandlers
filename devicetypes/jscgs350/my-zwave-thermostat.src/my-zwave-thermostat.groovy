@@ -30,6 +30,7 @@
  *  09-09-2017 : Changed the UI for ST's new slider format (went back to individuals sliders for cool/heat vs one slider), changed icons, colors, and format.
  *  09-12-2017 : Added another tile specifically used for the Things view for the device (temperature2).
  *  10-03-2017 : Cosmetic changes and removed actions for the Heat and Cool colored tiles right below the main tile.
+ *  11-10-2017 : Changed a few tiles from standard to value because they look better on iOS and still look fine on Android. 
  *
 */
 metadata {
@@ -68,7 +69,7 @@ metadata {
 	tiles(scale: 2) {
 		multiAttributeTile(name:"temperature", type: "thermostat", width: 6, height: 4, decoration: "flat"){
             tileAttribute("device.temperature", key: "PRIMARY_CONTROL") {
-                attributeState("default", label:'${currentValue}°', unit:"dF")
+                attributeState("default", label:'${currentValue}°')
             }
 			tileAttribute("device.thermostatSetpoint", key: "VALUE_CONTROL") {
 				attributeState("VALUE_UP", action: "setLevelUp")
@@ -94,13 +95,13 @@ metadata {
                 attributeState("auto", label:'${name}')
             }
             tileAttribute("device.heatingSetpoint", key: "HEATING_SETPOINT") {
-                attributeState("default", label:'${currentValue}°', unit:"dF")
+                attributeState("default", label:'${currentValue}°')
             }
             tileAttribute("device.coolingSetpoint", key: "COOLING_SETPOINT") {
-                attributeState("default", label:'${currentValue}°', unit:"dF")
+                attributeState("default", label:'${currentValue}°')
             }
             tileAttribute("device.thermostatSetpoint", key: "THERMOSTAT_SETPOINT") {
-                attributeState("default", label:'${currentValue}°', unit:"dF")
+                attributeState("default", label:'${currentValue}°')
             } 
 		}       
 
@@ -149,30 +150,38 @@ metadata {
         }
 
 //Refresh and Config Controls
-		standardTile("refresh", "device.refresh", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
+		valueTile("refresh", "device.refresh", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
 			state "default", label:'Refresh', action:"polling.poll", icon:"st.secondary.refresh-icon"
 		}
-		standardTile("configure", "device.configure", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
+		valueTile("configure", "device.configure", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
 			state "configure", label:'', action:"configuration.configure", icon:"st.secondary.configure"
 		}
 
 //Miscellaneous tiles used in this DH
-        standardTile("statusL1Text", "statusL1Text", inactiveLabel: false, decoration: "flat", width: 3, height: 1) {
+        valueTile("statusL1Text", "statusL1Text", inactiveLabel: false, decoration: "flat", width: 3, height: 1) {
 			state "default", label:'${currentValue}', icon:"st.Home.home1"
 		}
-        standardTile("statusL2Text", "statusL2Text", inactiveLabel: false, decoration: "flat", width: 3, height: 1) {
+        valueTile("statusL2Text", "statusL2Text", inactiveLabel: false, decoration: "flat", width: 3, height: 1) {
 			state "default", label:'${currentValue}', icon:"https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/fan-on@2x.png"
 		}
         valueTile("temperature2", "device.temperature", width: 1, height: 1, canChangeIcon: true) {
             state "temperature", label: '${currentValue}°', icon:"st.thermostat.ac.air-conditioning",
 				backgroundColors:[
-					[value: 32, color: "#153591"],
-					[value: 44, color: "#1e9cbb"],
-					[value: 59, color: "#90d2a7"],
-					[value: 74, color: "#44b621"],
-					[value: 84, color: "#f1d801"],
-					[value: 92, color: "#d04e00"],
-					[value: 98, color: "#bc2323"]
+							[value: 0, color: "#153591"],
+							[value: 7, color: "#1e9cbb"],
+							[value: 15, color: "#90d2a7"],
+							[value: 23, color: "#44b621"],
+							[value: 28, color: "#f1d801"],
+							[value: 35, color: "#d04e00"],
+							[value: 37, color: "#bc2323"],
+							// Fahrenheit
+							[value: 40, color: "#153591"],
+							[value: 44, color: "#1e9cbb"],
+							[value: 59, color: "#90d2a7"],
+							[value: 74, color: "#44b621"],
+							[value: 84, color: "#f1d801"],
+							[value: 95, color: "#d04e00"],
+							[value: 96, color: "#bc2323"]
             ]
         }
         
