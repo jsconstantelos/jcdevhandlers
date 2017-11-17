@@ -30,7 +30,8 @@
  *  09-09-2017 : Changed the UI for ST's new slider format (went back to individuals sliders for cool/heat vs one slider), changed icons, colors, and format.
  *  09-12-2017 : Added another tile specifically used for the Things view for the device (temperature2).
  *  10-03-2017 : Cosmetic changes and removed actions for the Heat and Cool colored tiles right below the main tile.
- *  11-10-2017 : Changed a few tiles from standard to value because they look better on iOS and still look fine on Android. 
+ *  11-10-2017 : Changed a few tiles from standard to value because they look better on iOS and still look fine on Android.
+ *  11-17-2017 : Added debug lines and the preference to turn on/off debug output.
  *
 */
 metadata {
@@ -65,11 +66,15 @@ metadata {
         attribute "currentfanMode", "string"
 	}
 
+    preferences {
+        input "debugOutput", "boolean", title: "Enable debug logging?", defaultValue: false, displayDuringSetup: true
+    }
+
 //Thermostat Temp and State
 	tiles(scale: 2) {
 		multiAttributeTile(name:"temperature", type: "thermostat", width: 6, height: 4, decoration: "flat"){
             tileAttribute("device.temperature", key: "PRIMARY_CONTROL") {
-                attributeState("default", label:'${currentValue}°')
+                attributeState("temperature", label:'${currentValue}°')
             }
 			tileAttribute("device.thermostatSetpoint", key: "VALUE_CONTROL") {
 				attributeState("VALUE_UP", action: "setLevelUp")
@@ -191,14 +196,16 @@ metadata {
 }
 
 def updated(){
+	state.debug = ("true" == debugOutput)
 	// Device-Watch simply pings if no device events received for 32min(checkInterval)
 	sendEvent(name: "checkInterval", value: 2 * 15 * 60 + 2 * 60, displayed: false, data: [protocol: "zwave", hubHardwareId: device.hub.hardwareID])
 }
 
 def parse(String description)
 {
-
+	if (state.debug) log.debug "Parse...START"
 	def map = createEvent(zwaveEvent(zwave.parse(description, [0x42:1, 0x43:2, 0x31: 3])))
+    if (state.debug) log.debug "map is $map"
 	if (!map) {
 		return null
 	}
@@ -216,7 +223,6 @@ def parse(String description)
 			unit: getTemperatureScale()
 		]
 		if (map.name == "thermostatMode") {
-			state.lastTriedMode = map.value
 			if (map.value == "cool") {
 				map2.value = device.latestValue("coolingSetpoint")
 			}
@@ -228,14 +234,12 @@ def parse(String description)
 			def mode = device.latestValue("thermostatMode")
 			if ((map.name == "heatingSetpoint" && mode == "heat") || (map.name == "coolingSetpoint" && mode == "cool")) {
 				map2.value = map.value
-				map2.unit = map.unit
 			}
 		}
+        if (state.debug) log.debug "map2 is $map2"
 		if (map2.value != null) {
 			result << createEvent(map2)
 		}
-	} else if (map.name == "thermostatFanMode" && map.isStateChange) {
-		state.lastTriedFanMode = map.value
 	}
 
 	def statusL1Textmsg = ""
@@ -251,7 +255,8 @@ def parse(String description)
     statusL2Textmsg = "Fan is in ${device.currentState('currentfanMode').value} and is ${device.currentState('thermostatFanState').value}"
     sendEvent("name":"statusL2Text", "value":statusL2Textmsg)
     
-	log.debug "Parse returned $result"
+	if (state.debug) log.debug "Parse returned $result"
+	if (state.debug) log.debug "Parse...END"
 	result
 }
 
@@ -261,11 +266,14 @@ def parse(String description)
 
 def zwaveEvent(physicalgraph.zwave.commands.thermostatsetpointv2.ThermostatSetpointReport cmd)
 {
+	if (state.debug) log.debug "ThermostatSetPointReport...START"
 	def cmdScale = cmd.scale == 1 ? "F" : "C"
+    if (state.debug) log.debug "cmdScale is $cmd.scale before (this is the state variable), and $cmdScale after"
 	def map = [:]
 	map.value = convertTemperatureIfNeeded(cmd.scaledValue, cmdScale, cmd.precision)
 	map.unit = getTemperatureScale()
 	map.displayed = false
+    if (state.debug) log.debug "value is $map.value and unit is $map.unit"
 	switch (cmd.setpointType) {
 		case 1:
 			map.name = "heatingSetpoint"
@@ -280,11 +288,14 @@ def zwaveEvent(physicalgraph.zwave.commands.thermostatsetpointv2.ThermostatSetpo
 	state.size = cmd.size
 	state.scale = cmd.scale
 	state.precision = cmd.precision
+    if (state.debug) log.debug "map is $map"
+    if (state.debug) log.debug "ThermostatSetPointReport...END"
 	map
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv3.SensorMultilevelReport cmd)
 {
+	if (state.debug) log.debug "SensorMultilevelReport...START"
 	def map = [:]
 	if (cmd.sensorType == 1) {
 		map.value = convertTemperatureIfNeeded(cmd.scaledSensorValue, cmd.scale == 1 ? "F" : "C", cmd.precision)
@@ -295,11 +306,14 @@ def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv3.SensorMultilevelR
 		map.unit = "%"
 		map.name = "humidity"
 	}
+    if (state.debug) log.debug "map is $map"
+    if (state.debug) log.debug "SensorMultilevelReport...END"
 	map
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.thermostatoperatingstatev1.ThermostatOperatingStateReport cmd)
 {
+	if (state.debug) log.debug "ThermostatOperatingStateReport...START"
 	def map = [:]
 	switch (cmd.operatingState) {
 		case physicalgraph.zwave.commands.thermostatoperatingstatev1.ThermostatOperatingStateReport.OPERATING_STATE_IDLE:
@@ -332,10 +346,13 @@ def zwaveEvent(physicalgraph.zwave.commands.thermostatoperatingstatev1.Thermosta
 			break
 	}
 	map.name = "thermostatOperatingState"
+    if (state.debug) log.debug "map is $map"
+    if (state.debug) log.debug "ThermostatOperatingStateReport...END"
 	map
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.thermostatfanstatev1.ThermostatFanStateReport cmd) {
+	if (state.debug) log.debug "ThermostatFanStateReport...START"
 	def map = [name: "thermostatFanState", unit: ""]
 	switch (cmd.fanOperatingState) {
 		case 0:
@@ -351,10 +368,13 @@ def zwaveEvent(physicalgraph.zwave.commands.thermostatfanstatev1.ThermostatFanSt
             sendEvent(name: "thermostatFanState", value: "running high")
 			break
 	}
+    if (state.debug) log.debug "map is $map"
+    if (state.debug) log.debug "ThermostatFanStateReport...END"
 	map
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.thermostatmodev2.ThermostatModeReport cmd) {
+	if (state.debug) log.debug "ThermostatModeReport...START"
 	def map = [:]
 	switch (cmd.mode) {
 		case physicalgraph.zwave.commands.thermostatmodev2.ThermostatModeReport.MODE_OFF:
@@ -379,10 +399,13 @@ def zwaveEvent(physicalgraph.zwave.commands.thermostatmodev2.ThermostatModeRepor
             break
 	}
 	map.name = "thermostatMode"
+    if (state.debug) log.debug "map is $map"
+    if (state.debug) log.debug "ThermostatModeReport...END"
 	map
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.thermostatfanmodev3.ThermostatFanModeReport cmd) {
+    if (state.debug) log.debug "ThermostatFanModeReport...START"
 	def map = [:]
 	switch (cmd.fanMode) {
 		case physicalgraph.zwave.commands.thermostatfanmodev3.ThermostatFanModeReport.FAN_MODE_AUTO_LOW:
@@ -400,6 +423,8 @@ def zwaveEvent(physicalgraph.zwave.commands.thermostatfanmodev3.ThermostatFanMod
 	}
 	map.name = "thermostatFanMode"
 	map.displayed = false
+    if (state.debug) log.debug "map is $map"
+    if (state.debug) log.debug "ThermostatFanModeReport...END"
 	map
 }
 
@@ -424,7 +449,7 @@ def updateState(String name, String value) {
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicReport cmd) {
-	log.debug "Zwave event received: $cmd"
+	if (state.debug) log.debug "Zwave event received: $cmd"
 }
 
 def zwaveEvent(physicalgraph.zwave.Command cmd) {
@@ -436,52 +461,52 @@ def zwaveEvent(physicalgraph.zwave.Command cmd) {
 //
 
 def setLevelUp(){
-	log.debug "Setting the setpoint UP a degree..."
+	if (state.debug) log.debug "Setting the setpoint UP a degree..."
     if (device.latestValue("thermostatMode") == "heat") {
-    	log.debug "...for heat..."
+    	if (state.debug) log.debug "...for heat..."
     	int nextLevel = device.currentValue("heatingSetpoint") + 1
     	setHeatingSetpoint(nextLevel)
 	} else if (device.latestValue("thermostatMode") == "cool") {
-    	log.debug "...for cool..."    
+    	if (state.debug) log.debug "...for cool..."    
         int nextLevel = device.currentValue("coolingSetpoint") + 1
         setCoolingSetpoint(nextLevel)
 	} else if (device.latestValue("thermostatMode") == "auto") {
         int nextHeatLevel = device.currentValue("heatingSetpoint") + 1
         int nextCoolLevel = device.currentValue("coolingSetpoint") + 1
         if (device.latestValue("thermostatOperatingState") == "heating") {
-        	log.debug "...for auto heat..."
+        	if (state.debug) log.debug "...for auto heat..."
         	setHeatingSetpoint(nextHeatLevel)
         } else if (device.latestValue("thermostatOperatingState") == "cooling") {
-        	log.debug "...for auto cool..."
+        	if (state.debug) log.debug "...for auto cool..."
         	setCoolingSetpoint(nextCoolLevel)
         } else {
-            log.debug "...for auto heat AND cool..."
+            if (state.debug) log.debug "...for auto heat AND cool..."
 	    	delayBetween([setHeatingSetpoint(nextHeatLevel), setCoolingSetpoint(nextCoolLevel)], 3000)
         }
 	}    
 }
 
 def setLevelDown(){
-	log.debug "Setting the setpoint DOWN a degree..."
+	if (state.debug) log.debug "Setting the setpoint DOWN a degree..."
     if (device.latestValue("thermostatMode") == "heat") {
-    	log.debug "...for heat..."
+    	if (state.debug) log.debug "...for heat..."
     	int nextLevel = device.currentValue("heatingSetpoint") - 1
     	setHeatingSetpoint(nextLevel)
 	} else if (device.latestValue("thermostatMode") == "cool") {
-    	log.debug "...for cool..."    
+    	if (state.debug) log.debug "...for cool..."    
         int nextLevel = device.currentValue("coolingSetpoint") - 1
         setCoolingSetpoint(nextLevel)
 	} else if (device.latestValue("thermostatMode") == "auto") {
         int nextHeatLevel = device.currentValue("heatingSetpoint") - 1
         int nextCoolLevel = device.currentValue("coolingSetpoint") - 1
         if (device.latestValue("thermostatOperatingState") == "heating") {
-        	log.debug "...for auto heat..."
+        	if (state.debug) log.debug "...for auto heat..."
         	setHeatingSetpoint(nextHeatLevel)
         } else if (device.latestValue("thermostatOperatingState") == "cooling") {
-        	log.debug "...for auto cool..."
+        	if (state.debug) log.debug "...for auto cool..."
         	setCoolingSetpoint(nextCoolLevel)
         } else {
-            log.debug "...for auto heat AND cool..."
+            if (state.debug) log.debug "...for auto heat AND cool..."
 	    	delayBetween([setHeatingSetpoint(nextHeatLevel), setCoolingSetpoint(nextCoolLevel)], 3000)
         }
 	}    
@@ -506,9 +531,13 @@ def setHeatingSetpoint(degrees, delay = 5000) {
 }
 
 def setHeatingSetpoint(Double degrees, Integer delay = 5000) {
+	if (state.debug) log.debug "setHeatingSetpoint...START"
 	def deviceScale = state.scale ?: 1
 	def deviceScaleString = deviceScale == 2 ? "C" : "F"
     def locationScale = getTemperatureScale()
+    if (state.debug) log.debug "deviceScale is $deviceScale"
+    if (state.debug) log.debug "deviceScaleString is $deviceScaleString"
+    if (state.debug) log.debug "locationScale is $locationScale"
 	def p = (state.precision == null) ? 1 : state.precision
     def convertedDegrees
     if (locationScale == "C" && deviceScaleString == "F") {
@@ -518,6 +547,7 @@ def setHeatingSetpoint(Double degrees, Integer delay = 5000) {
     } else {
     	convertedDegrees = degrees
     }
+    if (state.debug) log.debug "setHeatingSetpoint...END"
 	delayBetween([
 		zwave.thermostatSetpointV1.thermostatSetpointSet(setpointType: 1, scale: deviceScale, precision: p, scaledValue: convertedDegrees).format(),
 		zwave.thermostatSetpointV1.thermostatSetpointGet(setpointType: 1).format()
@@ -543,9 +573,13 @@ def setCoolingSetpoint(degrees, delay = 5000) {
 }
 
 def setCoolingSetpoint(Double degrees, Integer delay = 5000) {
+	if (state.debug) log.debug "setCoolingSetpoint...START"
 	def deviceScale = state.scale ?: 1
 	def deviceScaleString = deviceScale == 2 ? "C" : "F"
     def locationScale = getTemperatureScale()
+    if (state.debug) log.debug "deviceScale is $deviceScale"
+    if (state.debug) log.debug "deviceScaleString is $deviceScaleString"
+    if (state.debug) log.debug "locationScale is $locationScale"
 	def p = (state.precision == null) ? 1 : state.precision
     def convertedDegrees
     if (locationScale == "C" && deviceScaleString == "F") {
@@ -555,6 +589,7 @@ def setCoolingSetpoint(Double degrees, Integer delay = 5000) {
     } else {
     	convertedDegrees = degrees
     }
+    if (state.debug) log.debug "setCoolingSetpoint...END"
 	delayBetween([
 		zwave.thermostatSetpointV1.thermostatSetpointSet(setpointType: 2, scale: deviceScale, precision: p,  scaledValue: convertedDegrees).format(),
 		zwave.thermostatSetpointV1.thermostatSetpointGet(setpointType: 2).format()
@@ -562,7 +597,7 @@ def setCoolingSetpoint(Double degrees, Integer delay = 5000) {
 }
 
 def offmode() {
-	log.debug "Switching to off mode..."
+	if (state.debug) log.debug "Switching to off mode..."
     sendEvent(name: "currentMode", value: "Off" as String)
 	delayBetween([
 		zwave.thermostatModeV2.thermostatModeSet(mode: 0).format(),
@@ -572,17 +607,17 @@ def offmode() {
 }
 
 def on() {
-	log.debug "Setting thermostat fan mode to circulate..."
+	if (state.debug) log.debug "Setting thermostat fan mode to circulate..."
     fanCirculate()
 }
 
 def off() {
-	log.debug "Setting thermostat fan mode to auto..."
+	if (state.debug) log.debug "Setting thermostat fan mode to auto..."
     fanAuto()
 }
 
 def heat() {
-	log.debug "Switching to heat mode..."
+	if (state.debug) log.debug "Switching to heat mode..."
     sendEvent(name: "currentMode", value: "Heat" as String)
 	delayBetween([
 		zwave.thermostatModeV2.thermostatModeSet(mode: 1).format(),
@@ -592,7 +627,7 @@ def heat() {
 }
 
 def cool() {
-	log.debug "Switching to cool mode..."
+	if (state.debug) log.debug "Switching to cool mode..."
     sendEvent(name: "currentMode", value: "Cool" as String)
 	delayBetween([
 		zwave.thermostatModeV2.thermostatModeSet(mode: 2).format(),
@@ -602,7 +637,7 @@ def cool() {
 }
 
 def auto() {
-	log.debug "Switching to auto mode..."
+	if (state.debug) log.debug "Switching to auto mode..."
     sendEvent(name: "currentMode", value: "Auto" as String)
 	delayBetween([
 		zwave.thermostatModeV2.thermostatModeSet(mode: 3).format(),
@@ -612,7 +647,7 @@ def auto() {
 }
 
 def emergencyHeat() {
-	log.debug "Switching to emergency heat mode..."
+	if (state.debug) log.debug "Switching to emergency heat mode..."
     sendEvent(name: "currentMode", value: "E-Heat" as String)
 	delayBetween([
 		zwave.thermostatModeV2.thermostatModeSet(mode: 4).format(),
@@ -622,7 +657,7 @@ def emergencyHeat() {
 }
 
 def fanOn() {
-	log.debug "Switching fan to on mode..."
+	if (state.debug) log.debug "Switching fan to on mode..."
     sendEvent(name: "currentfanMode", value: "On Mode" as String)
 	delayBetween([
 		zwave.thermostatFanModeV3.thermostatFanModeSet(fanMode: 1).format(),
@@ -632,7 +667,7 @@ def fanOn() {
 }
 
 def fanAuto() {
-	log.debug "Switching fan to auto mode..."
+	if (state.debug) log.debug "Switching fan to auto mode..."
     sendEvent(name: "currentfanMode", value: "Auto Mode" as String)
 	delayBetween([
 		zwave.thermostatFanModeV3.thermostatFanModeSet(fanMode: 0).format(),
@@ -642,7 +677,7 @@ def fanAuto() {
 }
 
 def fanCirculate() {
-	log.debug "Switching fan to circulate mode..."
+	if (state.debug) log.debug "Switching fan to circulate mode..."
     sendEvent(name: "currentfanMode", value: "Cycle Mode" as String)
 	delayBetween([
 		zwave.thermostatFanModeV3.thermostatFanModeSet(fanMode: 6).format(),
@@ -652,7 +687,7 @@ def fanCirculate() {
 }
 
 def poll() {
-	log.debug "Executing poll/refresh...."
+	if (state.debug) log.debug "Executing poll/refresh...."
 	delayBetween([
 		zwave.sensorMultilevelV3.sensorMultilevelGet().format(), // current temperature
 		zwave.thermostatSetpointV1.thermostatSetpointGet(setpointType: 1).format(),
@@ -670,13 +705,13 @@ def ping() {
 }
 
 def configure() {
-	log.debug "Executing configure...."
+	if (state.debug) log.debug "Executing configure...."
 	delayBetween([
 		zwave.thermostatModeV2.thermostatModeSupportedGet().format(),
 		zwave.thermostatFanModeV3.thermostatFanModeSupportedGet().format(),
 		zwave.associationV1.associationSet(groupingIdentifier:1, nodeId:[zwaveHubNodeId]).format()
 	], 2300)
-    log.debug "....done executing configure"
+    if (state.debug) log.debug "....done executing configure"
 }
 
 private getStandardDelay() {
