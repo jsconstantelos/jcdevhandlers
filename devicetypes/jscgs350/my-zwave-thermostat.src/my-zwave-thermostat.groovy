@@ -269,6 +269,7 @@ def zwaveEvent(physicalgraph.zwave.commands.thermostatsetpointv2.ThermostatSetpo
 	if (state.debug) log.debug "ThermostatSetPointReport...START"
 	def cmdScale = cmd.scale == 1 ? "F" : "C"
     if (state.debug) log.debug "cmdScale is $cmd.scale before (this is the state variable), and $cmdScale after"
+    if (state.debug) log.debug "setpoint requested is $cmd.scaledValue and unit is $cmdScale"
 	def map = [:]
 	map.value = convertTemperatureIfNeeded(cmd.scaledValue, cmdScale, cmd.precision)
 	map.unit = getTemperatureScale()
@@ -532,9 +533,10 @@ def setHeatingSetpoint(degrees, delay = 5000) {
 
 def setHeatingSetpoint(Double degrees, Integer delay = 5000) {
 	if (state.debug) log.debug "setHeatingSetpoint...START"
-	def deviceScale = state.scale ?: 1
+    def deviceScale = state.scale ?: 1
 	def deviceScaleString = deviceScale == 2 ? "C" : "F"
     def locationScale = getTemperatureScale()
+    if (state.debug) log.debug "stateScale is $state.scale"
     if (state.debug) log.debug "deviceScale is $deviceScale"
     if (state.debug) log.debug "deviceScaleString is $deviceScaleString"
     if (state.debug) log.debug "locationScale is $locationScale"
@@ -547,9 +549,10 @@ def setHeatingSetpoint(Double degrees, Integer delay = 5000) {
     } else {
     	convertedDegrees = degrees
     }
+    if (state.debug) log.debug "setpoint before conversion is $degrees, and after is $convertedDegrees"
     if (state.debug) log.debug "setHeatingSetpoint...END"
 	delayBetween([
-		zwave.thermostatSetpointV1.thermostatSetpointSet(setpointType: 1, scale: deviceScale, precision: p, scaledValue: convertedDegrees).format(),
+		zwave.thermostatSetpointV1.thermostatSetpointSet(setpointType: 1, scale: state.scale, precision: p, scaledValue: convertedDegrees).format(),
 		zwave.thermostatSetpointV1.thermostatSetpointGet(setpointType: 1).format()
 	], delay)
 }
@@ -577,6 +580,7 @@ def setCoolingSetpoint(Double degrees, Integer delay = 5000) {
 	def deviceScale = state.scale ?: 1
 	def deviceScaleString = deviceScale == 2 ? "C" : "F"
     def locationScale = getTemperatureScale()
+    if (state.debug) log.debug "stateScale is $state.scale"
     if (state.debug) log.debug "deviceScale is $deviceScale"
     if (state.debug) log.debug "deviceScaleString is $deviceScaleString"
     if (state.debug) log.debug "locationScale is $locationScale"
@@ -589,9 +593,10 @@ def setCoolingSetpoint(Double degrees, Integer delay = 5000) {
     } else {
     	convertedDegrees = degrees
     }
+    if (state.debug) log.debug "setpoint before conversion is $degrees, and after is $convertedDegrees"
     if (state.debug) log.debug "setCoolingSetpoint...END"
 	delayBetween([
-		zwave.thermostatSetpointV1.thermostatSetpointSet(setpointType: 2, scale: deviceScale, precision: p,  scaledValue: convertedDegrees).format(),
+		zwave.thermostatSetpointV1.thermostatSetpointSet(setpointType: 2, scale: state.scale, precision: p,  scaledValue: convertedDegrees).format(),
 		zwave.thermostatSetpointV1.thermostatSetpointGet(setpointType: 2).format()
 	], delay)
 }
