@@ -37,8 +37,8 @@ metadata {
 	tiles(scale: 2) {
 		multiAttributeTile(name:"lock", type: "generic", width: 6, height: 4){
 			tileAttribute ("device.lock", key: "PRIMARY_CONTROL") {
-				attributeState "locked", label: 'Locked', icon: "st.presence.house.secured", backgroundColor: "#00A0DC"
-				attributeState "unlocked", label: 'Unlocked', icon: "st.presence.house.unlocked", backgroundColor: "#e86d13"
+				attributeState "locked", action:"configure", label: 'Locked', icon:"st.locks.lock.locked", backgroundColor:"#00A0DC"
+				attributeState "unlocked", action:"configure", label: 'Unlocked', icon:"st.locks.lock.unlocked", backgroundColor:"#ffffff"
 			}           
             tileAttribute ("device.battery", key: "SECONDARY_CONTROL") {
                 attributeState("default", label:'${currentValue}% battery', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/battery-icon-614x460.png")

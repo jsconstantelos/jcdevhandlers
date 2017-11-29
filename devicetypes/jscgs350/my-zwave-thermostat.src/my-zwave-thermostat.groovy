@@ -32,6 +32,7 @@
  *  10-03-2017 : Cosmetic changes and removed actions for the Heat and Cool colored tiles right below the main tile.
  *  11-10-2017 : Changed a few tiles from standard to value because they look better on iOS and still look fine on Android.
  *  11-17-2017 : Added debug lines and the preference to turn on/off debug output.
+ *  11-28-2017 : Cleaned up code.
  *
 */
 metadata {
@@ -250,10 +251,10 @@ def parse(String description)
     } else {
     	statusL1Textmsg = "Unit is in ${device.currentState('currentMode').value} mode and is ${device.currentState('currentState').value}"
     }
-    sendEvent("name":"statusL1Text", "value":statusL1Textmsg)
+    sendEvent("name":"statusL1Text", "value":statusL1Textmsg, displayed: false)
 
     statusL2Textmsg = "Fan is in ${device.currentState('currentfanMode').value} and is ${device.currentState('thermostatFanState').value}"
-    sendEvent("name":"statusL2Text", "value":statusL2Textmsg)
+    sendEvent("name":"statusL2Text", "value":statusL2Textmsg, displayed: false)
     
 	if (state.debug) log.debug "Parse returned $result"
 	if (state.debug) log.debug "Parse...END"
