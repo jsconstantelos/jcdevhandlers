@@ -14,7 +14,8 @@
  *  -------
  *  09-23-2016 : Initial Commit.
  *  10-04-2017 : Fixed reset issues with energy/kWh not resetting properly.  (more of a workaround for now)
- *  10-07-2017 : Changed several tilea from standard to value to resolve iOS rendering issue.
+ *  10-07-2017 : Changed several tiles from standard to value to resolve iOS rendering issue.
+ *  12-01-2017 : Fixed history not properly beign updated.
  *
  */
 metadata {
@@ -217,13 +218,17 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
                 def dispLowValue = dispValue+" volts on "+timeString
                 sendEvent(name: "voltageLow", value: dispLowValue as String, unit: "", displayed: false)
                 state.voltageLowVal = cmd.scaledMeterValue
-                response(refreshHistory())
+                def historyDisp = ""
+				historyDisp = "Minimum/Maximum Readings as of ${timeString}\n-------------------------------------------------------------------------\nPower Low : ${device.currentState('powerLow')?.value}\nPower High : ${device.currentState('powerHigh')?.value}\nVoltage Low : ${device.currentState('voltageLow')?.value}\nVoltage High : ${device.currentState('voltageHigh')?.value}\nCurrent Low : ${device.currentState('currentLow')?.value}\nCurrent High : ${device.currentState('currentHigh')?.value}\n"
+				sendEvent(name: "history", value: historyDisp, displayed: false)
             }
             if (cmd.scaledMeterValue > state.voltageHighVal) {
                 def dispHighValue = dispValue+" volts on "+timeString
                 sendEvent(name: "voltageHigh", value: dispHighValue as String, unit: "", displayed: false)
                 state.voltageHighVal = cmd.scaledMeterValue
-                response(refreshHistory())
+                def historyDisp = ""
+				historyDisp = "Minimum/Maximum Readings as of ${timeString}\n-------------------------------------------------------------------------\nPower Low : ${device.currentState('powerLow')?.value}\nPower High : ${device.currentState('powerHigh')?.value}\nVoltage Low : ${device.currentState('voltageLow')?.value}\nVoltage High : ${device.currentState('voltageHigh')?.value}\nCurrent Low : ${device.currentState('currentLow')?.value}\nCurrent High : ${device.currentState('currentHigh')?.value}\n"
+				sendEvent(name: "history", value: historyDisp, displayed: false)
             }
             if (state.displayDisabled) {
                 sendEvent(name: "voltage", value: dispValue, unit: "volts", displayed: true)
@@ -247,13 +252,17 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
                 def dispLowValue = dispValue+" amps on "+timeString
                 sendEvent(name: "currentLow", value: dispLowValue as String, unit: "", displayed: false)
                 state.currentLowVal = cmd.scaledMeterValue
-                response(refreshHistory())
+                def historyDisp = ""
+				historyDisp = "Minimum/Maximum Readings as of ${timeString}\n-------------------------------------------------------------------------\nPower Low : ${device.currentState('powerLow')?.value}\nPower High : ${device.currentState('powerHigh')?.value}\nVoltage Low : ${device.currentState('voltageLow')?.value}\nVoltage High : ${device.currentState('voltageHigh')?.value}\nCurrent Low : ${device.currentState('currentLow')?.value}\nCurrent High : ${device.currentState('currentHigh')?.value}\n"
+				sendEvent(name: "history", value: historyDisp, displayed: false)
             }
             if (cmd.scaledMeterValue > state.currentHighVal) {
                 def dispHighValue = dispValue+" amps on "+timeString
                 sendEvent(name: "currentHigh", value: dispHighValue as String, unit: "", displayed: false)
                 state.currentHighVal = cmd.scaledMeterValue
-                response(refreshHistory())
+                def historyDisp = ""
+				historyDisp = "Minimum/Maximum Readings as of ${timeString}\n-------------------------------------------------------------------------\nPower Low : ${device.currentState('powerLow')?.value}\nPower High : ${device.currentState('powerHigh')?.value}\nVoltage Low : ${device.currentState('voltageLow')?.value}\nVoltage High : ${device.currentState('voltageHigh')?.value}\nCurrent Low : ${device.currentState('currentLow')?.value}\nCurrent High : ${device.currentState('currentHigh')?.value}\n"
+				sendEvent(name: "history", value: historyDisp, displayed: false)
             }
             if (state.displayDisabled) {
                 sendEvent(name: "current", value: dispValue, unit: "amps", displayed: true)
