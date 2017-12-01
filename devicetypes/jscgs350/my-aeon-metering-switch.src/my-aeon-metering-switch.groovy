@@ -38,6 +38,7 @@
  *  09-23-2017 : Changed layout to look like my Zooz DTH, cleaned up code a lot.
  *  10-04-2017 : Fixed reset issues with energy/kWh not resetting properly.  (more of a workaround for now)
  *  10-07-2017 : Changed several tiles from standard to value to resolve iOS rendering issue.
+ *  11-29-2017 : Added resetMeter so that the device can be reset by my SmartApp based on a schedule
  *
  */
 metadata {
@@ -60,6 +61,7 @@ metadata {
 
 		command "resetWatts"
 		command "resetEnergy"
+        command "resetMeter"
 	}
 
     preferences {
@@ -289,6 +291,33 @@ def resetEnergy() {
         zwave.meterV2.meterGet(scale: 0).format()
     ])
     cmd
+}
+
+def resetMeter() {
+	log.debug "Resetting all energy meter values..."
+    def resetDisp = ""
+    def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
+    resetDisp = "kWh value at time of last reset was ${device.currentState('energy')?.value}"
+    sendEvent(name: "kWhLastReset", value: resetDisp, displayed: true)
+    resetDisp = "Costs at time of last reset was ${device.currentState('kwhCosts')?.value}"
+    sendEvent(name: "CostLastReset", value: resetDisp, displayed: true)
+    def historyDisp = ""
+	state.powerHigh = 0
+	state.powerLow = 99999
+    state.energyValue = 0
+    sendEvent(name: "powerLow", value: "Value reset on "+timeString, unit: "")    
+    sendEvent(name: "powerHigh", value: "Value reset on "+timeString, unit: "")
+    sendEvent(name: "kwhCosts", value: "(reset)", unit: "", displayed: false)
+    sendEvent(name: "energy", value: 0, unit: "kWh", displayed: false)
+	sendEvent(name: "resetMessage", value: "Device was reset on "+timeString, unit: "", displayed: true)
+    historyDisp = "Minimum/Maximum Readings as of ${timeString}\n-------------------------------------------------------------------------\nPower Low : ${device.currentState('powerLow')?.value}\nPower High : ${device.currentState('powerHigh')?.value}"
+    sendEvent(name: "history", value: historyDisp, displayed: false)
+	def cmd = delayBetween( [
+		zwave.meterV2.meterReset().format(),
+		zwave.meterV2.meterGet(scale: 0).format(),
+		zwave.meterV2.meterGet(scale: 2).format()
+	])
+	cmd
 }
 
 def configure() {

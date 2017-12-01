@@ -21,6 +21,7 @@
  *  08-31-2017 : Changed to ST's color scheme.
  *  09-01-2017 : Updated to use ST's latest version of the dimmer switch code.
  *  11-03-2017 : Cleaned up code for fan speed.
+ *  11-30-2017 : Turned off Health Check for now.
  *
  */
  
@@ -33,7 +34,7 @@ metadata {
 		capability "Polling"
 		capability "Refresh"
 		capability "Sensor"
-        capability "Health Check"
+//        capability "Health Check"
 
 		command "lowSpeed"
 		command "medSpeed"
