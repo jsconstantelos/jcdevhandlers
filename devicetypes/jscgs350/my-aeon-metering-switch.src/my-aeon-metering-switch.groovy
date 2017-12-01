@@ -304,6 +304,8 @@ def resetMeter() {
     def historyDisp = ""
 	state.powerHigh = 0
 	state.powerLow = 99999
+    state.powerHighVal = 0
+    state.powerLowVal = 999999
     state.energyValue = 0
     sendEvent(name: "powerLow", value: "Value reset on "+timeString, unit: "")    
     sendEvent(name: "powerHigh", value: "Value reset on "+timeString, unit: "")
