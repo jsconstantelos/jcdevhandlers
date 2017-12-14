@@ -48,7 +48,7 @@ metadata {
 		capability "Configuration"
 		capability "Polling"
 		capability "Sensor"
-        capability "Health Check"
+//        capability "Health Check"
         capability "Switch"
        
 		command "setLevelUp"
