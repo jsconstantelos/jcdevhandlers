@@ -19,6 +19,7 @@
  *  06-05-2017 : Changed to standardTile instead of valueTile for the remaining 3 tiles now that text formatting with v2.4.0 works right again.
  *  09-01-2017 : Changes color value for "clearing" to Caterpillar yellow.
  *  10-28-2017 : Stopped the DTH from posting pressure readings to the event log and the Recently tab.
+ *  12-13-2017 : Reverted tiles back to value from standard to resolve iOS issues.
  *
  */
 metadata {
@@ -52,7 +53,7 @@ metadata {
         multiAttributeTile(name:"switch", type: "lighting", width: 6, height: 4, canChangeIcon: true, decoration: "flat"){
             tileAttribute ("device.switch", key: "PRIMARY_CONTROL") {
                 attributeState "on", action: "switch.off", label: "OPEN", icon: "st.vents.vent-open", backgroundColor: "#00A0DC"
-                attributeState "off", action: "switch.on", label: "CLOSED", icon: "st.vents.vent", backgroundColor: "#ffffff"
+                attributeState "off", action: "switch.on", label: "CLOSED", icon: "st.vents.vent-open", backgroundColor: "#ffffff"
                 attributeState "obstructed", action: "clearObstruction", label: "OBSTRUCTION", icon: "st.vents.vent-open", backgroundColor: "#ff0000"
                 attributeState "clearing", action: "", label: "CLEARING", icon: "st.vents.vent-open", backgroundColor: "#f0b823"
             }
@@ -61,26 +62,26 @@ metadata {
             }
         }
 
-        standardTile("ventTwentyFive", "device.level", width: 1, height: 1, inactiveLabel: false, decoration: "flat") {
+        valueTile("ventTwentyFive", "device.level", width: 1, height: 1, inactiveLabel: false, decoration: "flat") {
             state "ventTwentyFive", label:'25', action:"ventTwentyFive"
         }
-        standardTile("ventFifty", "device.level", width: 1, height: 1, inactiveLabel: false, decoration: "flat") {
+        valueTile("ventFifty", "device.level", width: 1, height: 1, inactiveLabel: false, decoration: "flat") {
             state "ventFifty", label:'50', action:"ventFifty"
         }
-        standardTile("ventSeventyFive", "device.level", width: 1, height: 1, inactiveLabel: false, decoration: "flat") {
+        valueTile("ventSeventyFive", "device.level", width: 1, height: 1, inactiveLabel: false, decoration: "flat") {
             state "ventSeventyFive", label:'75', action:"ventSeventyFive"
         }
-        standardTile("ventHundred", "device.level", width: 1, height: 1, inactiveLabel: false, decoration: "flat") {
+        valueTile("ventHundred", "device.level", width: 1, height: 1, inactiveLabel: false, decoration: "flat") {
             state "ventHundred", label:'100', action:"ventHundred"
         }        
-        standardTile("ventLevelUp", "device.level", width: 1, height: 1, inactiveLabel: false, decoration: "flat") {
+        valueTile("ventLevelUp", "device.level", width: 1, height: 1, inactiveLabel: false, decoration: "flat") {
             state "ventLevelUp", label:'5%', action:"ventLevelUp", icon:"st.thermostat.thermostat-up"
         }
-		standardTile("ventLevelDown", "device.level", width: 1, height: 1, inactiveLabel: false, decoration: "flat") {
+		valueTile("ventLevelDown", "device.level", width: 1, height: 1, inactiveLabel: false, decoration: "flat") {
             state "ventLevelDown", label:'5%', action:"ventLevelDown", icon:"st.thermostat.thermostat-down"
         }
         
-        standardTile("temperature", "device.temperature", inactiveLabel: false, width: 2, height: 2) {
+        valueTile("temperature", "device.temperature", inactiveLabel: false, width: 2, height: 2) {
             state "temperature", label:'${currentValue}°',
             backgroundColors:[
                 [value: 31, color: "#153591"],
@@ -92,16 +93,16 @@ metadata {
                 [value: 96, color: "#bc2323"]
             ]
         }
-        standardTile("pressure", "device.pressure", inactiveLabel: false, width: 2, height: 2, decoration: "flat") {
+        valueTile("pressure", "device.pressure", inactiveLabel: false, width: 2, height: 2, decoration: "flat") {
             state "pressure", label: 'Pressure ${currentValue}Pa', backgroundColor:"#ffffff"
         }
-        standardTile("battery", "device.battery", inactiveLabel: false, width: 2, height: 2, decoration: "flat") {
+        valueTile("battery", "device.battery", inactiveLabel: false, width: 2, height: 2, decoration: "flat") {
             state "battery", label: 'Battery \n${currentValue}%', backgroundColor:"#ffffff"
         }
-        standardTile("refresh", "device.power", inactiveLabel: false, width: 3, height: 2, decoration: "flat") {
+        valueTile("refresh", "device.power", inactiveLabel: false, width: 3, height: 2, decoration: "flat") {
             state "default", label:'Refresh', action:"refresh.refresh", icon:"st.secondary.refresh-icon"
         }        
-        standardTile("configure", "device.configure", inactiveLabel: false, width: 3, height: 2, decoration: "flat") {
+        valueTile("configure", "device.configure", inactiveLabel: false, width: 3, height: 2, decoration: "flat") {
             state "configure", label:'', action:"configuration.configure", icon:"st.secondary.configure"
         }
         valueTile("zigbeeId", "device.zigbeeId", inactiveLabel: true, decoration: "flat") {
