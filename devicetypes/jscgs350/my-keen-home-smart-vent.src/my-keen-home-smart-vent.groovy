@@ -20,6 +20,7 @@
  *  09-01-2017 : Changes color value for "clearing" to Caterpillar yellow.
  *  10-28-2017 : Stopped the DTH from posting pressure readings to the event log and the Recently tab.
  *  12-13-2017 : Reverted tiles back to value from standard to resolve iOS issues.
+ *  12-15-2017 : Fixed open/close tile icons, and added Healthcheck
  *
  */
 metadata {
@@ -31,6 +32,7 @@ metadata {
         capability "Sensor"
         capability "Temperature Measurement"
         capability "Battery"
+        capability "Health Check"
 
         command "getLevel"
         command "getOnOff"
@@ -53,8 +55,8 @@ metadata {
         multiAttributeTile(name:"switch", type: "lighting", width: 6, height: 4, canChangeIcon: true, decoration: "flat"){
             tileAttribute ("device.switch", key: "PRIMARY_CONTROL") {
                 attributeState "on", action: "switch.off", label: "OPEN", icon: "st.vents.vent-open", backgroundColor: "#00A0DC"
-                attributeState "off", action: "switch.on", label: "CLOSED", icon: "st.vents.vent-open", backgroundColor: "#ffffff"
-                attributeState "obstructed", action: "clearObstruction", label: "OBSTRUCTION", icon: "st.vents.vent-open", backgroundColor: "#ff0000"
+                attributeState "off", action: "switch.on", label: "CLOSED", icon: "st.vents.vent", backgroundColor: "#ffffff"
+                attributeState "obstructed", action: "clearObstruction", label: "OBSTRUCTION", icon: "st.vents.vent", backgroundColor: "#ff0000"
                 attributeState "clearing", action: "", label: "CLEARING", icon: "st.vents.vent-open", backgroundColor: "#f0b823"
             }
             tileAttribute ("device.level", key: "SLIDER_CONTROL") {
@@ -135,6 +137,13 @@ def parse(String description) {
     log.debug "Parse returned $map"
     
     return map ? createEvent(map) : null
+}
+
+/**
+ * PING is used by Device-Watch in attempt to reach the Device
+ * */
+def ping() {
+	return zigbee.readAttribute(0x001, 0x0020) // Read the Battery Level
 }
 
 private Map parseCatchAllMessage(String description) {
@@ -541,7 +550,7 @@ def refresh() {
 
 def configure() {
     log.debug "CONFIGURE"
-
+	sendEvent(name: "checkInterval", value: 2 * 60 * 60 + 1 * 60, displayed: false, data: [protocol: "zigbee", hubHardwareId: device.hub.hardwareID])
     // get ZigBee ID by hidden tile because that's the only way we can do it
     setZigBeeIdTile()
 
