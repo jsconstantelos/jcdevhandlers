@@ -111,13 +111,13 @@ metadata {
             }
         }
         carouselTile("chartCycle", "device.image", width: 6, height: 3) { }
-		valueTile("dayChart", "device.chartMode", width: 2, height: 1, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
+		standardTile("dayChart", "device.chartMode", width: 2, height: 1, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
 			state "day", label:'Tap to show', action: 'take1', icon: "http://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/24-hour-clockv2.png"
 		}
-		valueTile("weekChart", "device.chartMode", width: 2, height: 1, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
+		standardTile("weekChart", "device.chartMode", width: 2, height: 1, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
 			state "week", label:'Tap to show', action: 'take7', icon: "http://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/7day.png"
 		}
-		valueTile("monthChart", "device.chartMode", width: 2, height: 1, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
+		standardTile("monthChart", "device.chartMode", width: 2, height: 1, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
 			state "month", label:'Tap to show', action: 'take28', icon: "http://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/monthv2.png"
 		}
 		valueTile("temperature", "device.temperature", width: 2, height: 2) {
@@ -151,13 +151,13 @@ metadata {
 			state "batteryReplaced", icon:"http://swiftlet.technology/wp-content/uploads/2016/04/Full-Battery-96.png", backgroundColor:"#cccccc"
 			state "noBattery", icon:"http://swiftlet.technology/wp-content/uploads/2016/04/No-Battery-96.png", backgroundColor:"#cc0000"
 		}
-		valueTile("battery", "device.battery", inactiveLabel: false, width: 2, height: 2) {
+		standardTile("battery", "device.battery", inactiveLabel: false, width: 2, height: 2) {
 			state "battery", label:'${currentValue}%\n Battery', unit:"", icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/battery-icon-614x460.png"
 		}
-        valueTile("zeroTile", "device.zero", width: 3, height: 2, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
+        standardTile("zeroTile", "device.zero", width: 3, height: 2, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
 			state "zero", label:'Reset Meter', action: 'resetMeter', icon: "st.secondary.refresh-icon"
 		}
-		valueTile("configure", "device.configure", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
+		standardTile("configure", "device.configure", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
 			state "configure", label: "Configure\nDevice", action: "configuration.configure", icon: "st.secondary.tools"
 		}
 		valueTile("history", "device.history", decoration:"flat", width: 6, height: 5) {
