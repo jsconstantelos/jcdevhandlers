@@ -21,6 +21,7 @@
  *  10-28-2017 : Stopped the DTH from posting pressure readings to the event log and the Recently tab.
  *  12-13-2017 : Reverted tiles back to value from standard to resolve iOS issues.
  *  12-15-2017 : Fixed open/close tile icons, and added Healthcheck
+ *  01-13-2018 : Added fingerprint
  *
  */
 metadata {
@@ -47,6 +48,8 @@ metadata {
         command "ventHundred"
         command "ventLevelUp"
         command "ventLevelDown"
+        
+        fingerprint endpoint: "1", profileId: "0104", inClusters: "0000,0001,0003,0004,0005,0006,0008,0020,0402,0403,0B05,FC01,FC02", outClusters: "0019"
 
     }
 

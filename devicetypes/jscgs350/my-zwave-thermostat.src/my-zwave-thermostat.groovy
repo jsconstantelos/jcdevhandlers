@@ -80,10 +80,11 @@ metadata {
 			tileAttribute("device.thermostatSetpoint", key: "VALUE_CONTROL") {
 				attributeState("VALUE_UP", action: "setLevelUp")
 				attributeState("VALUE_DOWN", action: "setLevelDown")
+                attributeState("default", label:'${currentValue}°')
 			}
-            tileAttribute("device.humidity", key: "SECONDARY_CONTROL") {
-                attributeState("default", label:'${currentValue}%', unit:"%")
-            }            
+//            tileAttribute("device.humidity", key: "SECONDARY_CONTROL") {
+//                attributeState("default", label:'${currentValue}%', unit:"%")
+//            }            
             tileAttribute("device.thermostatOperatingState", key: "OPERATING_STATE") {
                 attributeState("idle", backgroundColor:"#44b621")
                 attributeState("heating", backgroundColor:"#ea5462")
@@ -129,19 +130,19 @@ metadata {
         }        
 
 //Heating Set Point Controls
-        standardTile("heatTile", "device.heatingSetpoint", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
+        standardTile("heatTile", "device.heatingSetpoint", inactiveLabel: false, decoration: "flat", width: 1, height: 2) {
 			state "default", label:'', icon:"st.thermostat.heat", backgroundColor: "#ee7681"
 		}
-		controlTile("heatSliderControl", "device.heatingSetpoint", "slider", width: 1, height: 2, inactiveLabel: false, range:"(60..80)") {
-			state "default", label:'${currentValue}', action:"quickSetHeat", backgroundColor: "#bb434e"
+		controlTile("heatSliderControl", "device.heatingSetpoint", "slider", width: 3, height: 1, inactiveLabel: false, range:"(60..80)") {
+			state "default", label:'Heat to {currentValue}°', action:"quickSetHeat", backgroundColor: "#bb434e"
 		}
 
 //Cooling Set Point Controls
-        standardTile("coolTile", "device.coolingSetpoint", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
+        standardTile("coolTile", "device.coolingSetpoint", inactiveLabel: false, decoration: "flat", width: 1, height: 2) {
 			state "default", label:'', icon:"st.thermostat.cool", backgroundColor: "#51afdb"
 		}
-		controlTile("coolSliderControl", "device.coolingSetpoint", "slider", width: 1, height: 2, inactiveLabel: false, range:"(60..80)") {
-			state "default", label:'${currentValue}', action:"quickSetCool", backgroundColor: "#1e7ca8"
+		controlTile("coolSliderControl", "device.coolingSetpoint", "slider", width: 3, height: 1, inactiveLabel: false, range:"(60..80)") {
+			state "default", label:'Cool to ${currentValue}°', action:"quickSetCool", backgroundColor: "#1e7ca8"
 		}
 
 //Fan Mode Control        
@@ -192,7 +193,8 @@ metadata {
         }
         
 		main (["temperature2"])
-		details(["temperature", "heatTile", "heatSliderControl", "coolSliderControl", "coolTile", "statusL1Text", "statusL2Text", "fanon", "fanauto", "fancir", "modeheat", "modecool", "modeauto", "modeheatemrgcy", "refresh", "modeoff", "configure"])
+		details(["temperature", "heatSliderControl", "coolSliderControl", "statusL1Text", "statusL2Text", "fanon", "fanauto", "fancir", "modeheat", "modecool", "modeauto", "modeheatemrgcy", "refresh", "modeoff", "configure"])
+//		details(["temperature", "heatTile", "heatSliderControl", "coolSliderControl", "coolTile", "statusL1Text", "statusL2Text", "fanon", "fanauto", "fancir", "modeheat", "modecool", "modeauto", "modeheatemrgcy", "refresh", "modeoff", "configure"])        
 	}
 }
 
