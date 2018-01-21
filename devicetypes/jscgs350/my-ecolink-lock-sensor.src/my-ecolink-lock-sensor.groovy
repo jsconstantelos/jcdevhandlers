@@ -25,11 +25,12 @@
 metadata {
 	// Automatically generated. Make future change here.
 	definition (name: "My Ecolink Lock Sensor", namespace: "jscgs350", author: "SmartThings") {
-		capability "Contact Sensor"
-		capability "Sensor"
-        capability "Lock"
 		capability "Battery"
 		capability "Configuration"
+		capability "Contact Sensor"
+		capability "Refresh"
+        capability "Lock"
+		capability "Sensor"
 	}
 
 	// UI tile definitions
@@ -43,6 +44,10 @@ metadata {
             tileAttribute ("device.battery", key: "SECONDARY_CONTROL") {
                 attributeState("default", label:'${currentValue}% battery', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/battery-icon-614x460.png")
             }       
+		}
+		standardTile("contact", "device.contact", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
+			state "open", label: 'open', icon:"st.locks.lock.unlocked", backgroundColor:"#ffffff"
+			state "closed", label: 'closed', icon:"st.locks.lock.locked", backgroundColor:"#00A0DC"
 		}
 		main "lock"
 		details(["lock"])
@@ -103,9 +108,11 @@ def configure() {
 
 def sensorValueEvent(value) {
 	if (value) {
-        createEvent(name: "lock", value: "unlocked", descriptionText: "$device.displayName is unlocked")
+        sendEvent(name: "lock", value: "unlocked", descriptionText: "$device.displayName is unlocked")
+        sendEvent(name: "contact", value: "open", descriptionText: "$device.displayName is unlocked")
 	} else {
-        createEvent(name: "lock", value: "locked", descriptionText: "$device.displayName is locked")
+        sendEvent(name: "lock", value: "locked", descriptionText: "$device.displayName is locked")
+        sendEvent(name: "contact", value: "closed", descriptionText: "$device.displayName is locked")
 	}
 }
 
