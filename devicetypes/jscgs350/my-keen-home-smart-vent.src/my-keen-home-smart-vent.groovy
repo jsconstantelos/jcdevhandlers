@@ -23,6 +23,7 @@
  *  12-15-2017 : Fixed open/close tile icons, and added Healthcheck
  *  01-13-2018 : Added fingerprint
  *  01-18-2018 : Converted pressure readings from Pascal to Hg (inch of mercury).
+ *  01-21-2018 : Revert change made on 1/18/2018.  Back to Pa from Hg.
  *
  */
 metadata {
@@ -285,30 +286,14 @@ private Map makeLevelResult(rawValue) {
     ]
 }
 
-/*private Map makePressureResult(rawValue) {
-    log.debug 'makePressureResult'
+private Map makePressureResult(rawValue) {
+//    log.debug "makePressureResult ${rawValue}"
     def linkText = getLinkText(device)
 	def pascals = rawValue / 10
-    def pressval = rawValue / 10 * 0.295300 / 1000
-    def xpress = (pressval.toFloat()/1).round(2)
     def result = [
         name: 'pressure',
         descriptionText: "${linkText} pressure is ${pascals}Pa",
         value: pascals,
-        displayed: false
-    ]
-    return result
-}*/
-
-private Map makePressureResult(rawValue) {
-    log.debug 'makePressureResult'
-    def linkText = getLinkText(device)
-    def pressval = rawValue / 10 * 0.295300 / 1000
-    def xpress = (pressval.toFloat()/1).round(2)
-    def result = [
-        name: 'pressure',
-        descriptionText: "${linkText} pressure is ${xpress}Hg",
-        value: xpress,
         displayed: false
     ]
     return result
