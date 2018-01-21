@@ -22,6 +22,7 @@
  *  12-13-2017 : Reverted tiles back to value from standard to resolve iOS issues.
  *  12-15-2017 : Fixed open/close tile icons, and added Healthcheck
  *  01-13-2018 : Added fingerprint
+ *  01-18-2018 : Converted pressure readings from Pascal to Hg (inch of mercury).
  *
  */
 metadata {
@@ -99,7 +100,7 @@ metadata {
             ]
         }
         valueTile("pressure", "device.pressure", inactiveLabel: false, width: 2, height: 2, decoration: "flat") {
-            state "pressure", label: 'Pressure ${currentValue}Pa', backgroundColor:"#ffffff"
+            state "pressure", label: 'Pressure ${currentValue}Hg', backgroundColor:"#ffffff"
         }
         valueTile("battery", "device.battery", inactiveLabel: false, width: 2, height: 2, decoration: "flat") {
             state "battery", label: 'Battery \n${currentValue}%', backgroundColor:"#ffffff"
@@ -284,7 +285,7 @@ private Map makeLevelResult(rawValue) {
     ]
 }
 
-private Map makePressureResult(rawValue) {
+/*private Map makePressureResult(rawValue) {
     log.debug 'makePressureResult'
     def linkText = getLinkText(device)
 	def pascals = rawValue / 10
@@ -294,6 +295,20 @@ private Map makePressureResult(rawValue) {
         name: 'pressure',
         descriptionText: "${linkText} pressure is ${pascals}Pa",
         value: pascals,
+        displayed: false
+    ]
+    return result
+}*/
+
+private Map makePressureResult(rawValue) {
+    log.debug 'makePressureResult'
+    def linkText = getLinkText(device)
+    def pressval = rawValue / 10 * 0.295300 / 1000
+    def xpress = (pressval.toFloat()/1).round(2)
+    def result = [
+        name: 'pressure',
+        descriptionText: "${linkText} pressure is ${xpress}Hg",
+        value: xpress,
         displayed: false
     ]
     return result
