@@ -22,6 +22,7 @@
  *  09-01-2017 : Updated to use ST's latest version of the dimmer switch code.
  *  11-03-2017 : Cleaned up code for fan speed.
  *  11-30-2017 : Turned off Health Check for now.
+ *  01-26-2018 : Added dimmer level to the main tile (this may get removed later)
  *
  */
  
@@ -66,6 +67,9 @@ metadata {
                 attributeState "MED", label:'Fan speed set to MEDIUM', icon:"st.Lighting.light24"
                 attributeState "HIGH", label:'Fan speed set to HIGH', icon:"st.Lighting.light24"
             }
+			tileAttribute ("device.level", key: "SLIDER_CONTROL") {
+				attributeState "level", action:"switch level.setLevel"
+			}
 		}
 		standardTile("lowSpeed", "device.currentState", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
 			state "LOW", label:'LOW', action: "lowSpeed", icon:"st.Home.home30"
