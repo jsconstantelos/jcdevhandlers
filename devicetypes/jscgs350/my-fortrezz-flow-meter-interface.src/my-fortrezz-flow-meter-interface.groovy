@@ -138,10 +138,7 @@ metadata {
 		}
         valueTile("gallonHigh", "device.gallonHigh", inactiveLabel: false, width: 3, height: 1, decoration: "flat") {
 			state "default", label:'Highest usage:\n${currentValue}', action: 'resetgallonHigh'
-		} 
-        valueTile("blankTile", "statusText", inactiveLabel: false, decoration: "flat", width: 1, height: 1) {
-			state "default", label:'', icon:"http://cdn.device-icons.smartthings.com/secondary/device-activity-tile@2x.png"
-		}    
+		}   
         valueTile("lastReset", "lastReset", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
 			state "lastReset", label:'${currentValue}'
 		}
