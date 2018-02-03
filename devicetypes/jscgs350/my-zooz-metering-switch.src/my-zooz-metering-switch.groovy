@@ -12,10 +12,11 @@
  *
  *  Updates:
  *  -------
- *  09-23-2016 : Initial Commit.
- *  10-04-2017 : Fixed reset issues with energy/kWh not resetting properly.  (more of a workaround for now)
+ *  09-23-2017 : Initial Commit.
+ *  10-04-2017 : Fixed reset issues with energy/kWh not resetting properly.  (more of a workaround for now).
  *  10-07-2017 : Changed several tiles from standard to value to resolve iOS rendering issue.
- *  12-01-2017 : Fixed history not properly beign updated.
+ *  12-01-2017 : Fixed history not properly being updated.
+ *  02-02-2018 : Resolved on/off state not properly being reflected/updated in the mobile app or IDE.
  *
  */
 metadata {
@@ -273,13 +274,33 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
     }
 }
 
-def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicReport cmd){
-	if (state.debug) log.debug "${device.label}: $cmd"
+def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicReport cmd) {
+	log.debug "${device.label}: $cmd"
+    if (cmd.value == 0) {
+    	sendEvent(name: "switch", value: "off", displayed: true)
+    } else {
+    	sendEvent(name: "switch", value: "on", displayed: true)
+    }
 	[name: "switch", value: cmd.value ? "on" : "off", type: "physical"]
 }
 
-def zwaveEvent(physicalgraph.zwave.commands.switchbinaryv1.SwitchBinaryReport cmd){
-	if (state.debug) log.debug "${device.label}: $cmd"
+def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicSet cmd) {
+	log.debug "${device.label}: $cmd"
+    if (cmd.value == 0) {
+    	sendEvent(name: "switch", value: "off", displayed: true)
+    } else {
+    	sendEvent(name: "switch", value: "on", displayed: true)
+    }
+	[name: "switch", value: cmd.value ? "on" : "off", type: "physical"]
+}
+
+def zwaveEvent(physicalgraph.zwave.commands.switchbinaryv1.SwitchBinaryReport cmd) {
+	log.debug "${device.label}: $cmd"
+    if (cmd.value == 0) {
+    	sendEvent(name: "switch", value: "off", displayed: true)
+    } else {
+    	sendEvent(name: "switch", value: "on", displayed: true)
+    }
 	[name: "switch", value: cmd.value ? "on" : "off", type: "digital"]
 }
 
@@ -290,13 +311,14 @@ def zwaveEvent(physicalgraph.zwave.Command cmd) {
 
 def on() {
     if (state.onOffDisabled) {
-        if (state.debug) log.debug "On/Off disabled"
+        log.debug "On/Off disabled"
         delayBetween([
             zwave.basicV1.basicGet().format(),
             zwave.switchBinaryV1.switchBinaryGet().format()
         ], 5)
     }
     else {
+    	sendEvent(name: "switch", value: "on", displayed: true)
         delayBetween([
             zwave.basicV1.basicSet(value: 0xFF).format(),
             zwave.switchBinaryV1.switchBinaryGet().format()
@@ -307,13 +329,14 @@ def on() {
 
 def off() {
     if (state.onOffDisabled) {
-        if (state.debug) log.debug "On/Off disabled"
+        log.debug "On/Off disabled"
         delayBetween([
             zwave.basicV1.basicGet().format(),
             zwave.switchBinaryV1.switchBinaryGet().format()
         ], 5)
     }
     else {
+    	sendEvent(name: "switch", value: "off", displayed: true)
         delayBetween([
             zwave.basicV1.basicSet(value: 0x00).format(),
             zwave.switchBinaryV1.switchBinaryGet().format()
