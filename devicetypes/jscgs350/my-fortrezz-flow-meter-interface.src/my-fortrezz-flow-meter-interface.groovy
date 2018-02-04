@@ -326,9 +326,9 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
         	}
 			sendEvent(name: "power", value: prevCumulative, displayed: false)  // This is only used for SmartApps that need power capabilities to capture and log data to places like Google Sheets.
     	} else {
-//        	log.debug "Flow detected..."
-            sendEvent(name: "gpm", value: delta)
+        	sendEvent(name: "gpm", value: delta)
     		map.value = "Flow detected "+delta+" gpm"
+            log.debug map.value
             if (delta > state.deltaHigh) {
                 dispValue = delta+" gpm on"+"\n"+timeString
                 sendEvent(name: "gpmHigh", value: dispValue as String, displayed: false)
