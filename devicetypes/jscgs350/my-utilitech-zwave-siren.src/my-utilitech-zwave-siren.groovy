@@ -18,6 +18,7 @@
  *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.
  *  01-31-2017 : Modified the device handler for my liking, primarly for looks and feel.  Cleaned up code a bit.
  *  03-11-2017 : Changed from valueTile to standardTile for a few tiles since ST's mobile app v2.3.x changed something between the two.
+ *  02-03-2018 : Cleaned up code.
  *
  */
 metadata {
@@ -89,7 +90,7 @@ def createEvents(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
 
 def poll() {
 	if (secondsPast(state.lastbatt, 36*60*60)) {
-		return zwave.batteryV1.batteryGet().format
+		return zwave.batteryV1.batteryGet().format()
 	} else {
 		return null
 	}
