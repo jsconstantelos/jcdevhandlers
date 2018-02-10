@@ -82,9 +82,9 @@ metadata {
 				attributeState("VALUE_DOWN", action: "setLevelDown")
                 attributeState("default", label:'${currentValue}°')
 			}
-//            tileAttribute("device.humidity", key: "SECONDARY_CONTROL") {
-//                attributeState("default", label:'${currentValue}%', unit:"%")
-//            }            
+            tileAttribute("device.humidity", key: "SECONDARY_CONTROL") {
+                attributeState("default", label:'${currentValue}%', unit:"%")
+            }            
             tileAttribute("device.thermostatOperatingState", key: "OPERATING_STATE") {
                 attributeState("idle", backgroundColor:"#44b621")
                 attributeState("heating", backgroundColor:"#ea5462")
@@ -107,9 +107,6 @@ metadata {
             tileAttribute("device.coolingSetpoint", key: "COOLING_SETPOINT") {
                 attributeState("default", label:'${currentValue}°')
             }
-            tileAttribute("device.thermostatSetpoint", key: "THERMOSTAT_SETPOINT") {
-                attributeState("default", label:'${currentValue}°')
-            } 
 		}       
 
 //Thermostat Mode Control
