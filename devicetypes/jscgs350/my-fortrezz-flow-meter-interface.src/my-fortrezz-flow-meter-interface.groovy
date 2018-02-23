@@ -49,6 +49,7 @@
  *  10-04-2017 : Color changes on main tile, and fixed reset log messages and how they're processed.  (more of a workaround for now)
  *  10-07-2017 : Changed history tile from standard to value to resolve iOS rendering issue.
  *  11-10-2017 : Changed a few tiles from standard to value because they look better on iOS and still look fine on Android.
+ *  02-23-2018 : Commented out line 440 (was 439) so that any website performance issues with ST or FortrezZ don't generate a SocketTimeoutException error.
  *
  */
 metadata {
@@ -436,7 +437,7 @@ def sendDataToCloud(double data) {
     } catch (e) {
         log.debug "something went wrong: $e"
     }
-    take1()
+//    take1()
 }
 
 def getTemperature(value) {
