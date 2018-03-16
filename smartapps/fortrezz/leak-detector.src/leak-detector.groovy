@@ -11,9 +11,9 @@ definition(
     description: "Child SmartApp for leak detector rules",
     category: "Green Living",
     parent: "fortrezz:FortrezZ Leak Detector",
-    iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
-    iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png",
-    iconX3Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png")
+    iconUrl: "http://swiftlet.technology/wp-content/uploads/2016/05/logo-square-200-1.png",
+    iconX2Url: "http://swiftlet.technology/wp-content/uploads/2016/05/logo-square-500.png",
+    iconX3Url: "http://swiftlet.technology/wp-content/uploads/2016/05/logo-square.png")
 
 
 preferences {
