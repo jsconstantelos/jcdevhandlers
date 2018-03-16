@@ -179,7 +179,7 @@ def cumulativeHandler(evt) {
                     else
                     {
                     	//def td = now() - Date.parse("yyyy-MM-dd'T'HH:mm:ss'Z'", state["contHistory${childAppID}"]).getTime()
-                        log.debug (state["contHistory${childAppID}"])
+                        //log.debug(state["contHistory${childAppID}"])
                         //def historyDate = new Date(state["contHistory${childAppID}"])
                     	def historyDate = new Date().parse("yyyy-MM-dd'T'HH:mm:ssZ", state["contHistory${childAppID}"])
                     	def td = now() - historyDate.getTime()
@@ -246,11 +246,11 @@ def gpmHandler(evt) {
             	log.debug("Continuous Flow Test (GPM): ${r}")
             	def contMinutes = 0
 
-				if(gpm == "0")
+				if(gpm == "0.0")
                 {
                 	state["contHistory${childAppID}"] = []
                 }
-                log.debug("contHistory${childAppID} is ${state["contHistory${childAppID}"]}")
+                //log.debug("contHistory${childAppID} is ${state["contHistory${childAppID}"]}")
                 break
 
             default:
