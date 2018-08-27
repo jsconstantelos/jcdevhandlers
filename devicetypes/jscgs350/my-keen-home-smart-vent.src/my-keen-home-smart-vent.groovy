@@ -582,13 +582,13 @@ def configure() {
         // Yves Racine 2015/09/10: temp and pressure reports are preconfigured, but
         //   we'd like to override their settings for our own purposes
         // temperature - type: int16s, change: 0xA = 10 = 0.1C, 0x32=50=0.5C
-        "zcl global send-me-a-report 0x0402 0 0x29 300 600 {3200}", "delay 200",
+        "zcl global send-me-a-report 0x0402 0 0x29 1800 3600 {3200}", "delay 200",
         "send 0x${device.deviceNetworkId} 1 1", "delay 1500",
 
         // Yves Racine 2015/09/10: use new custom pressure attribute
         // pressure - type: int32u, change: 1 = 0.1Pa, 500=50 PA
         "zcl mfg-code 0x115B", "delay 200",
-        "zcl global send-me-a-report 0x0403 0x20 0x22 300 600 {01F400}", "delay 200",
+        "zcl global send-me-a-report 0x0403 0x20 0x22 1800 3600 {01F400}", "delay 200",
         "send 0x${device.deviceNetworkId} 1 1", "delay 1500",
 
         // mike 2015/06/2: preconfigured; see tech spec

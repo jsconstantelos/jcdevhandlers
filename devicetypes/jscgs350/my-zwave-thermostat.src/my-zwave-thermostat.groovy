@@ -33,11 +33,13 @@
  *  11-10-2017 : Changed a few tiles from standard to value because they look better on iOS and still look fine on Android.
  *  11-17-2017 : Added debug lines and the preference to turn on/off debug output.
  *  11-28-2017 : Cleaned up code.
+ *  07-09-2018 : Added "circulate" section, and changed "On" section for fan operations.
+ *  08-21-2018 : Added metadata fields for the new Samsung app.
  *
 */
 metadata {
 	// Automatically generated. Make future change here.
-	definition (name: "My ZWave Thermostat", namespace: "jscgs350", author: "SmartThings")
+	definition (name: "My ZWave Thermostat", ocfDeviceType: "oic.d.thermostat", namespace: "jscgs350", author: "SmartThings", mnmn: "SmartThings", vid:"SmartThings-smartthings-Z-Wave_Thermostat")
     { 
 		capability "Refresh"
 		capability "Actuator"
@@ -48,7 +50,7 @@ metadata {
 		capability "Configuration"
 		capability "Polling"
 		capability "Sensor"
-//        capability "Health Check"
+        capability "Health Check"
         capability "Switch"
        
 		command "setLevelUp"
@@ -60,6 +62,7 @@ metadata {
 		command "coolLevelDown"
         command "quickSetCool"
         command "offmode"
+        command "circulate"
         
 		attribute "thermostatFanState", "string"
         attribute "currentState", "string"
@@ -588,12 +591,17 @@ def offmode() {
 }
 
 def on() {
-	if (state.debug) log.debug "Setting thermostat fan mode to circulate..."
+	if (state.debug) log.debug "Setting thermostat fan mode to On..."
+    fanOn()
+}
+
+def circulate() {
+	if (state.debug) log.debug "Setting thermostat fan mode to Circulate..."
     fanCirculate()
 }
 
 def off() {
-	if (state.debug) log.debug "Setting thermostat fan mode to auto..."
+	if (state.debug) log.debug "Setting thermostat fan mode to Auto..."
     fanAuto()
 }
 
