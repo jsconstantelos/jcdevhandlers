@@ -30,6 +30,7 @@ metadata {
     definition (name: "My Keen Home Smart Vent", namespace: "jscgs350", author: "Keen Home") {
         capability "Switch Level"
         capability "Switch"
+        capability "Actuator"
         capability "Configuration"
         capability "Refresh"
         capability "Sensor"
