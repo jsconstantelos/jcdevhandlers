@@ -31,6 +31,7 @@ metadata {
 		capability "Refresh"
         capability "Lock"
 		capability "Sensor"
+        capability "Health Check"
 	}
 
 	// UI tile definitions
@@ -78,7 +79,14 @@ def parse(String description) {
 	return result
 }
 
+def installed() {
+	// Device-Watch simply pings if no device events received for 482min(checkInterval)
+	sendEvent(name: "checkInterval", value: 2 * 4 * 60 * 60 + 2 * 60, displayed: false, data: [protocol: "zwave", hubHardwareId: device.hub.hardwareID])
+}
+
 def updated() {
+	// Device-Watch simply pings if no device events received for 482min(checkInterval)
+	sendEvent(name: "checkInterval", value: 2 * 4 * 60 * 60 + 2 * 60, displayed: false, data: [protocol: "zwave", hubHardwareId: device.hub.hardwareID])
 	def cmds = []
 	if (!state.MSR) {
 		cmds = [

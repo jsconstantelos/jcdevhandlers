@@ -12,7 +12,7 @@
  *
  */
 metadata {
-	definition (name: "My Fortrezz Water Valve", namespace: "jscgs350", author: "SmartThings", vid: "generic-valve") {
+	definition (name: "My Fortrezz Water Valve", namespace: "jscgs350", author: "SmartThings", ocfDeviceType: "oic.d.watervalve", mnmn: "SmartThings", vid: "generic-valve") {
 		capability "Actuator"
 		capability "Health Check"
 		capability "Valve"

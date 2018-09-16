@@ -71,7 +71,7 @@ metadata {
 		capability "Refresh"
 		capability "Polling"
 		capability "Battery"
-//		capability "Health Check"
+		capability "Health Check"
 
 		attribute "currentKWH", "string"		// Used to show current kWh since last reset
 		attribute "currentWATTS", "string"		// Used to show current watts being used on the main tile
