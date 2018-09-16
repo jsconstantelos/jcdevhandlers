@@ -33,7 +33,7 @@ preferences {
 }
 
 metadata {
-    definition (name:"My Monoprice Motion Sensor", namespace:"jscgs350", author: "florianz") {
+    definition (name:"My Monoprice Motion Sensor", namespace:"jscgs350", author: "jscgs350", ocfDeviceType: "x.com.st.d.sensor.motion", mnmn: "SmartThings", vid:"generic-motion-4") {
         capability "Battery"
         capability "Motion Sensor"
         capability "Temperature Measurement"

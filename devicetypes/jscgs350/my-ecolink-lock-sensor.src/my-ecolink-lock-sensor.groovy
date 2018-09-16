@@ -24,7 +24,7 @@
 // for the UI
 metadata {
 	// Automatically generated. Make future change here.
-	definition (name: "My Ecolink Lock Sensor", namespace: "jscgs350", author: "SmartThings") {
+	definition (name: "My Ecolink Lock Sensor", namespace: "jscgs350", author: "SmartThings", mnmn: "SmartThings", vid:"generic-lock") {
 		capability "Battery"
 		capability "Configuration"
 		capability "Contact Sensor"

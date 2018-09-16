@@ -27,7 +27,7 @@
  */
  
 metadata {
-	definition (name: "My GE Fan Control Switch", namespace: "jscgs350", author: "jscgs350") {
+	definition (name: "My GE Fan Control Switch", namespace: "jscgs350", author: "jscgs350", ocfDeviceType: "oic.d.light", vid:"generic-dimmer") {
 		capability "Switch Level"
 		capability "Actuator"
 		capability "Indicator"

@@ -20,7 +20,7 @@
  *
  */
 metadata {
-	definition (name: "My Zooz Metering Switch", namespace: "jscgs350", author: "SmartThings") {
+	definition (name: "My Zooz Metering Switch", namespace: "jscgs350", author: "SmartThings", ocfDeviceType: "oic.d.switch", mnmn: "SmartThings", vid:"generic-switch-power-energy") {
 		capability "Energy Meter"
 		capability "Actuator"
 		capability "Switch"
