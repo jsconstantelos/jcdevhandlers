@@ -30,7 +30,7 @@
  */
 metadata {
     // Automatically generated. Make future change here.
-    definition (name: "My MIMOlite Water Valve Controller", namespace: "jscgs350", author: "jscgs350") {
+    definition (name: "My MIMOlite Water Valve Controller", namespace: "jscgs350", author: "jscgs350", ocfDeviceType: "oic.d.watervalve", mnmn: "SmartThings", vid: "generic-valve") {
 		capability "Alarm"
 		capability "Polling"
         capability "Refresh"

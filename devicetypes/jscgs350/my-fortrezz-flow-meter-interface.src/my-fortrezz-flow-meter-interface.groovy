@@ -54,7 +54,7 @@
  *
  */
 metadata {
-	definition (name: "My FortrezZ Flow Meter Interface", namespace: "jscgs350", author: "Daniel Kurin") {
+	definition (name: "My FortrezZ Flow Meter Interface", namespace: "jscgs350", author: "Daniel Kurin", ocfDeviceType: "oic.d.switch", mnmn: "SmartThings", vid:"generic-switch-power-energy") {
 		capability "Battery"
 		capability "Energy Meter"
         capability "Power Meter"
