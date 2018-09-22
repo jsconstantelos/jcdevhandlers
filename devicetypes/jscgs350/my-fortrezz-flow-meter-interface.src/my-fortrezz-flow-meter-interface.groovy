@@ -51,6 +51,7 @@
  *  11-10-2017 : Changed a few tiles from standard to value because they look better on iOS and still look fine on Android.
  *  02-23-2018 : Commented out line 440 (was 439) so that any website performance issues with ST or FortrezZ don't generate a SocketTimeoutException error.
  *  03-15-2018 : Reverted change made on 2-23-2018.
+ *  09-20-2018 : Changes for new app (ongoing)
  *
  */
 metadata {
@@ -61,7 +62,7 @@ metadata {
 		capability "Image Capture"
 		capability "Temperature Measurement"
         capability "Sensor"
-        capability "Water Sensor"
+//        capability "Water Sensor"
         capability "Configuration"
         capability "Actuator"        
         capability "Polling"
@@ -72,7 +73,6 @@ metadata {
         attribute "gpmInfo", "number"
 		attribute "gpmHigh", "number"
 		attribute "gpmHighLastReset", "number"
-        attribute "cumulative", "number"
         attribute "cumulativeLastReset", "number"
         attribute "gallonHigh", "number"
         attribute "gallonHighLastReset", "number"
@@ -80,7 +80,6 @@ metadata {
         attribute "chartMode", "string"
         attribute "lastThreshhold", "number"
         attribute "lastReset", "string"
-        attribute "gallons", "number"
 
         command "chartMode"
         command "take1"
@@ -95,6 +94,7 @@ metadata {
 	}
     
     preferences {
+       input "debugOutput", "boolean", title: "Enable debug logging?", defaultValue: false, displayDuringSetup: true
        input "reportThreshhold", "decimal", title: "Reporting Rate Threshhold", description: "The time interval between meter reports while water is flowing. 6 = 60 seconds, 1 = 10 seconds. Options are 1, 2, 3, 4, 5, or 6.", defaultValue: 1, required: false, displayDuringSetup: true
        input "gallonThreshhold", "decimal", title: "High Flow Rate Threshhold", description: "Flow rate (in gpm) that will trigger a notification.", defaultValue: 5, required: false, displayDuringSetup: true
        input("registerEmail", type: "email", required: false, title: "Email Address", description: "Register your device with FortrezZ", displayDuringSetup: true)
@@ -163,7 +163,7 @@ metadata {
 			state "history", label:'${currentValue}'
 		}        
 		main (["waterState"])
-		details(["waterState", "gallonHigh", "gpmHigh", "dayChart", "weekChart", "monthChart", "chartCycle", "history", "powerState", "temperature", "battery", "zeroTile", "configure"])
+		details(["waterState", "gallonHigh", "gpmHigh", "dayChart", "weekChart", "monthChart", "chartCycle", "powerState", "temperature", "battery", "zeroTile", "configure", "history"])
 	}
 }
 
@@ -172,9 +172,11 @@ def installed() {
     state.lastCumulative = 0
     state.lastGallon = 0
     state.meterResetDate = ""
+    state.debug = ("true" == debugOutput)
 }
 
 def updated(){
+	state.debug = ("true" == debugOutput)
 	// Device-Watch simply pings if no device events received for 32min(checkInterval)
 	sendEvent(name: "checkInterval", value: 2 * 15 * 60 + 2 * 60, displayed: false, data: [protocol: "zwave", hubHardwareId: device.hub.hardwareID])
     response(configure())
@@ -197,8 +199,7 @@ def parse(String description) {
 
 def take1() {
     api("24hrs", "") {
-        log.debug("Image captured")
-
+        if (state.debug) log.debug("Image captured")
         if(it.headers.'Content-Type'.contains("image/png")) {
             if(it.data) {
                 storeImage(getPictureName("24hrs"), it.data)
@@ -209,8 +210,7 @@ def take1() {
 
 def take7() {
     api("7days", "") {
-        log.debug("Image captured")
-
+        if (state.debug) log.debug("Image captured")
         if(it.headers.'Content-Type'.contains("image/png")) {
             if(it.data) {
                 storeImage(getPictureName("7days"), it.data)
@@ -221,8 +221,7 @@ def take7() {
 
 def take28() {
     api("4weeks", "") {
-        log.debug("Image captured")
-
+        if (state.debug) log.debug("Image captured")
         if(it.headers.'Content-Type'.contains("image/png")) {
             if(it.data) {
                 storeImage(getPictureName("4weeks"), it.data)
@@ -283,8 +282,7 @@ def resetgallonHigh() {
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv5.SensorMultilevelReport cmd) {
-	log.debug "Getting temperature data..."
-//	log.debug cmd
+	if (state.debug) log.debug "Getting temperature data..."
 	def map = [:]
 	if(cmd.sensorType == 1) {
 		map = [name: "temperature"]
@@ -299,7 +297,7 @@ def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv5.SensorMultilevelR
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
-//	log.debug cmd.scaledMeterValue
+	if (state.debug) log.debug cmd.scaledMeterValue
     def dispValue
     def dispGallon
     def prevCumulative
@@ -308,13 +306,12 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
     map.name = "gpmInfo"
     def delta = Math.round((((cmd.scaledMeterValue - cmd.scaledPreviousMeterValue) / (reportThreshhold*10)) * 60)*100)/100 //rounds to 2 decimal positions
     if (delta < 0) { //There should never be any negative values
-			log.debug "We just detected a negative delta value that won't be processed: ${delta}"
+			if (state.debug) log.debug "We just detected a negative delta value that won't be processed: ${delta}"
     } else if (delta > 60) { //There should never be any crazy high gallons as a delta, even at 1 minute reporting intervals.  It's not possible unless you're a firetruck.
-    		log.debug "We just detected a crazy high delta value that won't be processed: ${delta}"
+    		if (state.debug) log.debug "We just detected a crazy high delta value that won't be processed: ${delta}"
     } else if (delta == 0) {
-    		log.debug "Flow has stopped, so process what the meter collected."
+    		if (state.debug) log.debug "Flow has stopped, so process what the meter collected."
     		sendEvent(name: "waterState", value: "none")
-        	sendEvent(name: "water", value: "dry")
             sendEvent(name: "gpm", value: delta)
         	sendAlarm("")
     		prevCumulative = cmd.scaledMeterValue - state.lastCumulative
@@ -330,7 +327,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
     	} else {
         	sendEvent(name: "gpm", value: delta)
     		map.value = "Flow detected "+delta+" gpm"
-            log.debug map.value
+            if (state.debug) log.debug map.value
             if (delta > state.deltaHigh) {
                 dispValue = delta+" gpm on"+"\n"+timeString
                 sendEvent(name: "gpmHigh", value: dispValue as String, displayed: false)
@@ -338,15 +335,12 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
             }
         	if (delta > gallonThreshhold) {
             	sendEvent(name: "waterState", value: "overflow")
-            	sendEvent(name: "water", value: "wet")
             	sendAlarm("waterOverflow")
         	} else {
         		sendEvent(name: "waterState", value: "flow")
-            	sendEvent(name: "water", value: "wet")
             	sendAlarm("")
 			}
     }
-    sendEvent(name: "cumulative", value: cmd.scaledMeterValue, displayed: false, unit: "gal")
 	return map
 }
 
@@ -357,16 +351,13 @@ def zwaveEvent(physicalgraph.zwave.commands.alarmv2.AlarmReport cmd) {
         if (cmd.zwaveAlarmEvent == 2) { // AC Mains Disconnected
             map.value = "disconnected"
             sendAlarm("acMainsDisconnected")
-        }
-        else if (cmd.zwaveAlarmEvent == 3) { // AC Mains Reconnected
+        } else if (cmd.zwaveAlarmEvent == 3) { // AC Mains Reconnected
             map.value = "reconnected"
             sendAlarm("acMainsReconnected")
-        }
-        else if (cmd.zwaveAlarmEvent == 0x0B) { // Replace Battery Now
+        } else if (cmd.zwaveAlarmEvent == 0x0B) { // Replace Battery Now
             map.value = "noBattery"
             sendAlarm("replaceBatteryNow")
-        }
-        else if (cmd.zwaveAlarmEvent == 0x00) { // Battery Replaced
+        } else if (cmd.zwaveAlarmEvent == 0x00) { // Battery Replaced
             map.value = "batteryReplaced"
             sendAlarm("batteryReplaced")
         }
@@ -375,12 +366,10 @@ def zwaveEvent(physicalgraph.zwave.commands.alarmv2.AlarmReport cmd) {
     	map.name = "heatState"
         if (cmd.zwaveAlarmEvent == 0) { // Normal
             map.value = "normal"
-        }
-        else if (cmd.zwaveAlarmEvent == 1) { // Overheat
+        } else if (cmd.zwaveAlarmEvent == 1) { // Overheat
             map.value = "overheated"
             sendAlarm("tempOverheated")
-        }
-        else if (cmd.zwaveAlarmEvent == 5) { // Underheat
+        } else if (cmd.zwaveAlarmEvent == 5) { // Underheat
             map.value = "freezing"
             sendAlarm("tempFreezing")
         }
@@ -409,14 +398,14 @@ def zwaveEvent(physicalgraph.zwave.Command cmd) {
 }
 
 def sendDataToCloud(double data) {
-	log.debug "Sending data to the cloud..."
+	if (state.debug) log.debug "Sending data to the cloud..."
 	def meterID
     if (customID != null) {
     	meterID = customID+state.meterResetDate
     } else {
     	meterID = device.id+state.meterResetDate
     }
-    log.debug meterID
+    if (state.debug) log.debug meterID
     def params = [
         uri: "http://iot.swiftlet.technology",
         path: "/fortrezz/post.php",
@@ -472,11 +461,10 @@ def api(method, args = [], success = {}) {
 }
 
 private doRequest(uri, type, success) {
-  log.debug(uri)
+  if (state.debug) log.debug(uri)
   if(type == "post") {
     httpPost(uri , "", success)
-  }
-  else if(type == "get") {
+  } else if(type == "get") {
     httpGet(uri, success)
   }
 }
@@ -491,7 +479,7 @@ def ping() {
 }
 
 def refresh() {
-    log.debug "${device.label} refresh"
+    if (state.debug) log.debug "${device.label} refresh"
 	delayBetween([
         zwave.sensorMultilevelV5.sensorMultilevelGet().format()
 	])
