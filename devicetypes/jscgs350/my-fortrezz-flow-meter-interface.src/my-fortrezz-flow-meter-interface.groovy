@@ -51,7 +51,8 @@
  *  11-10-2017 : Changed a few tiles from standard to value because they look better on iOS and still look fine on Android.
  *  02-23-2018 : Commented out line 440 (was 439) so that any website performance issues with ST or FortrezZ don't generate a SocketTimeoutException error.
  *  03-15-2018 : Reverted change made on 2-23-2018.
- *  09-20-2018 : Changes for new app (ongoing)
+ *  09-20-2018 : Changes for new app (ongoing).
+ *  09-23-2018 : Changed main tile layout, added a couple new tiles to show what use to be in secondary_control values.
  *
  */
 metadata {
@@ -62,7 +63,6 @@ metadata {
 		capability "Image Capture"
 		capability "Temperature Measurement"
         capability "Sensor"
-//        capability "Water Sensor"
         capability "Configuration"
         capability "Actuator"        
         capability "Polling"
@@ -72,6 +72,8 @@ metadata {
         attribute "gpm", "number"
         attribute "gpmInfo", "number"
 		attribute "gpmHigh", "number"
+		attribute "gpmTotal", "number"
+        attribute "gpmLastUsed", "number"
 		attribute "gpmHighLastReset", "number"
         attribute "cumulativeLastReset", "number"
         attribute "gallonHigh", "number"
@@ -106,12 +108,26 @@ metadata {
 			tileAttribute ("device.waterState", key: "PRIMARY_CONTROL") {
 				attributeState "none", icon:"http://cdn.device-icons.smartthings.com/valves/water/closed@2x.png", backgroundColor:"#999999", label: "No Flow"
 				attributeState "flow", icon:"http://cdn.device-icons.smartthings.com/valves/water/open@2x.png", backgroundColor:"#51afdb", label: "Flow"
-				attributeState "overflow", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#ff0000", label: "High Flow"
+				attributeState "highflow", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#ff0000", label: "High Flow"
 			}
             tileAttribute ("device.gpmInfo", key: "SECONDARY_CONTROL") {
                 attributeState("gpmInfo", label:'${currentValue}', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/watervalve1.png")
             }
         }
+        
+		multiAttributeTile(name: "gpm", type: "generic", width: 6, height: 4, canChangeIcon: true, decoration: "flat"){
+			tileAttribute("device.gpm", key: "PRIMARY_CONTROL") {
+				attributeState "gpm", label: '${currentValue} GPM',
+						backgroundColors: [
+								[value: 0, color: "#999999"],
+								[value: 0.1, color: "#51afdb"]
+						]
+			}
+            tileAttribute ("device.alarmState", key: "SECONDARY_CONTROL") {
+                attributeState("alarmState", label:'${currentValue}', icon: "st.alarm.alarm.alarm")
+            }
+		}        
+        
         carouselTile("chartCycle", "device.image", width: 6, height: 3) { }
 		standardTile("dayChart", "device.chartMode", width: 2, height: 1, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
 			state "day", label:'Tap to show', action: 'take1', icon: "http://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/24-hour-clockv2.png"
@@ -135,7 +151,13 @@ metadata {
                 ]
             )
         }             
-        valueTile("gpmHigh", "device.gpmHigh", inactiveLabel: false, width: 3, height: 1, decoration: "flat") {
+		valueTile("gpmTotal", "device.gpmTotal", inactiveLabel: false, width: 3, height: 1, decoration: "flat") {
+			state "default", label:'Total Usage:\n${currentValue}'
+		}
+		valueTile("gpmLastUsed", "device.gpmLastUsed", inactiveLabel: false, width: 3, height: 1, decoration: "flat") {
+			state "default", label:'Last Used:\n${currentValue}'
+		}
+		valueTile("gpmHigh", "device.gpmHigh", inactiveLabel: false, width: 3, height: 1, decoration: "flat") {
 			state "default", label:'Highest flow:\n${currentValue}', action: 'resetgpmHigh'
 		}
         valueTile("gallonHigh", "device.gallonHigh", inactiveLabel: false, width: 3, height: 1, decoration: "flat") {
@@ -161,9 +183,10 @@ metadata {
 		}
 		valueTile("history", "device.history", decoration:"flat", width: 6, height: 5) {
 			state "history", label:'${currentValue}'
-		}        
+		}
 		main (["waterState"])
-		details(["waterState", "gallonHigh", "gpmHigh", "dayChart", "weekChart", "monthChart", "chartCycle", "powerState", "temperature", "battery", "zeroTile", "configure", "history"])
+//		details(["waterState", "gpmTotal", "gpmLastUsed", "gallonHigh", "gpmHigh", "dayChart", "weekChart", "monthChart", "chartCycle", "powerState", "temperature", "battery", "zeroTile", "configure", "history"])
+		details(["gpm", "gpmTotal", "gpmLastUsed", "gallonHigh", "gpmHigh", "dayChart", "weekChart", "monthChart", "chartCycle", "powerState", "temperature", "battery", "zeroTile", "configure", "history"])
 	}
 }
 
@@ -317,16 +340,18 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
     		prevCumulative = cmd.scaledMeterValue - state.lastCumulative
         	state.lastCumulative = cmd.scaledMeterValue
         	sendDataToCloud(prevCumulative)
-    		map.value = "Total Usage : "+cmd.scaledMeterValue+" gallons\n"+"Last Used : "+prevCumulative+" gals at "+timeString
+    		map.value = "Currently flowing water at "+delta+" gpm"
         	if (prevCumulative > state.lastGallon) {
             	dispGallon = prevCumulative+" gallons on"+"\n"+timeString
             	sendEvent(name: "gallonHigh", value: dispGallon as String, displayed: false)
             	state.lastGallon = prevCumulative
         	}
 			sendEvent(name: "power", value: prevCumulative, displayed: false)  // This is only used for SmartApps that need power capabilities to capture and log data to places like Google Sheets.
+            sendEvent(name: "gpmTotal", value: cmd.scaledMeterValue+" gallons")
+            sendEvent(name: "gpmLastUsed", value: prevCumulative+" gallons")
     	} else {
         	sendEvent(name: "gpm", value: delta)
-    		map.value = "Flow detected "+delta+" gpm"
+    		map.value = "Currently flowing water at "+delta+" gpm"
             if (state.debug) log.debug map.value
             if (delta > state.deltaHigh) {
                 dispValue = delta+" gpm on"+"\n"+timeString
@@ -334,8 +359,8 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
                 state.deltaHigh = delta
             }
         	if (delta > gallonThreshhold) {
-            	sendEvent(name: "waterState", value: "overflow")
-            	sendAlarm("waterOverflow")
+            	sendEvent(name: "waterState", value: "highflow")
+            	sendAlarm("High Flow Detected!")
         	} else {
         		sendEvent(name: "waterState", value: "flow")
             	sendAlarm("")
@@ -427,7 +452,7 @@ def sendDataToCloud(double data) {
     } catch (e) {
         log.debug "something went wrong: $e"
     }
-    take1()
+//    take1()
 }
 
 def getTemperature(value) {

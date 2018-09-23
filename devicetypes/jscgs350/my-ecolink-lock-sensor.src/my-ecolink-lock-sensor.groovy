@@ -18,6 +18,7 @@
  *  02-11-2017 : Removed commands no longer needed.  Documented what each attribute is used for.  Put battery info into the main tile instead of a separate tile.
  *  02-11-2017 : Put battery info into the main tile instead of a separate tile.
  *  03-24-2017 : Changed color schema to match ST's new format.
+ *  09-23-2018 : Changes for the new ST app
  *
  */
 
@@ -37,7 +38,22 @@ metadata {
 	// UI tile definitions
      
 	tiles(scale: 2) {
-		multiAttributeTile(name:"lock", type: "generic", width: 6, height: 4){
+
+		multiAttributeTile(name: "contact", type: "generic", width: 6, height: 4) {
+			tileAttribute("device.contact", key: "PRIMARY_CONTROL") {
+				attributeState "open", action:"configure", label: 'Unlocked', icon:"st.locks.lock.unlocked", backgroundColor:"#ffffff"
+				attributeState "closed", action:"configure", label: 'Locked', icon:"st.locks.lock.locked", backgroundColor:"#00A0DC"
+			}
+            tileAttribute ("device.battery", key: "SECONDARY_CONTROL") {
+                attributeState("default", label:'${currentValue}% battery', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/battery-icon-614x460.png")
+            }
+		}
+		standardTile("lock", "device.lock", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
+			state "locked", label: 'Locked', icon:"st.locks.lock.locked", backgroundColor:"#00A0DC"
+			state "unlocked", label: 'Unlocked', icon:"st.locks.lock.unlocked", backgroundColor:"#ffffff"
+		}
+
+/*		multiAttributeTile(name:"lock", type: "generic", width: 6, height: 4){
 			tileAttribute ("device.lock", key: "PRIMARY_CONTROL") {
 				attributeState "locked", action:"configure", label: 'Locked', icon:"st.locks.lock.locked", backgroundColor:"#00A0DC"
 				attributeState "unlocked", action:"configure", label: 'Unlocked', icon:"st.locks.lock.unlocked", backgroundColor:"#ffffff"
@@ -45,13 +61,14 @@ metadata {
             tileAttribute ("device.battery", key: "SECONDARY_CONTROL") {
                 attributeState("default", label:'${currentValue}% battery', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/battery-icon-614x460.png")
             }       
-		}
+		}        
 		standardTile("contact", "device.contact", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
 			state "open", label: 'open', icon:"st.locks.lock.unlocked", backgroundColor:"#ffffff"
 			state "closed", label: 'closed', icon:"st.locks.lock.locked", backgroundColor:"#00A0DC"
 		}
-		main "lock"
-		details(["lock"])
+        */
+		main "contact"
+		details(["contact"])
 	}
 }
 
@@ -103,8 +120,7 @@ def updated() {
 }
 
 def refresh() {
-	log.debug "Lock sensor is stuck in a unlocked state, so we'll force a locked state..."
-	sendEvent(name: "lock", value: "locked")
+	log.debug "Refresh"
 }
 
 def configure() {
