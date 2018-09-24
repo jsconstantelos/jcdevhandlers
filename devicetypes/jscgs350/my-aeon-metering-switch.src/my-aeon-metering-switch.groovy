@@ -107,7 +107,7 @@ metadata {
 			state "default", label:'\nRefresh', action:"refresh.refresh", icon:"st.secondary.refresh-icon"
 		}
 		standardTile("power2", "device.power", width: 3, height: 1, decoration: "flat") {
-			state "power", icon: "st.secondary.activity", label:'${currentValue} W'
+			state "power", icon: "st.switches.switch.on", label:'${currentValue} W'
 		}
 
 		main "power2"
