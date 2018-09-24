@@ -246,7 +246,7 @@ def gpmHandler(evt) {
             	log.debug("Continuous Flow Test (GPM): ${r}")
             	def contMinutes = 0
 
-				if(gpm == "0.0")
+				if(gpm == "0")
                 {
                 	state["contHistory${childAppID}"] = []
                 }
