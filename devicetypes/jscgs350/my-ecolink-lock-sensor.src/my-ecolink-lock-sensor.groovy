@@ -53,20 +53,6 @@ metadata {
 			state "unlocked", label: 'Unlocked', icon:"st.locks.lock.unlocked", backgroundColor:"#ffffff"
 		}
 
-/*		multiAttributeTile(name:"lock", type: "generic", width: 6, height: 4){
-			tileAttribute ("device.lock", key: "PRIMARY_CONTROL") {
-				attributeState "locked", action:"configure", label: 'Locked', icon:"st.locks.lock.locked", backgroundColor:"#00A0DC"
-				attributeState "unlocked", action:"configure", label: 'Unlocked', icon:"st.locks.lock.unlocked", backgroundColor:"#ffffff"
-			}           
-            tileAttribute ("device.battery", key: "SECONDARY_CONTROL") {
-                attributeState("default", label:'${currentValue}% battery', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/battery-icon-614x460.png")
-            }       
-		}        
-		standardTile("contact", "device.contact", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
-			state "open", label: 'open', icon:"st.locks.lock.unlocked", backgroundColor:"#ffffff"
-			state "closed", label: 'closed', icon:"st.locks.lock.locked", backgroundColor:"#00A0DC"
-		}
-        */
 		main "contact"
 		details(["contact"])
 	}
@@ -133,10 +119,10 @@ def configure() {
 def sensorValueEvent(value) {
 	if (value) {
         sendEvent(name: "lock", value: "unlocked", descriptionText: "$device.displayName is unlocked")
-        sendEvent(name: "contact", value: "open", descriptionText: "$device.displayName is unlocked")
+        sendEvent(name: "contact", value: "open", descriptionText: "$device.displayName is open", displayed: false)
 	} else {
         sendEvent(name: "lock", value: "locked", descriptionText: "$device.displayName is locked")
-        sendEvent(name: "contact", value: "closed", descriptionText: "$device.displayName is locked")
+        sendEvent(name: "contact", value: "closed", descriptionText: "$device.displayName is closed", displayed: false)
 	}
 }
 
