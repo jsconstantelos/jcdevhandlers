@@ -256,7 +256,8 @@ private Map makeOnOffResult(rawValue) {
     return [
         name: "switch",
         value: value,
-        descriptionText: "${linkText} is ${value}"
+        descriptionText: "${linkText} is ${value}",
+        displayed: true
     ]
 }
 
@@ -274,7 +275,8 @@ private Map makeLevelResult(rawValue) {
         return [
             name: "switch",
             value: "obstructed",
-            descriptionText: "${linkText} is obstructed. Please power cycle."
+            descriptionText: "${linkText} is obstructed. Please power cycle.",
+        	displayed: true
         ]
     }
 
@@ -283,7 +285,8 @@ private Map makeLevelResult(rawValue) {
     return [
         name: "level",
         value: value,
-        descriptionText: "${linkText} level is ${value}%"
+        descriptionText: "${linkText} level is ${value}%",
+        displayed: true
     ]
 }
 
@@ -295,7 +298,7 @@ private Map makePressureResult(rawValue) {
         name: 'pressure',
         descriptionText: "${linkText} pressure is ${pascals}Pa",
         value: pascals,
-        displayed: false
+        displayed: true
     ]
     return result
 }
@@ -305,10 +308,11 @@ private Map makeBatteryResult(rawValue) {
     def linkText = getLinkText(device)
 
     // log.debug
-    [
+    return [
         name: 'battery',
         value: rawValue,
-        descriptionText: "${linkText} battery is at ${rawValue}%"
+        descriptionText: "${linkText} battery is at ${rawValue}%",
+        displayed: true
     ]
 }
 
@@ -583,19 +587,19 @@ def configure() {
         // Yves Racine 2015/09/10: temp and pressure reports are preconfigured, but
         //   we'd like to override their settings for our own purposes
         // temperature - type: int16s, change: 0xA = 10 = 0.1C, 0x32=50=0.5C
-        "zcl global send-me-a-report 0x0402 0 0x29 3600 3600 {3200}", "delay 200",
+        "zcl global send-me-a-report 0x0402 0 0x29 60 3600 {0A00}", "delay 200",
         "send 0x${device.deviceNetworkId} 1 1", "delay 1500",
 
         // Yves Racine 2015/09/10: use new custom pressure attribute
         // pressure - type: int32u, change: 1 = 0.1Pa, 500=50 PA
         "zcl mfg-code 0x115B", "delay 200",
-        "zcl global send-me-a-report 0x0403 0x20 0x22 3600 3600 {01F400}", "delay 200",
+        "zcl global send-me-a-report 0x0403 0x20 0x22 60 3600 {010000}", "delay 200",
         "send 0x${device.deviceNetworkId} 1 1", "delay 1500",
 
         // mike 2015/06/2: preconfigured; see tech spec
         // battery - type: int8u, change: 1
-        // "zcl global send-me-a-report 1 0x21 0x20 60 3600 {01}", "delay 200",
-        // "send 0x${device.deviceNetworkId} 1 1", "delay 1500",
+        "zcl global send-me-a-report 1 0x21 0x20 60 3600 {01}", "delay 200",
+        "send 0x${device.deviceNetworkId} 1 1", "delay 1500",
 
         // binding commands
         "zdo bind 0x${device.deviceNetworkId} 1 1 0x0006 {${device.zigbeeId}} {}", "delay 500",
