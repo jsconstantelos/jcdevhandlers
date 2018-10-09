@@ -70,7 +70,6 @@ metadata {
         capability "Health Check"
         
         attribute "gpm", "number"
-        attribute "gpmInfo", "number"
 		attribute "gpmHigh", "number"
 		attribute "gpmTotal", "number"
         attribute "gpmLastUsed", "number"
@@ -104,17 +103,6 @@ metadata {
     }
 
 	tiles(scale: 2) {
-		multiAttributeTile(name:"waterState", type: "generic", width: 6, height: 4, canChangeIcon: true, decoration: "flat"){
-			tileAttribute ("device.waterState", key: "PRIMARY_CONTROL") {
-				attributeState "none", icon:"http://cdn.device-icons.smartthings.com/valves/water/closed@2x.png", backgroundColor:"#999999", label: "No Flow"
-				attributeState "flow", icon:"http://cdn.device-icons.smartthings.com/valves/water/open@2x.png", backgroundColor:"#51afdb", label: "Flow"
-				attributeState "highflow", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#ff0000", label: "High Flow"
-			}
-            tileAttribute ("device.gpmInfo", key: "SECONDARY_CONTROL") {
-                attributeState("gpmInfo", label:'${currentValue}', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/watervalve1.png")
-            }
-        }
-        
 		multiAttributeTile(name: "gpm", type: "generic", width: 6, height: 4, canChangeIcon: true, decoration: "flat"){
 			tileAttribute("device.gpm", key: "PRIMARY_CONTROL") {
 				attributeState "gpm", label: '${currentValue} GPM',
@@ -126,8 +114,7 @@ metadata {
             tileAttribute ("device.alarmState", key: "SECONDARY_CONTROL") {
                 attributeState("alarmState", label:'${currentValue}', icon: "st.alarm.alarm.alarm")
             }
-		}        
-        
+		}               
         carouselTile("chartCycle", "device.image", width: 6, height: 3) { }
 		standardTile("dayChart", "device.chartMode", width: 2, height: 1, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
 			state "day", label:'Tap to show', action: 'take1', icon: "http://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/24-hour-clockv2.png"
@@ -152,10 +139,10 @@ metadata {
             )
         }             
 		valueTile("gpmTotal", "device.gpmTotal", inactiveLabel: false, width: 3, height: 1, decoration: "flat") {
-			state "default", label:'Total Usage:\n${currentValue}'
+			state "default", label:'Total Usage:\n${currentValue} gallons'
 		}
 		valueTile("gpmLastUsed", "device.gpmLastUsed", inactiveLabel: false, width: 3, height: 1, decoration: "flat") {
-			state "default", label:'Last Used:\n${currentValue}'
+			state "default", label:'Last Used:\n${currentValue} gallons'
 		}
 		valueTile("gpmHigh", "device.gpmHigh", inactiveLabel: false, width: 3, height: 1, decoration: "flat") {
 			state "default", label:'Highest flow:\n${currentValue}', action: 'resetgpmHigh'
@@ -184,8 +171,12 @@ metadata {
 		valueTile("history", "device.history", decoration:"flat", width: 6, height: 5) {
 			state "history", label:'${currentValue}'
 		}
+		standardTile("waterState", "device.waterState", width: 1, height: 1) { 
+			state "none", icon:"http://cdn.device-icons.smartthings.com/valves/water/closed@2x.png", backgroundColor:"#999999", label: "No Flow"
+			state "flow", icon:"http://cdn.device-icons.smartthings.com/valves/water/open@2x.png", backgroundColor:"#51afdb", label: "Flow"
+			state "highflow", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#ff0000", label: "High Flow"
+		}
 		main (["waterState"])
-//		details(["waterState", "gpmTotal", "gpmLastUsed", "gallonHigh", "gpmHigh", "dayChart", "weekChart", "monthChart", "chartCycle", "powerState", "temperature", "battery", "zeroTile", "configure", "history"])
 		details(["gpm", "gpmTotal", "gpmLastUsed", "gallonHigh", "gpmHigh", "dayChart", "weekChart", "monthChart", "chartCycle", "powerState", "temperature", "battery", "zeroTile", "configure", "history"])
 	}
 }
@@ -270,7 +261,6 @@ def resetMeter() {
     def cmds = delayBetween([
 	    zwave.meterV3.meterReset().format()
     ])
-    sendEvent(name: "gpmInfo", value: "Water Meter Was Just Reset" as String, displayed: false)
     state.lastCumulative = 0
     resetgpmHigh()
     resetgallonHigh()
@@ -325,8 +315,6 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
     def dispGallon
     def prevCumulative
     def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
-	def map = [:]
-    map.name = "gpmInfo"
     def delta = Math.round((((cmd.scaledMeterValue - cmd.scaledPreviousMeterValue) / (reportThreshhold*10)) * 60)*100)/100 //rounds to 2 decimal positions
     if (delta < 0) { //There should never be any negative values
 			if (state.debug) log.debug "We just detected a negative delta value that won't be processed: ${delta}"
@@ -340,20 +328,18 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
     		prevCumulative = cmd.scaledMeterValue - state.lastCumulative
         	state.lastCumulative = cmd.scaledMeterValue
         	sendDataToCloud(prevCumulative)
-    		map.value = "Currently flowing water at "+delta+" gpm"
         	if (prevCumulative > state.lastGallon) {
             	dispGallon = prevCumulative+" gallons on"+"\n"+timeString
             	sendEvent(name: "gallonHigh", value: dispGallon as String, displayed: false)
             	state.lastGallon = prevCumulative
         	}
 			sendEvent(name: "power", value: delta, displayed: false)  // This is only used for SmartApps that need Power capabilities to capture and log data to places like Google Sheets.
-            sendEvent(name: "gpmTotal", value: cmd.scaledMeterValue+" gallons")
-            sendEvent(name: "gpmLastUsed", value: prevCumulative+" gallons")
+            sendEvent(name: "gpmTotal", value: cmd.scaledMeterValue)
+            sendEvent(name: "gpmLastUsed", value: prevCumulative)
     	} else {
         	sendEvent(name: "gpm", value: delta)
             sendEvent(name: "power", value: delta, displayed: false)  // This is only used for SmartApps that need Power capabilities to capture and log data to places like Google Sheets.
-    		map.value = "Currently flowing water at "+delta+" gpm"
-            if (state.debug) log.debug map.value
+            if (state.debug) log.debug delta
             if (delta > state.deltaHigh) {
                 dispValue = delta+" gpm on"+"\n"+timeString
                 sendEvent(name: "gpmHigh", value: dispValue as String, displayed: false)
@@ -367,7 +353,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
             	sendAlarm("")
 			}
     }
-	return map
+	return
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.alarmv2.AlarmReport cmd) {
