@@ -328,7 +328,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
             	sendEvent(name: "gallonHigh", value: prevCumulative+" gallons on"+"\n"+timeString as String, displayed: false)
             	state.lastGallon = prevCumulative
         	}
-			sendEvent(name: "power", value: delta, displayed: false)  // This is only used for SmartApps that need Power capabilities to capture and log data to places like Google Sheets.
+			sendEvent(name: "power", value: delta, displayed: false)  // This is only used for SmartApps that need Power capabilities.
             sendEvent(name: "gpmTotal", value: cmd.scaledMeterValue)
             sendEvent(name: "gpmLastUsed", value: prevCumulative)
     		sendEvent(name: "waterState", value: "none")
@@ -336,7 +336,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
         	sendAlarm("")
     	} else {
         	sendEvent(name: "gpm", value: delta)
-            sendEvent(name: "power", value: delta, displayed: false)  // This is only used for SmartApps that need Power capabilities to capture and log data to places like Google Sheets.
+            sendEvent(name: "power", value: delta, displayed: false)  // This is only used for SmartApps that need Power capabilities.
             if (state.debug) log.debug "flowing at ${delta}"
             if (delta > state.deltaHigh) {
                 sendEvent(name: "gpmHigh", value: delta+" gpm on"+"\n"+timeString as String, displayed: false)
