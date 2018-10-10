@@ -53,6 +53,7 @@
  *  03-15-2018 : Reverted change made on 2-23-2018.
  *  09-20-2018 : Changes for new app (ongoing).
  *  09-23-2018 : Changed main tile layout, added a couple new tiles to show what use to be in secondary_control values.
+ *  10-09-2018 : Cleaned up code.
  *
  */
 metadata {
@@ -310,10 +311,8 @@ def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv5.SensorMultilevelR
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
-	if (state.debug) log.debug cmd.scaledMeterValue
-    def dispValue
-    def dispGallon
-    def prevCumulative
+	if (state.debug) log.debug "scaledMeterValue is ${cmd.scaledMeterValue}"
+    if (state.debug) log.debug "scaledPreviousMeterValue is ${cmd.scaledPreviousMeterValue}"
     def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
     def delta = Math.round((((cmd.scaledMeterValue - cmd.scaledPreviousMeterValue) / (reportThreshhold*10)) * 60)*100)/100 //rounds to 2 decimal positions
     if (delta < 0) { //There should never be any negative values
@@ -322,27 +321,25 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
     		if (state.debug) log.debug "We just detected a crazy high delta value that won't be processed: ${delta}"
     } else if (delta == 0) {
     		if (state.debug) log.debug "Flow has stopped, so process what the meter collected."
-    		sendEvent(name: "waterState", value: "none")
-            sendEvent(name: "gpm", value: delta)
-        	sendAlarm("")
-    		prevCumulative = cmd.scaledMeterValue - state.lastCumulative
+    		def prevCumulative = cmd.scaledMeterValue - state.lastCumulative
         	state.lastCumulative = cmd.scaledMeterValue
         	sendDataToCloud(prevCumulative)
         	if (prevCumulative > state.lastGallon) {
-            	dispGallon = prevCumulative+" gallons on"+"\n"+timeString
-            	sendEvent(name: "gallonHigh", value: dispGallon as String, displayed: false)
+            	sendEvent(name: "gallonHigh", value: prevCumulative+" gallons on"+"\n"+timeString as String, displayed: false)
             	state.lastGallon = prevCumulative
         	}
 			sendEvent(name: "power", value: delta, displayed: false)  // This is only used for SmartApps that need Power capabilities to capture and log data to places like Google Sheets.
             sendEvent(name: "gpmTotal", value: cmd.scaledMeterValue)
             sendEvent(name: "gpmLastUsed", value: prevCumulative)
+    		sendEvent(name: "waterState", value: "none")
+            sendEvent(name: "gpm", value: delta)
+        	sendAlarm("")
     	} else {
         	sendEvent(name: "gpm", value: delta)
             sendEvent(name: "power", value: delta, displayed: false)  // This is only used for SmartApps that need Power capabilities to capture and log data to places like Google Sheets.
-            if (state.debug) log.debug delta
+            if (state.debug) log.debug "flowing at ${delta}"
             if (delta > state.deltaHigh) {
-                dispValue = delta+" gpm on"+"\n"+timeString
-                sendEvent(name: "gpmHigh", value: dispValue as String, displayed: false)
+                sendEvent(name: "gpmHigh", value: delta+" gpm on"+"\n"+timeString as String, displayed: false)
                 state.deltaHigh = delta
             }
         	if (delta > gallonThreshhold) {
