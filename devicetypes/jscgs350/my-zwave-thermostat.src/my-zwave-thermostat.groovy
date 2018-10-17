@@ -76,18 +76,21 @@ metadata {
 
 //Thermostat Temp and State
 	tiles(scale: 2) {
-		multiAttributeTile(name:"temperature", type: "thermostat", width: 6, height: 4, decoration: "flat"){
+		multiAttributeTile(name:"temperature", type: "generic", width: 6, height: 4, decoration: "flat"){
             tileAttribute("device.temperature", key: "PRIMARY_CONTROL") {
-                attributeState("temperature", label:'${currentValue}°')
+                attributeState("temperature", label:'${currentValue}°', backgroundColor:"#38a815")
             }
 			tileAttribute("device.thermostatSetpoint", key: "VALUE_CONTROL") {
 				attributeState("VALUE_UP", action: "setLevelUp")
 				attributeState("VALUE_DOWN", action: "setLevelDown")
                 attributeState("default", label:'${currentValue}°')
 			}
-            tileAttribute("device.humidity", key: "SECONDARY_CONTROL") {
+          /*tileAttribute("device.humidity", key: "SECONDARY_CONTROL") {
                 attributeState("default", label:'${currentValue}%', unit:"%")
-            }            
+            }*/
+            tileAttribute("device.statusL1Text", key: "SECONDARY_CONTROL") {
+                attributeState("default", label:'${currentValue}')
+            }             
             tileAttribute("device.thermostatOperatingState", key: "OPERATING_STATE") {
                 attributeState("idle", backgroundColor:"#44b621")
                 attributeState("heating", backgroundColor:"#ea5462")
@@ -194,7 +197,6 @@ metadata {
         
 		main (["temperature2"])
 		details(["temperature", "heatSliderControl", "coolSliderControl", "statusL1Text", "statusL2Text", "fanon", "fanauto", "fancir", "modeheat", "modecool", "modeauto", "modeheatemrgcy", "refresh", "modeoff", "configure"])
-//		details(["temperature", "heatTile", "heatSliderControl", "coolSliderControl", "coolTile", "statusL1Text", "statusL2Text", "fanon", "fanauto", "fancir", "modeheat", "modecool", "modeauto", "modeheatemrgcy", "refresh", "modeoff", "configure"])        
 	}
 }
 
@@ -214,9 +216,9 @@ def parse(String description)
 	}
 
 	if (map.name == "thermostatFanMode"){
-		if (map.value == "fanAuto") {sendEvent(name: "currentfanMode", value: "Auto Mode" as String)}
-	    if (map.value == "fanOn") {sendEvent(name: "currentfanMode", value: "On Mode" as String)}
-	    if (map.value == "fanCirculate") {sendEvent(name: "currentfanMode", value: "Cycle Mode" as String)}
+		if (map.value == "fanAuto") {sendEvent(name: "currentfanMode", value: "AUTO mode" as String)}
+	    if (map.value == "fanOn") {sendEvent(name: "currentfanMode", value: "ON mode" as String)}
+	    if (map.value == "fanCirculate") {sendEvent(name: "currentfanMode", value: "CYCLE mode" as String)}
 	}
 
 	def result = [map]
@@ -322,7 +324,7 @@ def zwaveEvent(physicalgraph.zwave.commands.thermostatoperatingstatev1.Thermosta
 	switch (cmd.operatingState) {
 		case physicalgraph.zwave.commands.thermostatoperatingstatev1.ThermostatOperatingStateReport.OPERATING_STATE_IDLE:
 			map.value = "idle"
-            sendEvent(name: "currentState", value: "Idle" as String)
+            sendEvent(name: "currentState", value: "not running" as String)
 			break
 		case physicalgraph.zwave.commands.thermostatoperatingstatev1.ThermostatOperatingStateReport.OPERATING_STATE_HEATING:
 			map.value = "heating"
@@ -361,7 +363,7 @@ def zwaveEvent(physicalgraph.zwave.commands.thermostatfanstatev1.ThermostatFanSt
 	switch (cmd.fanOperatingState) {
 		case 0:
 			map.value = "idle"
-            sendEvent(name: "thermostatFanState", value: "idle")
+            sendEvent(name: "thermostatFanState", value: "not running")
 			break
 		case 1:
 			map.value = "running"
@@ -383,23 +385,23 @@ def zwaveEvent(physicalgraph.zwave.commands.thermostatmodev2.ThermostatModeRepor
 	switch (cmd.mode) {
 		case physicalgraph.zwave.commands.thermostatmodev2.ThermostatModeReport.MODE_OFF:
 			map.value = "off"
-            sendEvent(name: "currentMode", value: "Off" as String)
+            sendEvent(name: "currentMode", value: "OFF" as String)
             break
 		case physicalgraph.zwave.commands.thermostatmodev2.ThermostatModeReport.MODE_HEAT:
 			map.value = "heat"
-            sendEvent(name: "currentMode", value: "Heat" as String)
+            sendEvent(name: "currentMode", value: "HEAT" as String)
             break
 		case physicalgraph.zwave.commands.thermostatmodev2.ThermostatModeReport.MODE_AUXILIARY_HEAT:
 			map.value = "emergencyHeat"
-            sendEvent(name: "currentMode", value: "E-Heat" as String)
+            sendEvent(name: "currentMode", value: "E-HEAT" as String)
             break
 		case physicalgraph.zwave.commands.thermostatmodev2.ThermostatModeReport.MODE_COOL:
 			map.value = "cool"
-            sendEvent(name: "currentMode", value: "Cool" as String)
+            sendEvent(name: "currentMode", value: "COOL" as String)
             break
 		case physicalgraph.zwave.commands.thermostatmodev2.ThermostatModeReport.MODE_AUTO:
 			map.value = "auto"
-            sendEvent(name: "currentMode", value: "Auto" as String)
+            sendEvent(name: "currentMode", value: "AUTO" as String)
             break
 	}
 	map.name = "thermostatMode"
@@ -414,15 +416,15 @@ def zwaveEvent(physicalgraph.zwave.commands.thermostatfanmodev3.ThermostatFanMod
 	switch (cmd.fanMode) {
 		case physicalgraph.zwave.commands.thermostatfanmodev3.ThermostatFanModeReport.FAN_MODE_AUTO_LOW:
 			map.value = "fanAuto"
-            sendEvent(name: "currentfanMode", value: "Auto Mode" as String)
+            sendEvent(name: "currentfanMode", value: "AUTO Mode" as String)
 			break
 		case physicalgraph.zwave.commands.thermostatfanmodev3.ThermostatFanModeReport.FAN_MODE_LOW:
 			map.value = "fanOn"
-            sendEvent(name: "currentfanMode", value: "On Mode" as String)
+            sendEvent(name: "currentfanMode", value: "ON Mode" as String)
 			break
 		case physicalgraph.zwave.commands.thermostatfanmodev3.ThermostatFanModeReport.FAN_MODE_CIRCULATION:
 			map.value = "fanCirculate"
-            sendEvent(name: "currentfanMode", value: "Cycle Mode" as String)
+            sendEvent(name: "currentfanMode", value: "CYCLE Mode" as String)
 			break
 	}
 	map.name = "thermostatFanMode"
