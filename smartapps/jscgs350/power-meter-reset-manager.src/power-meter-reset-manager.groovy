@@ -16,6 +16,7 @@
  *  ----------------
  *  11-22-2016 : Initial release
  *  02-16-2017 : Fixed scheduling issue and improved handling when the app is initially installed and when it's updated.
+ *  10-03-2018 : Added reset ability for devices using stock DTH's (reset command)
  *
  */
 
@@ -74,6 +75,7 @@ def resetTheMeter() {
     if (currentDayOfMonth == day) {
         log.debug "...resetting the meter because it's when the user requested it."
 		settings.meters*.resetMeter()
+        settings.meters*.reset()
     } else {
         log.debug "...meter reset not scheduled for today because it's not when the user requested it."
     }
