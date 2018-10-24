@@ -356,19 +356,23 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
 def zwaveEvent(physicalgraph.zwave.commands.alarmv2.AlarmReport cmd) {
 	def map = [:]
     if (cmd.zwaveAlarmType == 8) { // Power Alarm
-    	map.name = "powerState" // For Tile (shows in "Recently")
+//    	map.name = "powerState" // For Tile (shows in "Recently")
         if (cmd.zwaveAlarmEvent == 2) { // AC Mains Disconnected
-            map.value = "disconnected"
-            sendAlarm("acMainsDisconnected")
+//            map.value = "disconnected"
+            sendEvent(name: "powerState", value: "disconnected")
+            sendAlarm("Mains Disconnected!")
         } else if (cmd.zwaveAlarmEvent == 3) { // AC Mains Reconnected
-            map.value = "reconnected"
-            sendAlarm("acMainsReconnected")
+//            map.value = "reconnected"
+			sendEvent(name: "powerState", value: "reconnected")
+            sendAlarm("Mains Reconnected")
         } else if (cmd.zwaveAlarmEvent == 0x0B) { // Replace Battery Now
-            map.value = "noBattery"
-            sendAlarm("replaceBatteryNow")
+//            map.value = "noBattery"
+			sendEvent(name: "powerState", value: "noBattery")
+            sendAlarm("Replace Battery Now")
         } else if (cmd.zwaveAlarmEvent == 0x00) { // Battery Replaced
-            map.value = "batteryReplaced"
-            sendAlarm("batteryReplaced")
+//            map.value = "batteryReplaced"
+			sendEvent(name: "powerState", value: "batteryReplaced")
+            sendAlarm("Battery Replaced")
         }
     }
     else if (cmd.zwaveAlarmType == 4) { // Heat Alarm
