@@ -59,19 +59,19 @@ metadata {
                 attributeState("default", label:'${currentValue}% battery', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/battery-icon-614x460.png")
             }
 		}
-		standardTile("contact", "device.contact", width: 2, height: 2) {
+/*		standardTile("contact", "device.contact", width: 2, height: 2) {
 			state "open", label: '${name}', icon: "st.contact.contact.open", backgroundColor: "#e86d13"
 			state "closed", label: '${name}', icon: "st.contact.contact.closed", backgroundColor: "#00A0DC"
-		}
-		standardTile("illuminance", "device.illuminance", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
+		}*/
+		standardTile("illuminance", "device.illuminance", inactiveLabel: false, decoration: "flat", width: 3, height: 2) {
 			state "luminosity", label:'${currentValue} ${unit}', unit:"lux", icon:"st.illuminance.illuminance.bright"
 		}
-		standardTile("configure", "device.configure", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
+		standardTile("configure", "device.configure", inactiveLabel: false, decoration: "flat", width: 3, height: 2) {
 			state "configure", label:'', action:"configuration.configure", icon:"st.secondary.configure"
 		}
 
 		main(["temperature"])
-		details(["temperature", "contact", "illuminance", "configure"])
+		details(["temperature", "illuminance", "configure"])
 	}
 }
 
@@ -139,14 +139,26 @@ def zwaveEvent(physicalgraph.zwave.commands.sensorbinaryv2.SensorBinaryReport cm
     map
 }
 
-def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
+/*def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
 	def map = [:]
 	map.name = "battery"
 	map.value = cmd.batteryLevel > 0 ? cmd.batteryLevel.toString() : 1
 	map.unit = "%"
 	map.displayed = false
 	map
+}*/
+def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
+	def map = [ name: "battery", unit: "%" ]
+	if (cmd.batteryLevel == 0xFF) {
+		map.value = 1
+		map.descriptionText = "${device.displayName} has a low battery"
+		map.isStateChange = true
+	} else {
+		map.value = cmd.batteryLevel > 0 ? cmd.batteryLevel.toString() : 1
+	}
+    map
 }
+
 
 def zwaveEvent(physicalgraph.zwave.commands.sensorbinaryv1.SensorBinaryReport cmd) {
 	def map = [:]
