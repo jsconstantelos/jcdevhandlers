@@ -24,7 +24,8 @@
  *  01-13-2018 : Added fingerprint
  *  01-18-2018 : Converted pressure readings from Pascal to Hg (inch of mercury).
  *  01-21-2018 : Revert change made on 1/18/2018.  Back to Pa from Hg.
- *  10-26-2018 : Created version 2.  Removed temp, pressure, and battery tiles.  Added battery level to the main tile.  Disabled temp and pressure reporting.
+ *  10-26-2018 : Created version 2.  Removed temp, pressure, and battery tiles.  Added battery level to the main tile.  Set temp/pressure reporting to 1 hour.
+ *  10-27-2018 : Updated to account for Keen's zigbee bug when opening a vent - it can't anymore with a normal zigbee on command.  Using a set level command instead as a workaround.
  *
  */
 metadata {
@@ -67,7 +68,7 @@ metadata {
                 attributeState "clearing", action: "", label: "CLEARING", icon: "st.vents.vent-open", backgroundColor: "#f0b823"
             }
             tileAttribute ("device.level", key: "SLIDER_CONTROL") {
-                attributeState("level", action:"switch level.setLevel")
+                attributeState("level", action:"switch level.setLevel", icon: "st.vents.vent")
             }
             tileAttribute ("device.battery", key: "SECONDARY_CONTROL") {
                 attributeState("default", label:'Battery is at ${currentValue}%')
@@ -100,10 +101,28 @@ metadata {
         valueTile("zigbeeId", "device.zigbeeId", inactiveLabel: true, decoration: "flat") {
             state "serial", label:'${currentValue}', backgroundColor:"#ffffff"
         }
-        
+        valueTile("temperature", "device.temperature", inactiveLabel: false, width: 2, height: 2) {
+            state "temperature", label:'${currentValue}°',
+            backgroundColors:[
+                [value: 31, color: "#153591"],
+                [value: 44, color: "#1e9cbb"],
+                [value: 59, color: "#90d2a7"],
+                [value: 74, color: "#44b621"],
+                [value: 84, color: "#f1d801"],
+                [value: 95, color: "#d04e00"],
+                [value: 96, color: "#bc2323"]
+            ]
+        }
+        valueTile("pressure", "device.pressure", inactiveLabel: false, width: 2, height: 2, decoration: "flat") {
+            state "pressure", label: 'Pressure ${currentValue}Pa', backgroundColor:"#ffffff"
+        }
         main (["switch"])
         details(["switch", "ventLevelDown", "ventTwentyFive", "ventFifty", "ventSeventyFive", "ventHundred", "ventLevelUp", "refresh", "configure"])
     }
+}
+
+def installed() {
+	state.openLevel = 100
 }
 
 /**** PARSE METHODS ****/
@@ -265,12 +284,12 @@ private Map makeLevelResult(rawValue) {
     }
 
     value = Math.floor(value / rangeMax * 100)
-
+	state.openLevel = value
     return [
         name: "level",
         value: value,
         descriptionText: "${linkText} level is ${value}%",
-        displayed: true
+        displayed: false
     ]
 }
 
@@ -381,7 +400,8 @@ def on() {
     }
 	
     sendEvent(makeOnOffResult(1))
-    "st cmd 0x${device.deviceNetworkId} 1 6 1 {}"
+//    "st cmd 0x${device.deviceNetworkId} 1 6 1 {}"
+    makeLevelCommand(state.openLevel)
 }
 
 def off() {
@@ -429,7 +449,7 @@ def setLevel(value) {
         return
     }
 
-    sendEvent(name: "level", value: value)
+    sendEvent(name: "level", value: value, displayed: false)
     
     if (value > 0) {
         sendEvent(name: "switch", value: "on", descriptionText: "${linkText} is on by setting a level")
@@ -437,7 +457,7 @@ def setLevel(value) {
     else {
         sendEvent(name: "switch", value: "off", descriptionText: "${linkText} is off by setting level to 0")
     }
-
+	state.openLevel = value
     makeLevelCommand(value)
 }
 
@@ -571,13 +591,13 @@ def configure() {
         // Yves Racine 2015/09/10: temp and pressure reports are preconfigured, but
         //   we'd like to override their settings for our own purposes
         // temperature - type: int16s, change: 0xA = 10 = 0.1C, 0x32=50=0.5C
-        "zcl global send-me-a-report 0x0402 0 0x29 0 0 {3200}", "delay 200",
+        "zcl global send-me-a-report 0x0402 0 0x29 3600 3600 {3200}", "delay 200",
         "send 0x${device.deviceNetworkId} 1 1", "delay 1500",
 
         // Yves Racine 2015/09/10: use new custom pressure attribute
         // pressure - type: int32u, change: 1 = 0.1Pa, 500=50 PA
         "zcl mfg-code 0x115B", "delay 200",
-        "zcl global send-me-a-report 0x0403 0x20 0x22 0 0 {01F400}", "delay 200",
+        "zcl global send-me-a-report 0x0403 0x20 0x22 3600 3600 {01F400}", "delay 200",
         "send 0x${device.deviceNetworkId} 1 1", "delay 1500",
 
         // mike 2015/06/2: preconfigured; see tech spec
