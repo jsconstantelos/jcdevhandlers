@@ -24,6 +24,7 @@
  *  01-13-2018 : Added fingerprint
  *  01-18-2018 : Converted pressure readings from Pascal to Hg (inch of mercury).
  *  01-21-2018 : Revert change made on 1/18/2018.  Back to Pa from Hg.
+ *  10-27-2018 : Updated to account for Keen's zigbee bug when opening a vent - it can't anymore with a normal zigbee on command.  Using a set level command instead as a workaround.
  *
  */
 metadata {
@@ -120,6 +121,10 @@ metadata {
         main (["switch"])
         details(["switch", "ventLevelDown", "ventTwentyFive", "ventFifty", "ventSeventyFive", "ventHundred", "ventLevelUp", "temperature", "pressure", "battery", "refresh", "configure"])
     }
+}
+
+def installed() {
+	state.openLevel = 100
 }
 
 /**** PARSE METHODS ****/
@@ -281,12 +286,12 @@ private Map makeLevelResult(rawValue) {
     }
 
     value = Math.floor(value / rangeMax * 100)
-
+	state.openLevel = value
     return [
         name: "level",
         value: value,
         descriptionText: "${linkText} level is ${value}%",
-        displayed: true
+        displayed: false
     ]
 }
 
@@ -397,7 +402,8 @@ def on() {
     }
 	
     sendEvent(makeOnOffResult(1))
-    "st cmd 0x${device.deviceNetworkId} 1 6 1 {}"
+//    "st cmd 0x${device.deviceNetworkId} 1 6 1 {}"
+    makeLevelCommand(state.openLevel)
 }
 
 def off() {
@@ -445,7 +451,7 @@ def setLevel(value) {
         return
     }
 
-    sendEvent(name: "level", value: value)
+    sendEvent(name: "level", value: value, displayed: false)
     
     if (value > 0) {
         sendEvent(name: "switch", value: "on", descriptionText: "${linkText} is on by setting a level")
@@ -453,7 +459,7 @@ def setLevel(value) {
     else {
         sendEvent(name: "switch", value: "off", descriptionText: "${linkText} is off by setting level to 0")
     }
-
+	state.openLevel = value
     makeLevelCommand(value)
 }
 
