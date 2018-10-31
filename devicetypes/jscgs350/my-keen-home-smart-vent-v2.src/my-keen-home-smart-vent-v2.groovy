@@ -24,7 +24,7 @@
  *  01-13-2018 : Added fingerprint
  *  01-18-2018 : Converted pressure readings from Pascal to Hg (inch of mercury).
  *  01-21-2018 : Revert change made on 1/18/2018.  Back to Pa from Hg.
- *  10-26-2018 : Created version 2.  Removed temp, pressure, and battery tiles.  Added battery level to the main tile.  Set temp/pressure reporting to 1 hour.
+ *  10-26-2018 : Created version 2.  Removed temp, pressure, and battery tiles.  Added battery level to the main tile.  Set temp/pressure reporting to once every 8 hours.
  *  10-27-2018 : Updated to account for Keen's zigbee bug when opening a vent - it can't anymore with a normal zigbee on command.  Using a set level command instead as a workaround.
  *
  */
@@ -591,18 +591,18 @@ def configure() {
         // Yves Racine 2015/09/10: temp and pressure reports are preconfigured, but
         //   we'd like to override their settings for our own purposes
         // temperature - type: int16s, change: 0xA = 10 = 0.1C, 0x32=50=0.5C
-        "zcl global send-me-a-report 0x0402 0 0x29 3600 3600 {3200}", "delay 200",
+        "zcl global send-me-a-report 0x0402 0 0x29 28800 28800 {3200}", "delay 200",
         "send 0x${device.deviceNetworkId} 1 1", "delay 1500",
 
         // Yves Racine 2015/09/10: use new custom pressure attribute
         // pressure - type: int32u, change: 1 = 0.1Pa, 500=50 PA
         "zcl mfg-code 0x115B", "delay 200",
-        "zcl global send-me-a-report 0x0403 0x20 0x22 3600 3600 {01F400}", "delay 200",
+        "zcl global send-me-a-report 0x0403 0x20 0x22 28800 28800 {01F400}", "delay 200",
         "send 0x${device.deviceNetworkId} 1 1", "delay 1500",
 
         // mike 2015/06/2: preconfigured; see tech spec
         // battery - type: int8u, change: 1
-         "zcl global send-me-a-report 1 0x21 0x20 60 3600 {01}", "delay 200",
+         "zcl global send-me-a-report 1 0x21 0x20 3600 3600 {01}", "delay 200",
          "send 0x${device.deviceNetworkId} 1 1", "delay 1500",
 
         // binding commands
