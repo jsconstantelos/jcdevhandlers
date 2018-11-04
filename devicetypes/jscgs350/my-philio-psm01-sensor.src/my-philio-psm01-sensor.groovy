@@ -70,7 +70,7 @@ metadata {
 			state "configure", label:'', action:"configuration.configure", icon:"st.secondary.configure"
 		}
 
-		main(["temperature"])
+		main(["illuminance"])
 		details(["temperature", "illuminance", "configure"])
 	}
 }
