@@ -24,7 +24,7 @@ definition(
     author: "jscgs350",
     description: "SmartApp to report Lights, Switches, and Outlets status in a single view.",
     category: "My Apps",
-    parent: "jscgs350:Dashboard - Lights, Switches, and Outlets",
+    parent: "jscgs350:Dashboard - Lights, Switches, and Outlets Parent",
     iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
     iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png")
 
