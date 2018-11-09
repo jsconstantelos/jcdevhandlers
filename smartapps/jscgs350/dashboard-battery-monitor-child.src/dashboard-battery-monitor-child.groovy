@@ -20,7 +20,7 @@ definition(
     author: "Brandon Gordon",
     description: "SmartApp to monitor battery levels.",
     category: "My Apps",
-    parent: "jscgs350:Dashboard - Battery Monitor",
+    parent: "jscgs350:Dashboard - Battery Monitor Parent",
     iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
     iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png")
 
