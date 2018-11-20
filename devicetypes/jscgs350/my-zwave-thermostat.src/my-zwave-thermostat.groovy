@@ -175,7 +175,7 @@ metadata {
 			state "default", label:'${currentValue}', icon:"https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/fan-on@2x.png"
 		}
         valueTile("temperature2", "device.temperature", width: 1, height: 1, canChangeIcon: true) {
-            state "temperature", label: '${currentValue}°', icon:"st.thermostat.ac.air-conditioning"}
+            state "temperature", label: '${currentValue}°', icon:"st.thermostat.ac.air-conditioning", backgroundColor:"#38a815"}
         
 		main (["temperature2"])
 		details(["temperature", "heatSliderControl", "coolSliderControl", "statusL1Text", "statusL2Text", "fanon", "fanauto", "fancir", "modeheat", "modecool", "modeauto", "modeheatemrgcy", "refresh", "modeoff", "configure"])
