@@ -60,10 +60,10 @@ metadata {
 
     // UI tile definitions
     tiles(scale: 2) {
-        multiAttributeTile(name:"switch", type: "lighting", width: 6, height: 4, canChangeIcon: true, decoration: "flat"){
+        multiAttributeTile(name:"switch", type: "lighting", width: 6, height: 4, decoration: "flat"){
             tileAttribute ("device.switch", key: "PRIMARY_CONTROL") {
-                attributeState "on", action: "switch.off", label: "OPEN", icon: "st.vents.vent-open", backgroundColor: "#00A0DC"
-                attributeState "off", action: "switch.on", label: "CLOSED", icon: "st.vents.vent", backgroundColor: "#ffffff"
+                attributeState "on", action: "switch.off", label: 'OPEN', icon: "st.vents.vent-open", backgroundColor: "#00A0DC"
+                attributeState "off", action: "switch.on", label: 'CLOSED', icon: "st.vents.vent", backgroundColor: "#ffffff"
                 attributeState "obstructed", action: "clearObstruction", label: "OBSTRUCTION", icon: "st.vents.vent", backgroundColor: "#ff0000"
                 attributeState "clearing", action: "", label: "CLEARING", icon: "st.vents.vent-open", backgroundColor: "#f0b823"
             }
@@ -101,7 +101,7 @@ metadata {
         valueTile("zigbeeId", "device.zigbeeId", inactiveLabel: true, decoration: "flat") {
             state "serial", label:'${currentValue}', backgroundColor:"#ffffff"
         }
-        valueTile("temperature", "device.temperature", inactiveLabel: false, width: 2, height: 2) {
+        valueTile("temperature", "device.temperature", inactiveLabel: false, width: 3, height: 2) {
             state "temperature", label:'${currentValue}°',
             backgroundColors:[
                 [value: 31, color: "#153591"],
@@ -113,11 +113,14 @@ metadata {
                 [value: 96, color: "#bc2323"]
             ]
         }
-        valueTile("pressure", "device.pressure", inactiveLabel: false, width: 2, height: 2, decoration: "flat") {
+        valueTile("pressure", "device.pressure", inactiveLabel: false, width: 3, height: 2, decoration: "flat") {
             state "pressure", label: 'Pressure ${currentValue}Pa', backgroundColor:"#ffffff"
         }
-        main (["switch"])
-        details(["switch", "ventLevelDown", "ventTwentyFive", "ventFifty", "ventSeventyFive", "ventHundred", "ventLevelUp", "refresh", "configure"])
+        valueTile("openValue", "device.level", inactiveLabel: false, width: 1, height: 1, decoration: "flat") {
+            state "level", label: '${currentValue}%', icon: "st.vents.vent-open", backgroundColor: "#00A0DC"
+        }
+        main (["openValue"])
+        details(["switch", "ventLevelDown", "ventTwentyFive", "ventFifty", "ventSeventyFive", "ventHundred", "ventLevelUp", "temperature", "pressure", "refresh", "configure"])
     }
 }
 
@@ -450,7 +453,7 @@ def setLevel(value) {
     }
 
     sendEvent(name: "level", value: value, displayed: false)
-    
+
     if (value > 0) {
         sendEvent(name: "switch", value: "on", descriptionText: "${linkText} is on by setting a level")
     }
