@@ -12,24 +12,11 @@
  *
  *  Updates:
  *  -------
- *  02-18-2016 : Initial commit
- *  08-27-2016 : Modified the device handler for my liking, primarly for looks and feel.
- *  03-24-2017 : Changed color schema to match ST's new format.
- *  04-27-2017 : Changed to standardTile instead of valueTile to workaround an ST bug breaking how valueTile worked with versions prior to v2.3.x of the mobile app.
- *  06-05-2017 : Changed to standardTile instead of valueTile for the remaining 3 tiles now that text formatting with v2.4.0 works right again.
- *  09-01-2017 : Changes color value for "clearing" to Caterpillar yellow.
- *  10-28-2017 : Stopped the DTH from posting pressure readings to the event log and the Recently tab.
- *  12-13-2017 : Reverted tiles back to value from standard to resolve iOS issues.
- *  12-15-2017 : Fixed open/close tile icons, and added Healthcheck
- *  01-13-2018 : Added fingerprint
- *  01-18-2018 : Converted pressure readings from Pascal to Hg (inch of mercury).
- *  01-21-2018 : Revert change made on 1/18/2018.  Back to Pa from Hg.
- *  10-26-2018 : Created version 2.  Removed temp, pressure, and battery tiles.  Added battery level to the main tile.  Set temp/pressure reporting to once every 8 hours.
- *  10-27-2018 : Updated to account for Keen's zigbee bug when opening a vent - it can't anymore with a normal zigbee on command.  Using a set level command instead as a workaround.
+ *  11-20-2018 : Customized to display the vent's level % instead of open/close state in device lists per DomSim's request.
  *
  */
 metadata {
-    definition (name: "My Keen Home Smart Vent v2", namespace: "jscgs350", author: "Keen Home") {
+    definition (name: "Custom Keen Home Smart Vent DTH", namespace: "DomSim", author: "Keen Home") {
         capability "Switch Level"
         capability "Switch"
         capability "Actuator"
@@ -116,8 +103,11 @@ metadata {
         valueTile("pressure", "device.pressure", inactiveLabel: false, width: 3, height: 2, decoration: "flat") {
             state "pressure", label: 'Pressure ${currentValue}Pa', backgroundColor:"#ffffff"
         }
-        main (["switch"])
-        details(["switch", "ventLevelDown", "ventTwentyFive", "ventFifty", "ventSeventyFive", "ventHundred", "ventLevelUp", "refresh", "configure"])
+        valueTile("openValue", "device.level", inactiveLabel: false, width: 1, height: 1, decoration: "flat") {
+            state "level", label: '${currentValue}%', icon: "st.vents.vent-open", backgroundColor: "#00A0DC"
+        }
+        main (["openValue"])
+        details(["switch", "ventLevelDown", "ventTwentyFive", "ventFifty", "ventSeventyFive", "ventHundred", "ventLevelUp", "temperature", "pressure", "refresh", "configure"])
     }
 }
 
@@ -592,19 +582,19 @@ def configure() {
         // Yves Racine 2015/09/10: temp and pressure reports are preconfigured, but
         //   we'd like to override their settings for our own purposes
         // temperature - type: int16s, change: 0xA = 10 = 0.1C, 0x32=50=0.5C
-        "zcl global send-me-a-report 0x0402 0 0x29 28800 28800 {3200}", "delay 200",
+        "zcl global send-me-a-report 0x0402 0 0x29 300 600 {3200}", "delay 200",
         "send 0x${device.deviceNetworkId} 1 1", "delay 1500",
 
         // Yves Racine 2015/09/10: use new custom pressure attribute
         // pressure - type: int32u, change: 1 = 0.1Pa, 500=50 PA
         "zcl mfg-code 0x115B", "delay 200",
-        "zcl global send-me-a-report 0x0403 0x20 0x22 28800 28800 {01F400}", "delay 200",
+        "zcl global send-me-a-report 0x0403 0x20 0x22 300 600 {01F400}", "delay 200",
         "send 0x${device.deviceNetworkId} 1 1", "delay 1500",
 
         // mike 2015/06/2: preconfigured; see tech spec
         // battery - type: int8u, change: 1
-         "zcl global send-me-a-report 1 0x21 0x20 3600 3600 {01}", "delay 200",
-         "send 0x${device.deviceNetworkId} 1 1", "delay 1500",
+        // "zcl global send-me-a-report 1 0x21 0x20 60 3600 {01}", "delay 200",
+        // "send 0x${device.deviceNetworkId} 1 1", "delay 1500",
 
         // binding commands
         "zdo bind 0x${device.deviceNetworkId} 1 1 0x0006 {${device.zigbeeId}} {}", "delay 500",
