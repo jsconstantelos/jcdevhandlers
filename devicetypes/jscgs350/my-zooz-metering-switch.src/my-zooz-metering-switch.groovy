@@ -113,7 +113,7 @@ metadata {
 		standardTile("power2", "device.power", width: 3, height: 1, decoration: "flat") {
 			state "power", icon: "st.switches.switch.on", label:'${currentValue} W'
 		}
-		main "power2"
+		main "switch"
 		details(["switch", "energy", "kwhCosts", "voltage", "current", "history", "resetWatts", "resetEnergy", "resetVolts", "resetAmps", "refresh"])
 	}
 }
