@@ -28,6 +28,9 @@ metadata {
 
 		command "enrollResponse"
         command "configure"
+        
+        fingerprint inClusters: "0000,0001,0003,0402,0405,0020,0B05,FC01,FC02", outClusters: "0019", manufacturer: "iMagic by GreatStar", model: "1117-S", deviceJoinName: "Iris Motion Sensor"
+        
 	}
 
 	simulator {
