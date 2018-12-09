@@ -555,8 +555,9 @@ private def createAdjustedTempString(double val)
         }
         state.tempCelcius = val
     }
-    
-    sendEvent(name: "temperature", value: val, unit: "", displayed: true)
+    def dispValue
+    dispValue = String.format("%3.1f",val)
+    sendEvent(name: "temperature", value: dispValue, unit: "", displayed: true)
     return tempStringPrefix() + " " +val.toString()
     
 }
