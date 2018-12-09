@@ -46,23 +46,20 @@ metadata {
                         [value: 96, color: "#bc2323"]
                     ]
             }
-            tileAttribute ("device.battery", key: "SECONDARY_CONTROL") {
-                attributeState("default", label:'battery ${currentValue}${unit}')
-            }
         }
         valueTile("humidity", "device.humidity", inactiveLabel: false, width: 3, height: 2, wordWrap: true) {
-            state "humidity", label: 'Humidity ${currentValue}${unit}', unit:"%", defaultState: true
+            state "humidity", label: 'Humidity ${currentValue}%', unit:"%", defaultState: true
         }
         valueTile("pressure", "device.pressure", inactiveLabel: false, width: 3, height: 2, wordWrap: true) {
-            state "pressure", label: 'Pressure ${currentValue}${unit}', unit:"kPa", defaultState: true
+            state "pressure", label: 'Pressure ${currentValue}kPa', unit:"kPa", defaultState: true
         }
         
-        valueTile("illuminance", "device.illuminance", width:3, height: 2) {
-            state "illuminance", label: 'illuminance ${currentValue}${unit}', unit:"Lux", defaultState: true
+        valueTile("illuminance", "device.illuminance", width: 6, height: 2) {
+            state "illuminance", label: 'illuminance ${currentValue}Lux', unit:"Lux", defaultState: true
         }
         
         valueTile("battery", "device.battery", width:3, height: 2) {
-            state "battery", label: 'battery ${currentValue}${unit}', unit:"%", defaultState: true
+            state "battery", label: 'battery ${currentValue}%', unit:"%", defaultState: true
         }
         
         standardTile("refresh", "device.refresh", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
@@ -76,7 +73,7 @@ metadata {
         tiles_detail.add("pressure")
         
         tiles_detail.add("illuminance")
-        tiles_detail.add("battery")
+//        tiles_detail.add("battery")
                 
         MapDiagAttributes().each{ k, v -> valueTile("$v", "device.$v", width: 2, height: 2, wordWrap: true) {
                 state "val", label: "$v \n"+'${currentValue}', defaultState: true
@@ -559,8 +556,9 @@ private def createAdjustedTempString(double val)
         state.tempCelcius = val
     }
     
-//    return tempStringPrefix() + " " +val.toString()
-    return tempStringPrefix() + " " +val
+    sendEvent(name: "temperature", value: val, unit: "", displayed: true)
+    return tempStringPrefix() + " " +val.toString()
+    
 }
 
 private def createAdjustedHumString(double val)
@@ -569,7 +567,7 @@ private def createAdjustedHumString(double val)
     if (humOffset) {
         adj = humOffset
     }
-    
+    sendEvent(name: "humidity", value: val+adj, unit: "%", displayed: true)
     return humidityStringPrefix() + " " +(val + adj).toString() + "%"
 }
 
@@ -619,11 +617,23 @@ def parse(String description) {
     Log("description is $description")
     
     def event = zigbee.getEvent(description)
-    if(event)
+    
+    if (description?.startsWith('temperature')) {
+		Log("Already sent temperature event")
+        return
+	} else if (description?.startsWith('humidity')) {
+    	Log("Already sent humidity event")
+        return
+    } else if(event) {
+    	sendEvent(event)
+        return
+    }
+    
+/*    if(event)
     {
         sendEvent(event)
         return
-    }
+    }*/
     
     event = parseIlluminanceEventFromString(description)
     if(event)
