@@ -158,7 +158,9 @@ def parse(String description) {
 	} else if (map.name == "temperature") {
 		if (tempOffset) {
 			map.value = map.value + tempOffset
-		}
+		} else {
+        	map.value = map.value + 0.0
+        }
 		map.descriptionText = temperatureScale == 'C' ? '{{ device.displayName }} was {{ value }}°C' : '{{ device.displayName }} was {{ value }}°F'
 		map.translatable = true
         def dispValue
