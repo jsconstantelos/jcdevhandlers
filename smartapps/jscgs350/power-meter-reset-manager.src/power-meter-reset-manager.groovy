@@ -17,7 +17,7 @@
  *  11-22-2016 : Initial release
  *  02-16-2017 : Fixed scheduling issue and improved handling when the app is initially installed and when it's updated.
  *  10-03-2018 : Added reset ability for devices using stock DTH's (reset command)
- *  12-18-2018 : Removed resetMeter in favor of just using reset since ST's stock DTH's use reset, and not resetMeter.  My respective custom DTH's have also been updated.
+ *  12-18-2018 : Removed resetMeter in favor of just using reset since ST's stock DTH's use reset, and not resetMeter.  My respective custom DTH's have also been updated.  Also fixed scheduling issues.
  *
  */
 
@@ -44,16 +44,18 @@ preferences {
 
 def installed() {
 	log.debug "Power Meter Reset Manager SmartApp installed, now preparing to schedule the first reset."
+    resetTheMeter()
 }
 
 def updated() {
-	log.debug "Power Meter Reset Manager SmartApp updated, so update the user defined schedule and schedule another check for the next day."
-	unschedule()
+	log.debug "Power Meter Reset Manager SmartApp updated, and/or initialized due to a first time install, so update the user defined schedule."
+/*	unschedule()
     def scheduleTime = timeToday(time, location.timeZone)
     def timeNow = now()
     log.debug "Current time is ${(new Date(timeNow)).format("EEE MMM dd yyyy HH:mm z", location.timeZone)}"
     log.debug "Scheduling meter reset check at ${scheduleTime.format("EEE MMM dd yyyy HH:mm z", location.timeZone)}"
-    schedule(scheduleTime, resetTheMeter)
+    schedule(scheduleTime, resetTheMeter)*/
+    resetTheMeter()
 }
 
 def initialize() {
