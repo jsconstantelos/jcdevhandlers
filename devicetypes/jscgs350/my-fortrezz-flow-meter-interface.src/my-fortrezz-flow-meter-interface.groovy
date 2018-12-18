@@ -91,6 +91,7 @@ metadata {
         command "resetgallonHigh"
         command "resetMeter"
         command "fixChart"
+        command "reset"
 
 	    fingerprint deviceId: "0x2101", inClusters: "0x5E, 0x86, 0x72, 0x5A, 0x73, 0x71, 0x85, 0x59, 0x32, 0x31, 0x70, 0x80, 0x7A"
 	}
@@ -247,6 +248,10 @@ def take28() {
 
 def poll() {
     refresh()
+}
+
+def reset() {
+    resetMeter()
 }
 
 def resetMeter() {
