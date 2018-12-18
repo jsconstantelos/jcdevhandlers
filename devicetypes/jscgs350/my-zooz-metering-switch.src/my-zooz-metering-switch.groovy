@@ -17,6 +17,7 @@
  *  10-07-2017 : Changed several tiles from standard to value to resolve iOS rendering issue.
  *  12-01-2017 : Fixed history not properly being updated.
  *  02-02-2018 : Resolved on/off state not properly being reflected/updated in the mobile app or IDE.
+ *  12-18-2018 : Added reset command
  *
  */
 metadata {
@@ -50,6 +51,7 @@ metadata {
         command "resetAmps"
 		command "resetMeter"
         command "configure"
+        command "reset"
 	}
 
     preferences {
@@ -426,6 +428,10 @@ def resetAmps() {
         zwave.meterV3.meterGet(scale: 5).format()
     ])
     cmd
+}
+
+def reset() {
+	resetMeter()
 }
 
 def resetMeter() {

@@ -60,6 +60,7 @@
  *  10-07-2017 : Fixed code for battery reports still going to the Recently tab in the mobile app even though the option not to send messages was enabled.
  *  10-26-2017 : Added 2 new attributes to capture kWh and cost data before they're reset in case someone needs to refer back to them for any reason.  These can be seen in the IDE and in the Recently Tab in the mobile app.
  *  10-04-2018 : Trying to include code for new Samsung mobile app, and cleaned up code for battery reporting since the HEM doesn't report a real value, just OK or low.
+ *  12-18-2018 : Added reset command.
  *
  */
 metadata {
@@ -89,6 +90,7 @@ metadata {
 		command "resetmin"
 		command "resetmax"
 		command "resetMeter"
+        command "reset"
 
 		fingerprint deviceId: "0x2101", inClusters: " 0x70,0x31,0x72,0x86,0x32,0x80,0x85,0x60"
 	}
@@ -392,6 +394,10 @@ def resetmax() {
 		zwave.meterV2.meterGet(scale: 2).format()
 	])
 	cmd
+}
+
+def reset() {
+	resetMeter()
 }
 
 def resetMeter() {
