@@ -289,7 +289,7 @@ private Map makeLevelResult(rawValue) {
         name: "level",
         value: value,
         descriptionText: "${linkText} level is ${value}%",
-        displayed: false
+        displayed: true
     ]
 }
 
@@ -301,7 +301,7 @@ private Map makePressureResult(rawValue) {
         name: 'pressure',
         descriptionText: "${linkText} pressure is ${pascals}Pa",
         value: pascals,
-        displayed: false
+        displayed: true
     ]
     return result
 }
