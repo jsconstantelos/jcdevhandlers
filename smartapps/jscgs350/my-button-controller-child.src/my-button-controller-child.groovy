@@ -30,13 +30,17 @@ preferences {
 	for (def i=1; i<=8; i++) {
 		page(name: "configureButton$i")
 	}
-
 	page(name: "timeIntervalInput", title: "Only during a certain time") {
 		section {
-			input "starting", "time", title: "Starting", required: false
-			input "ending", "time", title: "Ending", required: false
+			input "starting", "time", title: "Starting Time", required: false
+			input "ending", "time", title: "Ending Time", required: false
 		}
 	}
+    page(name: "nameOptions", title: "Name the button controller", install: true, uninstall: true) {
+        section([mobileOnly:true]) {
+            label title: "Assign a name", required: false
+        }
+    }
 }
 
 def selectButton() {
@@ -56,6 +60,9 @@ def selectButton() {
 
 			input "modes", "mode", title: "Only when mode is", multiple: true, required: false
 		}
+        section([mobileOnly:true]) {
+            label title: "Assign a name", required: false
+        }
 	}
 }
 

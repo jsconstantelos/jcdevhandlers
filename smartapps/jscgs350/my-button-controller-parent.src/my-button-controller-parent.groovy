@@ -2,7 +2,7 @@ definition(
     name: "My Button Controller Parent",
     singleInstance: true,
     namespace: "jscgs350",
-    author: "SmartThings",
+    author: "jscgs350",
     description: "My Button Controller Parent",
     category: "My Apps",
     iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
