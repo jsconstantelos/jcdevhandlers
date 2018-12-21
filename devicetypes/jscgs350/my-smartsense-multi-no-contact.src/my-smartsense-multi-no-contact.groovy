@@ -40,8 +40,8 @@ metadata {
 	tiles(scale: 2) {
 		multiAttributeTile(name:"acceleration", type: "generic", width: 6, height: 4){
 			tileAttribute ("device.acceleration", key: "PRIMARY_CONTROL") {
-				attributeState "active", label:'Activity!', icon:"st.motion.acceleration.active", backgroundColor:"#53a7c0"
-				attributeState "inactive", label:'No Activity', icon:"st.motion.acceleration.inactive", backgroundColor:"#ffffff"
+				attributeState "active", label:'Activity!', icon:"http://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/mailbox.png", backgroundColor:"#53a7c0"
+				attributeState "inactive", label:'No Activity', icon:"http://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/mailbox.png", backgroundColor:"#ffffff"
 			}
             tileAttribute ("device.battery", key: "SECONDARY_CONTROL") {
                 attributeState("default", label:'${currentValue}% battery', icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/battery-icon-614x460.png")
