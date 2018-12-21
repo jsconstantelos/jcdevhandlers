@@ -68,7 +68,7 @@ metadata {
                 attributeState "clearing", action: "", label: "CLEARING", icon: "st.vents.vent-open", backgroundColor: "#f0b823"
             }
             tileAttribute ("device.level", key: "SLIDER_CONTROL") {
-                attributeState("level", action:"switch level.setLevel", icon: "st.vents.vent")
+                attributeState("level", label:'OPEN', action:"switch level.setLevel")
             }
             tileAttribute ("device.battery", key: "SECONDARY_CONTROL") {
                 attributeState("default", label:'Battery is at ${currentValue}%')
