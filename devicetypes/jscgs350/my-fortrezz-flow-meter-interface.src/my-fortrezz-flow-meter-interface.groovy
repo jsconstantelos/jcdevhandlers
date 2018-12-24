@@ -179,7 +179,7 @@ metadata {
 			state "highflow", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#ff0000", label: "High Flow"
 		}
 		main (["waterState"])
-		details(["gpm", "gpmTotal", "gpmLastUsed", "gallonHigh", "gpmHigh", "dayChart", "weekChart", "monthChart", "chartCycle", "powerState", "temperature", "battery", "zeroTile", "configure", "history"])
+		details(["gpm", "gpmTotal", "gpmLastUsed", "gallonHigh", "gpmHigh", "dayChart", "weekChart", "monthChart", "powerState", "temperature", "battery", "zeroTile", "configure", "chartCycle", "history"])
 	}
 }
 
