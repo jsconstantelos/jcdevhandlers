@@ -83,19 +83,19 @@ def pageStatus() {
 		}
         
         if (listLevel1) {
-        	section("Batteries with low charge (less than $settings.level1)") {
+        	section("Batteries needing attention right now (less than $settings.level1)") {
             	paragraph listLevel1.trim()
             }
         }
 
         if (listLevel2) {
-            section("Batteries with medium charge (between $settings.level1 and $settings.level3)") {
+            section("Batteries to monitor charge (between $settings.level1 and $settings.level3)") {
                 paragraph listLevel2.trim()
             }
         }
 
         if (listLevel3) {
-            section("Batteries with high charge (more than $settings.level3)") {
+            section("Batteries with acceptable charge (more than $settings.level3)") {
                 paragraph listLevel3.trim()
             }
         }
