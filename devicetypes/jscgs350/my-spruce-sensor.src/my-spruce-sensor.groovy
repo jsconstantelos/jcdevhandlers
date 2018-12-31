@@ -144,8 +144,6 @@ def parse(String description) {
     
 }
 
-
-
 private Map parseCatchAllMessage(String description) {
     Map resultMap = [:]
     def linkText = getLinkText(device)
@@ -245,8 +243,6 @@ private Map getHumidityResult(value) {
     ]
 }
 
-
-
 def getTemperature(value) {
 	def celsius = (Integer.parseInt(value, 16).shortValue()/100)
     //log.debug "Report Temp $value : $celsius C"
@@ -315,7 +311,7 @@ def setConfig(){
 
 def installed(){
 	//check every 1 hour + 2mins
-    sendEvent(name: "checkInterval", value: 1 * 60 * 60 + 2 * 60, displayed: false, data: [protocol: "zigbee", hubHardwareId: device.hub.hardwareID])
+    sendEvent(name: "checkInterval", value: 2*30 * 60 + 2 * 60, displayed: false, data: [protocol: "zigbee", hubHardwareId: device.hub.hardwareID])
 }
 
 //when device preferences are changed
@@ -328,7 +324,11 @@ def updated(){
     	}
     }
     //check every 1 hour + 2mins
-    sendEvent(name: "checkInterval", value: 1 * 60 * 60 + 2 * 60, displayed: false, data: [protocol: "zigbee", hubHardwareId: device.hub.hardwareID])
+    sendEvent(name: "checkInterval", value: 2*30* 60 + 2 * 60, displayed: false, data: [protocol: "zigbee", hubHardwareId: device.hub.hardwareID])
+}
+
+def ping() {
+	refresh()
 }
 
 //poll
