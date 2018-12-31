@@ -116,19 +116,19 @@ metadata {
 		}       
 
 //Thermostat Mode Control
-        standardTile("modeheat", "device.thermostatMode", width: 2, height: 1, inactiveLabel: false, decoration: "flat") {
+        standardTile("modeheat", "device.thermostatMode", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
             state "heat", label:'Heat Mode', action:"heat", icon:"https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/heat@2x.png"
         }
-        standardTile("modecool", "device.thermostatMode", width: 2, height: 1, inactiveLabel: false, decoration: "flat") {
+        standardTile("modecool", "device.thermostatMode", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
             state "cool", label:'Cool Mode', action:"cool", icon:"https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/cool@2x.png"
         }
-        standardTile("modeauto", "device.thermostatMode", width: 2, height: 1, inactiveLabel: false, decoration: "flat") {
+        standardTile("modeauto", "device.thermostatMode", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
             state "auto", label:'Auto Mode', action:"auto", icon:"https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/auto@2x.png"
         }
         standardTile("modeheatemrgcy", "device.thermostatMode", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
             state "heatemrgcy", label:'', action:"emergencyHeat", icon:"st.thermostat.emergency-heat"
         }         
-        standardTile("modeoff", "device.thermostatMode", width: 3, height: 1, inactiveLabel: false, decoration: "flat") {
+        standardTile("modeoff", "device.thermostatMode", width: 6, height:2, inactiveLabel: false, decoration: "flat") {
             state "off", label: '', action:"offmode", icon:"st.thermostat.heating-cooling-off"
         }        
 
@@ -178,7 +178,7 @@ metadata {
             state "temperature", label: '${currentValue}°', icon:"st.thermostat.ac.air-conditioning", backgroundColor:"#38a815"}
         
 		main (["temperature2"])
-		details(["temperature", "heatSliderControl", "coolSliderControl", "statusL1Text", "statusL2Text", "fanon", "fanauto", "fancir", "modeheat", "modecool", "modeauto", "modeheatemrgcy", "refresh", "modeoff", "configure"])
+		details(["temperature", "heatSliderControl", "coolSliderControl", "statusL1Text", "statusL2Text", "fanon", "fanauto", "fancir", "modeheat", "modecool", "modeauto", "modeheatemrgcy", "refresh", "configure", "modeoff"])
 	}
 }
 
