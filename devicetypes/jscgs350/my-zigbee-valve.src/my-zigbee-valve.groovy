@@ -43,7 +43,7 @@ metadata {
         }
 
         valueTile("battery", "device.battery", inactiveLabel:false, decoration:"flat", width:3, height:2) {
-            state "battery", label:'${currentValue}% battery', unit:""
+            state "battery", action:"configuration.configure", label:'${currentValue}% battery', unit:""
         }
 
         standardTile("refresh", "device.refresh", inactiveLabel: false, decoration: "flat", width: 3, height: 2) {
@@ -138,11 +138,12 @@ def refresh() {
 
 def configure() {
     log.debug "Configuring Reporting and Bindings."
+    sendEvent(name: "checkInterval", value: 2*15* 60 + 2 * 60, displayed: false, data: [protocol: "zigbee", hubHardwareId: device.hub.hardwareID, offlinePingable: "1"])
     refresh()
 }
 
 def installed() {
-    sendEvent(name: "checkInterval", value: 2 * 60 * 60 + 2 * 60, displayed: false, data: [protocol: "zigbee", hubHardwareId: device.hub.hardwareID, offlinePingable: "1"])
+    sendEvent(name: "checkInterval", value: 2*15* 60 + 2 * 60, displayed: false, data: [protocol: "zigbee", hubHardwareId: device.hub.hardwareID, offlinePingable: "1"])
 }
 
 def ping() {
