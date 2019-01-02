@@ -76,7 +76,7 @@ metadata {
 
 //Thermostat Temp and State
 	tiles(scale: 2) {
-		multiAttributeTile(name:"temperature", type: "thermostat", width: 6, height: 4, decoration: "flat"){
+		multiAttributeTile(name:"temperature", type: "", width: 6, height: 4, decoration: "flat"){
             tileAttribute("device.temperature", key: "PRIMARY_CONTROL") {
                 attributeState("temperature", label:'${currentValue}°', backgroundColors:[
 							// Celsius

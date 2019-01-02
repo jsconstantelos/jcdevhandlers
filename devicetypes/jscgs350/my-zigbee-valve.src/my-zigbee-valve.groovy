@@ -86,10 +86,10 @@ def parse(String description) {
         if (descMap.clusterInt == CLUSTER_BASIC && descMap.attrInt == BASIC_ATTR_POWER_SOURCE){
             def value = descMap.value
             if (value == "01" || value == "02") {
-                sendEvent(name: "powerSource", value: "mains")
+                sendEvent(name: "powerSource", value: "AC Power")
             }
             else if (value == "03") {
-                sendEvent(name: "powerSource", value: "battery")
+                sendEvent(name: "powerSource", value: "Backup Battery")
             }
             else if (value == "04") {
                 sendEvent(name: "powerSource", value: "dc")
