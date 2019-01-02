@@ -76,20 +76,34 @@ metadata {
 
 //Thermostat Temp and State
 	tiles(scale: 2) {
-		multiAttributeTile(name:"temperature", type: "generic", width: 6, height: 4, decoration: "flat"){
+		multiAttributeTile(name:"temperature", type: "thermostat", width: 6, height: 4, decoration: "flat"){
             tileAttribute("device.temperature", key: "PRIMARY_CONTROL") {
-                attributeState("temperature", label:'${currentValue}°', backgroundColor:"#38a815")
+                attributeState("temperature", label:'${currentValue}°', backgroundColors:[
+							// Celsius
+							[value: 0, color: "#153591"],
+							[value: 7, color: "#1e9cbb"],
+							[value: 15, color: "#90d2a7"],
+							[value: 23, color: "#44b621"],
+							[value: 28, color: "#f1d801"],
+							[value: 35, color: "#d04e00"],
+							[value: 37, color: "#bc2323"],
+							// Fahrenheit
+							[value: 40, color: "#153591"],
+							[value: 44, color: "#1e9cbb"],
+							[value: 59, color: "#90d2a7"],
+							[value: 74, color: "#44b621"],
+							[value: 84, color: "#f1d801"],
+							[value: 95, color: "#d04e00"],
+							[value: 96, color: "#bc2323"]
+					])
             }
 			tileAttribute("device.thermostatSetpoint", key: "VALUE_CONTROL") {
 				attributeState("VALUE_UP", action: "setLevelUp")
 				attributeState("VALUE_DOWN", action: "setLevelDown")
                 attributeState("default", label:'${currentValue}°')
 			}
-          /*tileAttribute("device.humidity", key: "SECONDARY_CONTROL") {
-                attributeState("default", label:'${currentValue}%', unit:"%")
-            }*/
             tileAttribute("device.statusL1Text", key: "SECONDARY_CONTROL") {
-                attributeState("default", label:'${currentValue}')
+                attributeState("default", label:'${currentValue}', icon:"st.Home.home1")
             }             
             tileAttribute("device.thermostatOperatingState", key: "OPERATING_STATE") {
                 attributeState("idle", backgroundColor:"#44b621")
@@ -185,7 +199,7 @@ metadata {
 def updated(){
 	state.debug = ("true" == debugOutput)
 	// Device-Watch simply pings if no device events received for 32min(checkInterval)
-	sendEvent(name: "checkInterval", value: 2 * 15 * 60 + 2 * 60, displayed: false, data: [protocol: "zwave", hubHardwareId: device.hub.hardwareID])
+	sendEvent(name: "checkInterval", value: 2 * 30 * 60 + 2 * 60, displayed: false, data: [protocol: "zwave", hubHardwareId: device.hub.hardwareID, offlinePingable: "1"])
 }
 
 def parse(String description)

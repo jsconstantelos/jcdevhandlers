@@ -127,7 +127,7 @@ metadata {
 		standardTile("monthChart", "device.chartMode", width: 2, height: 1, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
 			state "month", label:'Tap to show', action: 'take28', icon: "http://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/monthv2.png"
 		}
-		valueTile("temperature", "device.temperature", width: 2, height: 2) {
+		valueTile("temperature", "device.temperature", width: 2, height: 1) {
             state("temperature", label:'${currentValue}°', action:"refresh.refresh",
                 backgroundColors:[
                     [value: 31, color: "#153591"],
@@ -155,22 +155,22 @@ metadata {
         valueTile("lastReset", "lastReset", inactiveLabel: false, decoration: "flat", width: 5, height: 1) {
 			state "lastReset", label:'${currentValue}'
 		}
-		valueTile("powerState", "device.powerState", width: 2, height: 2) { 
+		valueTile("powerState", "device.powerState", width: 2, height: 1) { 
 			state "reconnected", label: "Power On", icon: "st.switches.switch.on", backgroundColor: "#79b821"
 			state "disconnected", label: "Power Off", icon: "st.switches.switch.off", backgroundColor: "#ffa81e"
 			state "batteryReplaced", icon:"http://swiftlet.technology/wp-content/uploads/2016/04/Full-Battery-96.png", backgroundColor:"#cccccc"
 			state "noBattery", icon:"http://swiftlet.technology/wp-content/uploads/2016/04/No-Battery-96.png", backgroundColor:"#cc0000"
 		}
-		standardTile("battery", "device.battery", inactiveLabel: false, width: 2, height: 2) {
-			state "battery", label:'${currentValue}%\n Battery', unit:"", icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/battery-icon-614x460.png"
+		standardTile("battery", "device.battery", inactiveLabel: false, width: 2, height:1) {
+			state "battery", label:'${currentValue}%', unit:"", icon: "https://raw.githubusercontent.com/constjs/jcdevhandlers/master/img/battery-icon-614x460.png"
 		}
-        standardTile("zeroTile", "device.zero", width: 3, height: 2, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
+        standardTile("zeroTile", "device.zero", width: 3, height:1, canChangeIcon: false, canChangeBackground: false, decoration: "flat") {
 			state "zero", label:'Reset Meter', action: 'resetMeter', icon: "st.secondary.refresh-icon"
 		}
-		standardTile("configure", "device.configure", width: 3, height: 2, inactiveLabel: false, decoration: "flat") {
+		standardTile("configure", "device.configure", width: 3, height:1, inactiveLabel: false, decoration: "flat") {
 			state "configure", label: "Configure\nDevice", action: "configuration.configure", icon: "st.secondary.tools"
 		}
-		valueTile("history", "device.history", decoration:"flat", width: 6, height: 5) {
+		valueTile("history", "device.history", decoration:"flat", width: 6,height:2) {
 			state "history", label:'${currentValue}'
 		}
 		standardTile("waterState", "device.waterState", width: 1, height: 1) { 
@@ -179,7 +179,7 @@ metadata {
 			state "highflow", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#ff0000", label: "High Flow"
 		}
 		main (["waterState"])
-		details(["gpm", "gpmTotal", "gpmLastUsed", "gallonHigh", "gpmHigh", "dayChart", "weekChart", "monthChart", "powerState", "temperature", "battery", "configure", "zeroTile", "history"])
+		details(["gpm", "gpmTotal", "gpmLastUsed", "gallonHigh", "gpmHigh", "dayChart", "weekChart", "monthChart", "powerState", "temperature", "battery", "chartCycle", "configure", "zeroTile", "history"])
 	}
 }
 
@@ -194,7 +194,7 @@ def installed() {
 def updated(){
 	state.debug = ("true" == debugOutput)
 	// Device-Watch simply pings if no device events received for 32min(checkInterval)
-	sendEvent(name: "checkInterval", value: 2 * 15 * 60 + 2 * 60, displayed: false, data: [protocol: "zwave", hubHardwareId: device.hub.hardwareID])
+	sendEvent(name: "checkInterval", value: 2 * 30 * 60 + 2 * 60, displayed: false, data: [protocol: "zwave", hubHardwareId: device.hub.hardwareID, offlinePingable: "1"])
     response(configure())
 }
 
@@ -263,7 +263,7 @@ def resetMeter() {
     } else {
     	state.meterResetDate = ""
     }
-    sendEvent(name: "cumulativeLastReset", value: state.lastCumulative+" gal "+"\n"+timeString, displayed: false)
+    sendEvent(name: "cumulativeLastReset", value: state.lastCumulative+" gal", displayed: false)
     def cmds = delayBetween([
 	    zwave.meterV3.meterReset().format()
     ])
@@ -273,7 +273,7 @@ def resetMeter() {
     dispValue = "Meter was reset on "+timeString
     sendEvent(name: "lastReset", value: dispValue as String, displayed: false)
 	def historyDisp = ""
-    historyDisp = "Important Device Messages\n-------------------------------------------------------------------\n${device.currentState('statusText')?.value}\n${device.currentState('lastReset')?.value}\nCummulative at last reset: ${device.currentState('cumulativeLastReset')?.value}\nHighest gallons used at last reset: ${device.currentState('gallonHighLastReset')?.value}\nHighest GPM at last reset: ${device.currentState('gpmHighLastReset')?.value}"
+    historyDisp = "${device.currentState('lastReset')?.value}\nCummulative at last reset: ${device.currentState('cumulativeLastReset')?.value}\nHighest gallons used at last reset: ${device.currentState('gallonHighLastReset')?.value}\nHighest GPM at last reset: ${device.currentState('gpmHighLastReset')?.value}"
     sendEvent(name: "history", value: historyDisp, displayed: false)
     return cmds
 }
@@ -281,22 +281,22 @@ def resetMeter() {
 def resetgpmHigh() {
 	log.debug "Resetting high value for GPM..."
     def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
-    sendEvent(name: "gpmHighLastReset", value: state.deltaHigh+" gpm on"+"\n"+timeString, displayed: false)
+    sendEvent(name: "gpmHighLastReset", value: state.deltaHigh+" gpm", displayed: false)
     state.deltaHigh = 0
     sendEvent(name: "gpmHigh", value: "(resently reset)")
 	def historyDisp = ""
-    historyDisp = "Important Device Messages\n-------------------------------------------------------------------\n${device.currentState('statusText')?.value}\n${device.currentState('lastReset')?.value}\nCummulative at last reset: ${device.currentState('cumulativeLastReset')?.value}\nHighest gallons used at last reset: ${device.currentState('gallonHighLastReset')?.value}\nHighest GPM at last reset: ${device.currentState('gpmHighLastReset')?.value}"
+    historyDisp = "${device.currentState('lastReset')?.value}\nCummulative at last reset: ${device.currentState('cumulativeLastReset')?.value}\nHighest gallons used at last reset: ${device.currentState('gallonHighLastReset')?.value}\nHighest GPM at last reset: ${device.currentState('gpmHighLastReset')?.value}"
     sendEvent(name: "history", value: historyDisp, displayed: false)
 }
 
 def resetgallonHigh() {
 	log.debug "Resetting high value for gallons used..."
     def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
-    sendEvent(name: "gallonHighLastReset", value: state.lastGallon+" gals on"+"\n"+timeString, displayed: false)
+    sendEvent(name: "gallonHighLastReset", value: state.lastGallon+" gals", displayed: false)
     state.lastGallon = 0
     sendEvent(name: "gallonHigh", value: "(resently reset)")
 	def historyDisp = ""
-    historyDisp = "Important Device Messages\n-------------------------------------------------------------------\n${device.currentState('statusText')?.value}\n${device.currentState('lastReset')?.value}\nCummulative at last reset: ${device.currentState('cumulativeLastReset')?.value}\nHighest gallons used at last reset: ${device.currentState('gallonHighLastReset')?.value}\nHighest GPM at last reset: ${device.currentState('gpmHighLastReset')?.value}"
+    historyDisp = "${device.currentState('lastReset')?.value}\nCummulative at last reset: ${device.currentState('cumulativeLastReset')?.value}\nHighest gallons used at last reset: ${device.currentState('gallonHighLastReset')?.value}\nHighest GPM at last reset: ${device.currentState('gpmHighLastReset')?.value}"
     sendEvent(name: "history", value: historyDisp, displayed: false)
 }
 
@@ -359,6 +359,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.alarmv2.AlarmReport cmd) {
+    log.debug "Alarm reporting section..."
 	def map = [:]
     if (cmd.zwaveAlarmType == 8) { // Power Alarm
 //    	map.name = "powerState" // For Tile (shows in "Recently")
@@ -445,7 +446,7 @@ def sendDataToCloud(double data) {
     } catch (e) {
         log.debug "something went wrong: $e"
     }
-//    take1()
+    take1()
 }
 
 def getTemperature(value) {
@@ -493,7 +494,8 @@ def sendAlarm(text) {
 
 // PING is used by Device-Watch in attempt to reach the Device
 def ping() {
-	refresh()
+    refresh()
+    //zwave.sensorMultilevelV5.sensorMultilevelGet().format()
 }
 
 def refresh() {
@@ -506,7 +508,7 @@ def refresh() {
     statusTextmsg = "Last refreshed at "+timeString
     sendEvent(name:"statusText", value:statusTextmsg)
 	def historyDisp = ""
-    historyDisp = "Important Device Messages\n-------------------------------------------------------------------\n${device.currentState('statusText')?.value}\n${device.currentState('lastReset')?.value}\nCummulative at last reset: ${device.currentState('cumulativeLastReset')?.value}\nHighest gallons used at last reset: ${device.currentState('gallonHighLastReset')?.value}\nHighest GPM at last reset: ${device.currentState('gpmHighLastReset')?.value}"
+    historyDisp = "${device.currentState('lastReset')?.value}\nCummulative at last reset: ${device.currentState('cumulativeLastReset')?.value}\nHighest gallons used at last reset: ${device.currentState('gallonHighLastReset')?.value}\nHighest GPM at last reset: ${device.currentState('gpmHighLastReset')?.value}"
     sendEvent(name: "history", value: historyDisp, displayed: false)
 }
 
