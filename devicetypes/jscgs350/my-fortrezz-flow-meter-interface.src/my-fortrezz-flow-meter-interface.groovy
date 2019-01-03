@@ -156,8 +156,8 @@ metadata {
 			state "lastReset", label:'${currentValue}'
 		}
 		valueTile("powerState", "device.powerState", width: 2, height: 1) { 
-			state "reconnected", label: "Power On", icon: "st.switches.switch.on", backgroundColor: "#79b821"
-			state "disconnected", label: "Power Off", icon: "st.switches.switch.off", backgroundColor: "#ffa81e"
+			state "reconnected", label: "On", icon: "st.switches.switch.on", backgroundColor: "#79b821"
+			state "disconnected", label: "Off", icon: "st.switches.switch.off", backgroundColor: "#ffa81e"
 			state "batteryReplaced", icon:"http://swiftlet.technology/wp-content/uploads/2016/04/Full-Battery-96.png", backgroundColor:"#cccccc"
 			state "noBattery", icon:"http://swiftlet.technology/wp-content/uploads/2016/04/No-Battery-96.png", backgroundColor:"#cc0000"
 		}
