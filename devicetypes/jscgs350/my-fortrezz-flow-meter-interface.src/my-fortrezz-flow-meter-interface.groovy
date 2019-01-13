@@ -54,6 +54,7 @@
  *  09-20-2018 : Changes for new app (ongoing).
  *  09-23-2018 : Changed main tile layout, added a couple new tiles to show what use to be in secondary_control values.
  *  10-09-2018 : Cleaned up code.
+ *  01-12-2019 : Cleaned up a lot of code.
  *
  */
 metadata {
@@ -72,11 +73,13 @@ metadata {
         
         attribute "gpm", "number"
 		attribute "gpmHigh", "number"
+        attribute "gpmHighValue", "number"
 		attribute "gpmTotal", "number"
         attribute "gpmLastUsed", "number"
 		attribute "gpmHighLastReset", "number"
         attribute "cumulativeLastReset", "number"
         attribute "gallonHigh", "number"
+        attribute "gallonHighValue", "number"
         attribute "gallonHighLastReset", "number"
         attribute "alarmState", "string"
         attribute "chartMode", "string"
@@ -184,9 +187,6 @@ metadata {
 }
 
 def installed() {
-	state.deltaHigh = 0
-    state.lastCumulative = 0
-    state.lastGallon = 0
     state.meterResetDate = ""
     state.debug = ("true" == debugOutput)
 }
@@ -263,40 +263,42 @@ def resetMeter() {
     } else {
     	state.meterResetDate = ""
     }
-    sendEvent(name: "cumulativeLastReset", value: state.lastCumulative+" gal", displayed: false)
+    sendEvent(name: "cumulativeLastReset", value: device.currentState('gpmTotal')?.doubleValue+" gal", displayed: false)
+    sendEvent(name: "gpmLastUsed", value: 0, displayed: false)
+    sendEvent(name: "gpmTotal", value: 0, displayed: false)
     def cmds = delayBetween([
 	    zwave.meterV3.meterReset().format()
     ])
-    state.lastCumulative = 0
     resetgpmHigh()
     resetgallonHigh()
     dispValue = "Meter was reset on "+timeString
     sendEvent(name: "lastReset", value: dispValue as String, displayed: false)
 	def historyDisp = ""
-    historyDisp = "${device.currentState('lastReset')?.value}\nCummulative at last reset: ${device.currentState('cumulativeLastReset')?.value}\nHighest gallons used at last reset: ${device.currentState('gallonHighLastReset')?.value}\nHighest GPM at last reset: ${device.currentState('gpmHighLastReset')?.value}"
+    historyDisp = "${device.currentState('lastReset')?.value}\nCummulative at last reset: ${device.currentState('gpmTotal')?.doubleValue} gal\nHighest gallons used at last reset: ${device.currentState('gallonHighLastReset')?.value}\nHighest GPM at last reset: ${device.currentState('gpmHighLastReset')?.value}"
     sendEvent(name: "history", value: historyDisp, displayed: false)
+    take1()
     return cmds
 }
 
 def resetgpmHigh() {
 	log.debug "Resetting high value for GPM..."
     def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
-    sendEvent(name: "gpmHighLastReset", value: state.deltaHigh+" gpm", displayed: false)
-    state.deltaHigh = 0
+    sendEvent(name: "gpmHighLastReset", value: device.currentState('gpmHighValue')?.doubleValue+" gpm", displayed: false)
     sendEvent(name: "gpmHigh", value: "(resently reset)")
+    sendEvent(name: "gpmHighValue", value: 0)
 	def historyDisp = ""
-    historyDisp = "${device.currentState('lastReset')?.value}\nCummulative at last reset: ${device.currentState('cumulativeLastReset')?.value}\nHighest gallons used at last reset: ${device.currentState('gallonHighLastReset')?.value}\nHighest GPM at last reset: ${device.currentState('gpmHighLastReset')?.value}"
+    historyDisp = "${device.currentState('lastReset')?.value}\nCummulative at last reset: ${device.currentState('gpmTotal')?.doubleValue} gal\nHighest gallons used at last reset: ${device.currentState('gallonHighLastReset')?.value}\nHighest GPM at last reset: ${device.currentState('gpmHighLastReset')?.value}"
     sendEvent(name: "history", value: historyDisp, displayed: false)
 }
 
 def resetgallonHigh() {
 	log.debug "Resetting high value for gallons used..."
     def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
-    sendEvent(name: "gallonHighLastReset", value: state.lastGallon+" gals", displayed: false)
-    state.lastGallon = 0
+    sendEvent(name: "gallonHighLastReset", value: device.currentState('gallonHighValue')?.doubleValue+" gals", displayed: false)
     sendEvent(name: "gallonHigh", value: "(resently reset)")
+    sendEvent(name: "gallonHighValue", value: 0)
 	def historyDisp = ""
-    historyDisp = "${device.currentState('lastReset')?.value}\nCummulative at last reset: ${device.currentState('cumulativeLastReset')?.value}\nHighest gallons used at last reset: ${device.currentState('gallonHighLastReset')?.value}\nHighest GPM at last reset: ${device.currentState('gpmHighLastReset')?.value}"
+    historyDisp = "${device.currentState('lastReset')?.value}\nCummulative at last reset: ${device.currentState('gpmTotal')?.doubleValue} gal\nHighest gallons used at last reset: ${device.currentState('gallonHighLastReset')?.value}\nHighest GPM at last reset: ${device.currentState('gpmHighLastReset')?.value}"
     sendEvent(name: "history", value: historyDisp, displayed: false)
 }
 
@@ -322,30 +324,36 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
     def delta = Math.round((((cmd.scaledMeterValue - cmd.scaledPreviousMeterValue) / (reportThreshhold*10)) * 60)*100)/100 //rounds to 2 decimal positions
     if (delta < 0) { //There should never be any negative values
 			if (state.debug) log.debug "We just detected a negative delta value that won't be processed: ${delta}"
+            return
     } else if (delta > 60) { //There should never be any crazy high gallons as a delta, even at 1 minute reporting intervals.  It's not possible unless you're a firetruck.
     		if (state.debug) log.debug "We just detected a crazy high delta value that won't be processed: ${delta}"
+            return
     } else if (delta == 0) {
     		if (state.debug) log.debug "Flow has stopped, so process what the meter collected."
-    		def prevCumulative = cmd.scaledMeterValue - state.lastCumulative
-        	state.lastCumulative = cmd.scaledMeterValue
-        	sendDataToCloud(prevCumulative)
-        	if (prevCumulative > state.lastGallon) {
-            	sendEvent(name: "gallonHigh", value: prevCumulative+" gallons on"+"\n"+timeString as String, displayed: false)
-            	state.lastGallon = prevCumulative
-        	}
-			sendEvent(name: "power", value: delta, displayed: false)  // This is only used for SmartApps that need Power capabilities.
-            sendEvent(name: "gpmTotal", value: cmd.scaledMeterValue)
-            sendEvent(name: "gpmLastUsed", value: prevCumulative)
-    		sendEvent(name: "waterState", value: "none")
-            sendEvent(name: "gpm", value: delta)
-        	sendAlarm("")
+            if (cmd.scaledMeterValue == device.currentState('gpmTotal')?.doubleValue) {
+            	if (state.debug) log.debug "Current and previous flow values are the same, so skip processing."
+                return
+            }
+			def prevCumulative = cmd.scaledMeterValue - device.currentState('gpmTotal')?.doubleValue
+            sendDataToCloud(prevCumulative)
+			if (prevCumulative > device.currentState('gallonHighValue')?.doubleValue) {
+                sendEvent(name: "gallonHigh", value: String.format("%3.1f",prevCumulative)+" gallons on"+"\n"+timeString as String, displayed: false)
+                sendEvent(name: "gallonHighValue", value: String.format("%3.1f",prevCumulative), displayed: false)
+            }
+            sendEvent(name: "power", value: delta, displayed: false)  // This is only used for SmartApps that need Power capabilities.
+            sendEvent(name: "gpmTotal", value: cmd.scaledMeterValue, displayed: false)
+            sendEvent(name: "gpmLastUsed", value: String.format("%3.1f",prevCumulative), displayed: false)
+            sendEvent(name: "waterState", value: "none", displayed: true)
+            sendEvent(name: "gpm", value: delta, displayed: true)
+            sendAlarm("")
+            return
     	} else {
         	sendEvent(name: "gpm", value: delta)
             sendEvent(name: "power", value: delta, displayed: false)  // This is only used for SmartApps that need Power capabilities.
             if (state.debug) log.debug "flowing at ${delta}"
-            if (delta > state.deltaHigh) {
-                sendEvent(name: "gpmHigh", value: delta+" gpm on"+"\n"+timeString as String, displayed: false)
-                state.deltaHigh = delta
+            if (delta > device.currentState('gpmHighValue')?.doubleValue) {
+                sendEvent(name: "gpmHigh", value: String.format("%3.1f",delta)+" gpm on"+"\n"+timeString as String, displayed: true)
+                sendEvent(name: "gpmHighValue", value: String.format("%3.1f",delta), displayed: false)
             }
         	if (delta > gallonThreshhold) {
             	sendEvent(name: "waterState", value: "highflow")
@@ -354,29 +362,24 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
         		sendEvent(name: "waterState", value: "flow")
             	sendAlarm("")
 			}
+            return
     }
 	return
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.alarmv2.AlarmReport cmd) {
-    log.debug "Alarm reporting section..."
 	def map = [:]
     if (cmd.zwaveAlarmType == 8) { // Power Alarm
-//    	map.name = "powerState" // For Tile (shows in "Recently")
         if (cmd.zwaveAlarmEvent == 2) { // AC Mains Disconnected
-//            map.value = "disconnected"
             sendEvent(name: "powerState", value: "disconnected")
             sendAlarm("Mains Disconnected!")
         } else if (cmd.zwaveAlarmEvent == 3) { // AC Mains Reconnected
-//            map.value = "reconnected"
 			sendEvent(name: "powerState", value: "reconnected")
             sendAlarm("Mains Reconnected")
         } else if (cmd.zwaveAlarmEvent == 0x0B) { // Replace Battery Now
-//            map.value = "noBattery"
 			sendEvent(name: "powerState", value: "noBattery")
             sendAlarm("Replace Battery Now")
         } else if (cmd.zwaveAlarmEvent == 0x00) { // Battery Replaced
-//            map.value = "batteryReplaced"
 			sendEvent(name: "powerState", value: "batteryReplaced")
             sendAlarm("Battery Replaced")
         }
@@ -417,7 +420,8 @@ def zwaveEvent(physicalgraph.zwave.Command cmd) {
 }
 
 def sendDataToCloud(double data) {
-	if (state.debug) log.debug "Sending data to the cloud..."
+	def formatData = String.format("%3.1f",data)
+	if (state.debug) log.debug "Sending data ${formatData} to the cloud..."
 	def meterID
     if (customID != null) {
     	meterID = customID+state.meterResetDate
@@ -430,12 +434,10 @@ def sendDataToCloud(double data) {
         path: "/fortrezz/post.php",
         body: [
             id: meterID,
-            value: data,
+            value: formatData,
             email: registerEmail
         ]
     ]
-
-	//log.debug("POST parameters: ${params}")
     try {
         httpPostJson(params) { resp ->
             resp.headers.each {
@@ -495,7 +497,6 @@ def sendAlarm(text) {
 // PING is used by Device-Watch in attempt to reach the Device
 def ping() {
     refresh()
-    //zwave.sensorMultilevelV5.sensorMultilevelGet().format()
 }
 
 def refresh() {
@@ -508,7 +509,7 @@ def refresh() {
     statusTextmsg = "Last refreshed at "+timeString
     sendEvent(name:"statusText", value:statusTextmsg)
 	def historyDisp = ""
-    historyDisp = "${device.currentState('lastReset')?.value}\nCummulative at last reset: ${device.currentState('cumulativeLastReset')?.value}\nHighest gallons used at last reset: ${device.currentState('gallonHighLastReset')?.value}\nHighest GPM at last reset: ${device.currentState('gpmHighLastReset')?.value}"
+    historyDisp = "${device.currentState('lastReset')?.value}\nCummulative at last reset: ${device.currentState('gpmTotal')?.doubleValue} gal\nHighest gallons used at last reset: ${device.currentState('gallonHighLastReset')?.value}\nHighest GPM at last reset: ${device.currentState('gpmHighLastReset')?.value}"
     sendEvent(name: "history", value: historyDisp, displayed: false)
 }
 
