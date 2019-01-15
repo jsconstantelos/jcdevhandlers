@@ -12,7 +12,7 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
- *  Contributors: FortrezZ (original - Daniel Kurin), jscgs350, bridaus
+ *  Contributors: FortrezZ (original - Daniel Kurin), jscgs350
  *
  *  Updates:
  *  -------
@@ -276,6 +276,7 @@ def resetMeter() {
 	def historyDisp = ""
     historyDisp = "${device.currentState('lastReset')?.value}\nCummulative at last reset: ${device.currentState('gpmTotal')?.doubleValue} gal\nHighest gallons used at last reset: ${device.currentState('gallonHighLastReset')?.value}\nHighest GPM at last reset: ${device.currentState('gpmHighLastReset')?.value}"
     sendEvent(name: "history", value: historyDisp, displayed: false)
+    sendEvent(name: "alarmState", value: "The meter was just reset.", descriptionText: text, displayed: true)
     take1()
     return cmds
 }
@@ -289,6 +290,7 @@ def resetgpmHigh() {
 	def historyDisp = ""
     historyDisp = "${device.currentState('lastReset')?.value}\nCummulative at last reset: ${device.currentState('gpmTotal')?.doubleValue} gal\nHighest gallons used at last reset: ${device.currentState('gallonHighLastReset')?.value}\nHighest GPM at last reset: ${device.currentState('gpmHighLastReset')?.value}"
     sendEvent(name: "history", value: historyDisp, displayed: false)
+    sendEvent(name: "alarmState", value: "GPM high value was reset.", descriptionText: text, displayed: true)
 }
 
 def resetgallonHigh() {
@@ -300,6 +302,7 @@ def resetgallonHigh() {
 	def historyDisp = ""
     historyDisp = "${device.currentState('lastReset')?.value}\nCummulative at last reset: ${device.currentState('gpmTotal')?.doubleValue} gal\nHighest gallons used at last reset: ${device.currentState('gallonHighLastReset')?.value}\nHighest GPM at last reset: ${device.currentState('gpmHighLastReset')?.value}"
     sendEvent(name: "history", value: historyDisp, displayed: false)
+    sendEvent(name: "alarmState", value: "Gals used high value was reset.", descriptionText: text, displayed: true)
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv5.SensorMultilevelReport cmd) {
@@ -345,7 +348,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
             sendEvent(name: "gpmLastUsed", value: String.format("%3.1f",prevCumulative), displayed: false)
             sendEvent(name: "waterState", value: "none", displayed: true)
             sendEvent(name: "gpm", value: delta, displayed: true)
-            sendAlarm("")
+            sendEvent(name: "alarmState", value: "Normal Operation", descriptionText: text, displayed: true)
             return
     	} else {
         	sendEvent(name: "gpm", value: delta)
@@ -357,10 +360,10 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
             }
         	if (delta > gallonThreshhold) {
             	sendEvent(name: "waterState", value: "highflow")
-            	sendAlarm("High Flow Detected!")
+                sendEvent(name: "alarmState", value: "High Flow Detected!", descriptionText: text, displayed: true)
         	} else {
         		sendEvent(name: "waterState", value: "flow")
-            	sendAlarm("")
+                sendEvent(name: "alarmState", value: "Water is flowing", descriptionText: text, displayed: true)
 			}
             return
     }
@@ -372,28 +375,28 @@ def zwaveEvent(physicalgraph.zwave.commands.alarmv2.AlarmReport cmd) {
     if (cmd.zwaveAlarmType == 8) { // Power Alarm
         if (cmd.zwaveAlarmEvent == 2) { // AC Mains Disconnected
             sendEvent(name: "powerState", value: "disconnected")
-            sendAlarm("Mains Disconnected!")
+            sendEvent(name: "alarmState", value: "Mains Disconnected!", descriptionText: text, displayed: true)
         } else if (cmd.zwaveAlarmEvent == 3) { // AC Mains Reconnected
 			sendEvent(name: "powerState", value: "reconnected")
-            sendAlarm("Mains Reconnected")
+            sendEvent(name: "alarmState", value: "Mains Reconnected", descriptionText: text, displayed: true)
         } else if (cmd.zwaveAlarmEvent == 0x0B) { // Replace Battery Now
 			sendEvent(name: "powerState", value: "noBattery")
-            sendAlarm("Replace Battery Now")
+            sendEvent(name: "alarmState", value: "Replace Battery Now", descriptionText: text, displayed: true)
         } else if (cmd.zwaveAlarmEvent == 0x00) { // Battery Replaced
 			sendEvent(name: "powerState", value: "batteryReplaced")
-            sendAlarm("Battery Replaced")
+            sendEvent(name: "alarmState", value: "Battery Replaced", descriptionText: text, displayed: true)
         }
     }
-    else if (cmd.zwaveAlarmType == 4) { // Heat Alarm
+    else if (cmd.zwaveAlarmType == 4) {
     	map.name = "heatState"
-        if (cmd.zwaveAlarmEvent == 0) { // Normal
-            map.value = "normal"
-        } else if (cmd.zwaveAlarmEvent == 1) { // Overheat
+        if (cmd.zwaveAlarmEvent == 0) {
+            sendEvent(name: "alarmState", value: "Normal Operation", descriptionText: text, displayed: true)
+        } else if (cmd.zwaveAlarmEvent == 1) {
             map.value = "overheated"
-            sendAlarm("tempOverheated")
-        } else if (cmd.zwaveAlarmEvent == 5) { // Underheat
+            sendEvent(name: "alarmState", value: "Overheating Detected!", descriptionText: text, displayed: true)
+        } else if (cmd.zwaveAlarmEvent == 5) {
             map.value = "freezing"
-            sendAlarm("tempFreezing")
+            sendEvent(name: "alarmState", value: "Freezing Detected!", descriptionText: text, displayed: true)
         }
     }
 	return map
@@ -488,10 +491,6 @@ private doRequest(uri, type, success) {
   } else if(type == "get") {
     httpGet(uri, success)
   }
-}
-
-def sendAlarm(text) {
-	sendEvent(name: "alarmState", value: text, descriptionText: text, displayed: false)
 }
 
 // PING is used by Device-Watch in attempt to reach the Device
