@@ -26,6 +26,7 @@
 metadata {
 	// Automatically generated. Make future change here.
 	definition (name: "My Z-Wave Lock Sensor", namespace: "jscgs350", author: "SmartThings", mnmn: "SmartThings", vid:"generic-lock") {
+//	definition (name: "Z-Wave Lock", namespace: "jscgs350", author: "SmartThings", mnmn: "SmartThings", vid:"generic-lock") {
 		capability "Battery"
 		capability "Configuration"
 		capability "Contact Sensor"
