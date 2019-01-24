@@ -14,11 +14,17 @@ metadata {
         capability "Switch"
 		command "open"
 		command "close"
+		command "on"
+		command "off"
 	}
 	tiles {
 		standardTile("contact", "device.contact", width: 2, height: 2) {
 			state("open", label:'Away', icon:"st.presence.tile.not-present", backgroundColor:"#ffffff", action: "close")
 			state("closed", label:'Present', icon:"st.presence.tile.present", backgroundColor:"#00a0dc", action: "open")
+		}
+		standardTile("switch", "device.switch", width: 2, height: 2) {
+			state("off", label:'Away', icon:"st.presence.tile.not-present", backgroundColor:"#ffffff", action: "on")
+			state("on", label:'Present', icon:"st.presence.tile.present", backgroundColor:"#00a0dc", action: "off")
 		}
 		main "contact"
 		details "contact"
@@ -30,17 +36,17 @@ def parse(String description) {
 }
 def on() {
 	sendEvent(name: "switch", value: "on")
-    sendEvent(name: "contact", value: "closed")
+    sendEvent(name: "contact", value: "closed", displayed: false)
 }
 def off() {
 	sendEvent(name: "switch", value: "off")
-    sendEvent(name: "contact", value: "open")
+    sendEvent(name: "contact", value: "open", displayed: false)
 }
 def open() {
-	sendEvent(name: "contact", value: "open")
+	sendEvent(name: "contact", value: "open", displayed: false)
     sendEvent(name: "switch", value: "off")
 }
 def close() {
-    sendEvent(name: "contact", value: "closed")
+    sendEvent(name: "contact", value: "closed", displayed: false)
     sendEvent(name: "switch", value: "on")
 }
