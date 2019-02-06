@@ -55,6 +55,7 @@
  *  09-23-2018 : Changed main tile layout, added a couple new tiles to show what use to be in secondary_control values.
  *  10-09-2018 : Cleaned up code.
  *  01-12-2019 : Cleaned up a lot of code.
+ *  02-05-2019 : Added/updated error checking for negative delta values, crazy high delta values, duplicate current and previous flow values, and when current flow value is less than the previous flow value.
  *
  */
 metadata {
@@ -176,13 +177,19 @@ metadata {
 		valueTile("history", "device.history", decoration:"flat", width: 6,height:2) {
 			state "history", label:'${currentValue}'
 		}
+		standardTile("errorIcon", "device.errorHist", decoration:"flat", width: 1,height:1) {
+			state "default", icon: "st.alarm.alarm.alarm"
+		}
+		valueTile("errorHist", "device.errorHist", decoration:"flat", width: 4,height:1) {
+			state "errorHist", label:'${currentValue}'
+		}
 		standardTile("waterState", "device.waterState", width: 1, height: 1) { 
 			state "none", icon:"http://cdn.device-icons.smartthings.com/valves/water/closed@2x.png", backgroundColor:"#999999", label: "No Flow"
 			state "flow", icon:"http://cdn.device-icons.smartthings.com/valves/water/open@2x.png", backgroundColor:"#51afdb", label: "Flow"
 			state "highflow", icon:"http://cdn.device-icons.smartthings.com/alarm/water/wet@2x.png", backgroundColor:"#ff0000", label: "High Flow"
 		}
 		main (["waterState"])
-		details(["gpm", "gpmTotal", "gpmLastUsed", "gallonHigh", "gpmHigh", "dayChart", "weekChart", "monthChart", "powerState", "temperature", "battery", "chartCycle", "configure", "zeroTile", "history"])
+		details(["gpm", "gpmTotal", "gpmLastUsed", "gallonHigh", "gpmHigh", "dayChart", "weekChart", "monthChart", "powerState", "temperature", "battery", "chartCycle", "history", "errorIcon", "errorHist", "errorIcon", "configure", "zeroTile"])
 	}
 }
 
@@ -276,7 +283,8 @@ def resetMeter() {
 	def historyDisp = ""
     historyDisp = "${device.currentState('lastReset')?.value}\nCummulative at last reset: ${device.currentState('gpmTotal')?.doubleValue} gal\nHighest gallons used at last reset: ${device.currentState('gallonHighLastReset')?.value}\nHighest GPM at last reset: ${device.currentState('gpmHighLastReset')?.value}"
     sendEvent(name: "history", value: historyDisp, displayed: false)
-    sendEvent(name: "alarmState", value: "The meter was just reset.", descriptionText: text, displayed: true)
+    sendEvent(name: "alarmState", value: "The meter was just reset", descriptionText: text, displayed: true)
+    sendEvent(name: "errorHist", value: "The meter was just reset at "+timeString, descriptionText: text, displayed: true)
     take1()
     return cmds
 }
@@ -290,7 +298,7 @@ def resetgpmHigh() {
 	def historyDisp = ""
     historyDisp = "${device.currentState('lastReset')?.value}\nCummulative at last reset: ${device.currentState('gpmTotal')?.doubleValue} gal\nHighest gallons used at last reset: ${device.currentState('gallonHighLastReset')?.value}\nHighest GPM at last reset: ${device.currentState('gpmHighLastReset')?.value}"
     sendEvent(name: "history", value: historyDisp, displayed: false)
-    sendEvent(name: "alarmState", value: "GPM high value was reset.", descriptionText: text, displayed: true)
+    sendEvent(name: "alarmState", value: "GPM high value was reset", descriptionText: text, displayed: true)
 }
 
 def resetgallonHigh() {
@@ -302,7 +310,7 @@ def resetgallonHigh() {
 	def historyDisp = ""
     historyDisp = "${device.currentState('lastReset')?.value}\nCummulative at last reset: ${device.currentState('gpmTotal')?.doubleValue} gal\nHighest gallons used at last reset: ${device.currentState('gallonHighLastReset')?.value}\nHighest GPM at last reset: ${device.currentState('gpmHighLastReset')?.value}"
     sendEvent(name: "history", value: historyDisp, displayed: false)
-    sendEvent(name: "alarmState", value: "Gals used high value was reset.", descriptionText: text, displayed: true)
+    sendEvent(name: "alarmState", value: "Gals used high value was reset", descriptionText: text, displayed: true)
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv5.SensorMultilevelReport cmd) {
@@ -327,14 +335,22 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
     def delta = Math.round((((cmd.scaledMeterValue - cmd.scaledPreviousMeterValue) / (reportThreshhold*10)) * 60)*100)/100 //rounds to 2 decimal positions
     if (delta < 0) { //There should never be any negative values
 			if (state.debug) log.debug "We just detected a negative delta value that won't be processed: ${delta}"
+            sendEvent(name: "errorHist", value: "Negative value detected at "+timeString, descriptionText: text, displayed: true)
             return
     } else if (delta > 60) { //There should never be any crazy high gallons as a delta, even at 1 minute reporting intervals.  It's not possible unless you're a firetruck.
     		if (state.debug) log.debug "We just detected a crazy high delta value that won't be processed: ${delta}"
+            sendEvent(name: "errorHist", value: "Crazy high delta value detected at "+timeString, descriptionText: text, displayed: true)
             return
     } else if (delta == 0) {
     		if (state.debug) log.debug "Flow has stopped, so process what the meter collected."
             if (cmd.scaledMeterValue == device.currentState('gpmTotal')?.doubleValue) {
             	if (state.debug) log.debug "Current and previous flow values are the same, so skip processing."
+                sendEvent(name: "errorHist", value: "Current and previous flow values are the same at "+timeString, descriptionText: text, displayed: true)
+                return
+            }
+            if (cmd.scaledMeterValue < device.currentState('gpmTotal')?.doubleValue) {
+            	if (state.debug) log.debug "Current flow value is less than the previous flow value and that should never happen, so skip processing."
+                sendEvent(name: "errorHist", value: "Current flow value is less than the previous flow value at "+timeString, descriptionText: text, displayed: true)
                 return
             }
 			def prevCumulative = cmd.scaledMeterValue - device.currentState('gpmTotal')?.doubleValue
