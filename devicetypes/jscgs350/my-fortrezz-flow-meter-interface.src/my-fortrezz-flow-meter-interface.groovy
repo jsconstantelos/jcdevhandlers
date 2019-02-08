@@ -522,10 +522,7 @@ def refresh() {
     def statusTextmsg = ""
     def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
     statusTextmsg = "Last refreshed at "+timeString
-    sendEvent(name:"statusText", value:statusTextmsg)
-	def historyDisp = ""
-    historyDisp = "${device.currentState('lastReset')?.value}\nCummulative at last reset: ${device.currentState('gpmTotal')?.doubleValue} gal\nHighest gallons used at last reset: ${device.currentState('gallonHighLastReset')?.value}\nHighest GPM at last reset: ${device.currentState('gpmHighLastReset')?.value}"
-    sendEvent(name: "history", value: historyDisp, displayed: false)
+    sendEvent(name:"statusText", value:statusTextmsg, displayed: false)
 }
 
 def configure() {
