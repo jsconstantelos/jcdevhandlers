@@ -16,7 +16,7 @@
  *
  *  Updates:
  *  -------
- *  07-06-2016 : Original commit.
+ *  07-06-2016 : Original commit..
  *  07-13-2016 : Modified the device handler for my liking, primarly for looks and feel.
  *  07-16-2016 : Changed GPM tile to be more descriptive during water flow, and then to show cumulative and last used gallons.
  *  07-23-2016 : Added tracking for highest recorded usage in gallons, and added actions for tiles to reset high values.  Added Reset Meter tile.
