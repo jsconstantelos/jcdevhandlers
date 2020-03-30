@@ -29,7 +29,7 @@
  */
 metadata {
 	// Automatically generated. Make future change here.
-	definition (name: "My MIMOlite Garage Door Controller", namespace: "jscgs350", author: "SmartThings") {
+	definition (name: "My MIMOlite Garage Door Controller", namespace: "jscgs350", author: "SmartThings", ocfDeviceType: "oic.d.garagedoor") {
         capability "Momentary"
         capability "Relay Switch"
 		capability "Polling"
