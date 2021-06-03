@@ -203,7 +203,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
 	def dispValue
 	def newValue
 	def timeString = new Date().format("MM-dd-yy h:mm a", location.timeZone)
-	if (cmd.meterType == 33) {
+	if (cmd.meterType == 1) {
 		if (cmd.scale == 0) {
 			newValue = cmd.scaledMeterValue
 //            log.debug "newValue is ${newValue} and prevValue is ${state.energyValue}"
